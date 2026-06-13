@@ -8,6 +8,7 @@ import path from "path";
 import Handlebars from "handlebars";
 import { fileURLToPath } from "url";
 import { generateApi } from "./generate";
+import { CONFIG_FILE } from "./constants";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -143,7 +144,7 @@ program
         plugins: answers.plugins || [],
         openapiUrl: answers.openapiUrl || "",
       };
-      fs.writeFileSync(path.resolve(process.cwd(), "specshot.json"), JSON.stringify(config, null, 2));
+      fs.writeFileSync(path.resolve(process.cwd(), CONFIG_FILE), JSON.stringify(config, null, 2));
 
       spinner.succeed(chalk.green(`API Core installed at ${answers.coreDir}`));
       console.log(chalk.green(`API Provider skeleton installed at ${answers.providerDir}`));
@@ -189,7 +190,7 @@ program
     // Resolve config path
     const configPath = options.config
       ? path.resolve(process.cwd(), options.config)
-      : path.resolve(process.cwd(), "specshot.json");
+      : path.resolve(process.cwd(), CONFIG_FILE);
 
     // Try to read config
     if (fs.existsSync(configPath)) {

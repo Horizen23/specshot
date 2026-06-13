@@ -1,39 +1,35 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import Handlebars from "handlebars";
+import {
+  JSON_CONTENT_TYPE,
+  HTTP_OK,
+  RESPONSE_BODY_STRUCT,
+  RESPONSE_BODY_PREFIX,
+} from "./constants";
+import type { OpenApiSpec, OpenApiOperation, ServiceGroup } from "./types";
+import { cleanRefName, extractRefs, schemaToTsType, schemaToZod } from "./schema-parser";
+import { toClassName, capitalize, toCamelCase, toMethodName } from "./naming-utils";
+import { extractCustomCode, compileTemplate, writeGenerated } from "./file-writer";
+import { loadSpec } from "./spec-loader";
+import { resolveConfig } from "./config-resolver";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function generateApi(specSource: string, outputDir: string, importAlias?: string, templatesDirOverride?: string, opts?: { dryRun?: boolean; configPath?: string }) {
-  const isUrl = specSource.startsWith("http://") || specSource.startsWith("https://");
-
-  let spec: any;
-  if (isUrl) {
-    console.log(`\nFetching OpenAPI spec from ${specSource}...`);
-    const res = await fetch(specSource);
-    if (!res.ok) {
-      if (res.status === 404) {
-        throw new Error(`OpenAPI spec not found at ${specSource} — is your backend running?`);
-      }
-      throw new Error(`Failed to fetch OpenAPI spec from ${specSource}: HTTP ${res.status} ${res.statusText}`);
-    }
-    spec = await res.json();
-  } else {
-    console.log(`\nLoading OpenAPI spec from ${specSource}...`);
-    if (!fs.existsSync(specSource)) {
-      throw new Error(`OpenAPI spec file not found at ${specSource} — check the file path`);
-    }
-    try {
-      spec = JSON.parse(fs.readFileSync(specSource, "utf8"));
-    } catch (e) {
-      throw new Error(`Failed to parse OpenAPI spec from ${specSource}: ${(e as Error).message}`);
-    }
-  }
+export async function generateApi(
+  specSource: string,
+  outputDir: string,
+  importAlias?: string,
+  templatesDirOverride?: string,
+  opts?: { dryRun?: boolean; configPath?: string },
+) {
+  const spec = await loadSpec(specSource);
 
   if (!spec.paths || Object.keys(spec.paths).length === 0) {
-    throw new Error(`OpenAPI spec at ${specSource} has no endpoints — check your backend routes`);
+    throw new Error(
+      `OpenAPI spec at ${specSource} has no endpoints — check your backend routes`,
+    );
   }
 
   if (opts?.dryRun) {
@@ -42,169 +38,47 @@ export async function generateApi(specSource: string, outputDir: string, importA
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-function extractCustomCode(filePath: string): string | null {
-  if (!fs.existsSync(filePath)) return null;
-  const content = fs.readFileSync(filePath, "utf8");
-  const match = content.match(/\/\/ --- CUSTOM CODE START ---([\s\S]*?)\/\/ --- CUSTOM CODE END ---/);
-  if (match && match[1]) {
-    return match[1].replace(/^\n|\n$/g, "");
-  }
-  return null;
-}
-
-function compileTemplate(hbsPath: string): HandlebarsTemplateDelegate<any> {
-  try {
-    const hbs = fs.readFileSync(hbsPath, "utf8");
-    return Handlebars.compile(hbs);
-  } catch (e) {
-    throw new Error(`Failed to compile template ${path.basename(hbsPath)}: ${(e as Error).message}`);
-  }
-}
-
-function writeGenerated(filePath: string, content: string): void {
-  try {
-    fs.writeFileSync(filePath, content);
-  } catch (e) {
-    throw new Error(`Failed to write ${path.basename(filePath)}: ${(e as Error).message}`);
-  }
-}
-
-function toClassName(str: string): string { return str.replace(/[^a-zA-Z0-9]/g, "") + "Service"; }
-const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
-
-const toCamelCase = (str: string): string => str.replace(/([-_][a-z])/ig, ($1: string) => $1.toUpperCase().replace('-', '').replace('_', ''));
-
-function toMethodName(operationId: string): string {
-  if (!operationId) return "unknownMethod";
-  const parts = operationId.split(":");
-  const name = parts[parts.length - 1];
-  return name.replace(/-([a-z])/g, (g: string) => g[1].toUpperCase());
-}
-
-function cleanRefName(ref: string | undefined): string {
-  if (!ref) return "";
-  return ref.split('/').pop()!.replace(/[^a-zA-Z0-9_]/g, "");
-}
-
-// Extract all direct $refs from a schema object
-function extractRefs(schema: any, refs: Set<string> = new Set()): Set<string> {
-  if (!schema) return refs;
-  if (schema.$ref) refs.add(cleanRefName(schema.$ref));
-  if (schema.type === "array" && schema.items) extractRefs(schema.items, refs);
-  if (schema.properties) {
-    for (const prop of Object.values(schema.properties)) {
-      extractRefs(prop, refs);
-    }
-  }
-  return refs;
-}
-
-// Convert JSON Schema to pure TS String
-function schemaToTsType(schema: any): string {
-  if (!schema) return "any";
-  if (schema.$ref) {
-    let refName = cleanRefName(schema.$ref);
-    if (refName === "ResponseBodyStruct") return "void";
-    return refName!;
-  }
-  
-  if (schema.type === "array") {
-    return `${schemaToTsType(schema.items)}[]`;
-  }
-  
-  if (schema.type === "object" || schema.properties) {
-    const props: string[] = [];
-    const required: string[] = schema.required || [];
-    for (const [key, propSchema] of Object.entries(schema.properties || {})) {
-      const isRequired = required.includes(key);
-      const q = isRequired ? "" : "?";
-      const safeKey = (key as string).includes("-") || (key as string).includes(" ") ? `"${key}"` : key;
-      props.push(`  ${safeKey}${q}: ${schemaToTsType(propSchema)};`);
-    }
-    if (props.length === 0) return "Record<string, any>";
-    return `{\n${props.join("\n")}\n}`;
-  }
-
-  if (schema.type === "integer" || schema.type === "number") return "number";
-  if (schema.type === "string") {
-    if (schema.enum) return schema.enum.map((e: string) => `"${e}"`).join(" | ");
-    return "string";
-  }
-  if (schema.type === "boolean") return "boolean";
-  
-  return "any";
-}
-
-function schemaToZod(schema: any): string {
-  if (schema.$ref) {
-    return `${cleanRefName(schema.$ref)}Schema`;
-  }
-  if (schema.type === "array") {
-    return `z.array(${schemaToZod(schema.items)})`;
-  }
-  if (schema.type === "object" || schema.properties) {
-    const props: string[] = [];
-    const required: string[] = schema.required || [];
-    for (const [key, propSchema] of Object.entries(schema.properties || {})) {
-      const isRequired = required.includes(key);
-      const safeKey = (key as string).includes("-") || (key as string).includes(" ") ? `"${key}"` : key;
-      let zodType: string = schemaToZod(propSchema);
-      if (!isRequired) zodType += ".optional()";
-      props.push(`  ${safeKey}: ${zodType},`);
-    }
-    if (props.length === 0) return "z.record(z.any())";
-    return `z.object({\n${props.join("\n")}\n})`;
-  }
-  if (schema.type === "integer" || schema.type === "number") return "z.number()";
-  if (schema.type === "string") {
-    if (schema.enum) return `z.enum([${schema.enum.map((e: string) => `"${e}"`).join(", ")}])`;
-    return "z.string()";
-  }
-  if (schema.type === "boolean") return "z.boolean()";
-  
-  return "z.any()";
-}
-
-
   const schemas = spec.components?.schemas || {};
-  
-  // 1. Map schemas to the tags that use them
-  const schemaUsage = new Map(); // schemaName -> Set of tags
+
+  const schemaUsage = new Map<string, Set<string>>();
   for (const name of Object.keys(schemas)) {
-    schemaUsage.set(cleanRefName(name), new Set());
+    schemaUsage.set(cleanRefName(name), new Set<string>());
   }
 
-  // Scan operations to assign tags
-  for (const methods of Object.values(spec.paths ?? {}) as any[]) {
-    for (const operation of Object.values(methods ?? {}) as any[]) {
+  const pathEntries = Object.entries(spec.paths ?? {}) as [
+    string,
+    Record<string, OpenApiOperation>,
+  ][];
+  for (const [, methods] of pathEntries) {
+    for (const operation of Object.values(methods)) {
       if (!operation.tags || operation.tags.length === 0) continue;
       const tag = operation.tags[0];
-      
+
       const refsInOp = new Set<string>();
-      if (operation.requestBody?.content?.["application/json"]?.schema) {
-        extractRefs(operation.requestBody.content["application/json"].schema, refsInOp);
+      if (operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema) {
+        extractRefs(operation.requestBody.content[JSON_CONTENT_TYPE].schema, refsInOp);
       }
-      if (operation.responses?.["200"]?.content?.["application/json"]?.schema) {
-        extractRefs(operation.responses["200"].content["application/json"].schema, refsInOp);
+      if (operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema) {
+        extractRefs(operation.responses[HTTP_OK].content[JSON_CONTENT_TYPE].schema, refsInOp);
       }
-      
+
       for (const ref of refsInOp) {
-        if (schemaUsage.has(ref)) schemaUsage.get(ref).add(tag);
+        if (schemaUsage.has(ref)) schemaUsage.get(ref)!.add(tag);
       }
     }
   }
 
-  // Propagate usage to nested schemas (e.g. PageResponseTruckResponse -> TruckResponse)
+  // Propagate usage to nested schemas
   let changed = true;
   while (changed) {
     changed = false;
     for (const [name, schema] of Object.entries(schemas)) {
       const cleanName = cleanRefName(name);
-      if (cleanName === "ResponseBodyStruct") continue;
-      
+      if (cleanName === RESPONSE_BODY_STRUCT) continue;
+
       const nestedRefs = extractRefs(schema);
       const parentTags = schemaUsage.get(cleanName) || new Set();
-      
+
       for (const nestedRef of nestedRefs) {
         const childTags = schemaUsage.get(nestedRef);
         if (childTags) {
@@ -217,16 +91,16 @@ function schemaToZod(schema: any): string {
   }
 
   // Decide where each schema goes
-  const sharedSchemas = new Set();
-  const tagSchemas = new Map(); // tag -> Set of schemas
+  const sharedSchemas = new Set<string>();
+  const tagSchemas = new Map<string, Set<string>>();
 
   for (const [name, tags] of schemaUsage.entries()) {
-    if (name === "ResponseBodyStruct" || name.startsWith("ResponseBody")) continue; // We unwrap envelopes
-    
+    if (name === RESPONSE_BODY_STRUCT || name.startsWith(RESPONSE_BODY_PREFIX)) continue;
+
     if (tags.size === 1) {
       const tag = Array.from(tags)[0];
-      if (!tagSchemas.has(tag)) tagSchemas.set(tag, new Set());
-      tagSchemas.get(tag).add(name);
+      if (!tagSchemas.has(tag)) tagSchemas.set(tag, new Set<string>());
+      tagSchemas.get(tag)!.add(name);
     } else {
       sharedSchemas.add(name);
     }
@@ -236,29 +110,40 @@ function schemaToZod(schema: any): string {
     ? path.resolve(process.cwd(), templatesDirOverride)
     : path.join(__dirname, "../templates/generator");
 
-  // 2. GENERATE SHARED MODELS (models.ts)
+  // GENERATE SHARED MODELS (models.ts)
   const modelsPath = path.join(outputDir, "models.ts");
   const modelsCustomCode = extractCustomCode(modelsPath);
 
   const modelsData = {
-    schemas: Array.from(sharedSchemas).map(name => {
-      const schemaKey = Object.keys(schemas).find(k => cleanRefName(k) === name);
+    schemas: Array.from(sharedSchemas).map((name) => {
+      const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
       return {
         name,
-        zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()"
+        zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
       };
     }),
-    customCode: modelsCustomCode
+    customCode: modelsCustomCode,
   };
-  
+
   const modelsTemplate = compileTemplate(path.join(templatesDir, "models.hbs"));
   writeGenerated(modelsPath, modelsTemplate(modelsData));
   console.log(`Generated models.ts (Shared Models)`);
 
+  const schemaAliases = modelsData.schemas
+    .map((s) => `export const ${s.name}Schema = ${s.name};`)
+    .join("\n");
+  if (schemaAliases) {
+    fs.appendFileSync(modelsPath, `\n${schemaAliases}\n`);
+  }
+
   // Group paths by tags
-  const services: Record<string, any> = {};
-  for (const [pathUrl, methods] of Object.entries(spec.paths) as [string, any][]) {
-    for (const [method, operation] of Object.entries(methods) as [string, any][]) {
+  const services: Record<string, ServiceGroup> = {};
+
+  for (const [pathUrl, methods] of Object.entries(spec.paths) as [
+    string,
+    Record<string, OpenApiOperation>,
+  ][]) {
+    for (const [method, operation] of Object.entries(methods)) {
       if (!operation.tags || operation.tags.length === 0) continue;
       const tag = operation.tags[0];
       if (!services[tag]) services[tag] = { name: tag, operations: [] };
@@ -270,74 +155,49 @@ function schemaToZod(schema: any): string {
         description: operation.description,
         parameters: operation.parameters || [],
         hasBody: !!operation.requestBody,
-        hasQuery: !!operation.parameters?.some((p: any) => p.in === "query"),
-        hasPathParams: !!operation.parameters?.some((p: any) => p.in === "path"),
-        responseSchema: operation.responses?.["200"]?.content?.["application/json"]?.schema,
-        bodySchema: operation.requestBody?.content?.["application/json"]?.schema
+        hasQuery: !!operation.parameters?.some((p) => p.in === "query"),
+        hasPathParams: !!operation.parameters?.some((p) => p.in === "path"),
+        responseSchema: operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema,
+        bodySchema: operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema,
       });
     }
   }
 
   const providerDir = path.dirname(outputDir);
-  
-  // Try to load config
-  const configPath = opts?.configPath
-    ? path.resolve(process.cwd(), opts.configPath)
-    : path.resolve(process.cwd(), "specshot.json");
-  let config: any = {};
-  if (fs.existsSync(configPath)) {
-    try {
-      config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    } catch(e) {}
-  }
-  
-  // Resolve core path
-  let corePathStr = importAlias ? `${importAlias}/core` : "../core";
-  if (!importAlias && config.coreDir) {
-    const targetCoreDir = path.resolve(process.cwd(), config.coreDir);
-    corePathStr = path.relative(providerDir, targetCoreDir).replace(/\\/g, "/");
-    if (!corePathStr.startsWith(".")) corePathStr = "./" + corePathStr;
-  }
+  const { corePathStr, servicesCorePath } = resolveConfig(outputDir, importAlias, opts?.configPath);
 
-  // Calculate paths for services
-  let servicesCorePath = importAlias ? `${importAlias}/core` : "../" + corePathStr;
-
-  for (const [tag, rawData] of Object.entries(services)) {
-    const data = rawData as any;
+  for (const [tag, data] of Object.entries(services)) {
     const className = toClassName(tag);
     const tagPrefix = tag.toLowerCase();
     const serviceFileName = `${tagPrefix}.service.ts`;
     const typesFileName = `${tagPrefix}.types.ts`;
 
-    // ==========================================
-    // 3. GENERATE TYPES & SERVICE FILES
-    // ==========================================
-    const modelsToImport = new Set();
-    const specificSchemasList = [];
+    const modelsToImport = new Set<string>();
+    const specificSchemasList: { name: string; zod: string }[] = [];
     const specificSchemas = tagSchemas.get(tag) || new Set();
-    
+
     if (specificSchemas.size > 0) {
       for (const name of specificSchemas) {
-        const schemaKey = Object.keys(schemas).find(k => cleanRefName(k) === name);
+        const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
         if (schemaKey) {
           const nested = extractRefs(schemas[schemaKey]);
           for (const n of nested) if (sharedSchemas.has(n)) modelsToImport.add(n);
           specificSchemasList.push({
             name,
-            zod: schemaToZod(schemas[schemaKey])
+            zod: schemaToZod(schemas[schemaKey]),
           });
         }
       }
     }
 
-    const typeNames = [];
-    const operationsList = [];
+    const typeNames: string[] = [];
+    const operationsList: Record<string, unknown>[] = [];
 
     for (const op of data.operations) {
       const methodName = toMethodName(op.operationId);
       const capMethod = capitalize(methodName);
-      
-      let typeNamePayload = null;
+
+      let typeNamePayload: string | null = null;
       let bodyType = "any";
       if (op.hasBody) {
         typeNamePayload = `${tag}${capMethod}Payload`;
@@ -351,14 +211,18 @@ function schemaToZod(schema: any): string {
         }
       }
 
-      let typeNameParams = null;
-      const queryParamsList = [];
+      let typeNameParams: string | null = null;
+      const queryParamsList: { name: string; required: boolean | undefined; tsType: string }[] = [];
       if (op.hasQuery) {
         typeNameParams = `${tag}${capMethod}Params`;
         typeNames.push(typeNameParams);
-        const queryParams = op.parameters.filter((p: any) => p.in === "query");
+        const queryParams = op.parameters.filter((p) => p.in === "query");
         for (const p of queryParams) {
-          queryParamsList.push({ name: p.name, required: p.required, tsType: schemaToTsType(p.schema) });
+          queryParamsList.push({
+            name: p.name,
+            required: p.required,
+            tsType: schemaToTsType(p.schema),
+          });
         }
       }
 
@@ -367,33 +231,46 @@ function schemaToZod(schema: any): string {
       let resType = "void";
       if (op.responseSchema?.$ref) {
         let refName = cleanRefName(op.responseSchema.$ref);
-        if (refName !== "ResponseBodyStruct") {
-          if (refName.startsWith("ResponseBody")) {
-             const schemaKey = Object.keys(schemas).find(k => cleanRefName(k) === refName);
-             const wrapperSchema = schemaKey ? schemas[schemaKey] : undefined;
-             if (wrapperSchema?.properties?.data?.$ref) {
-               refName = cleanRefName(wrapperSchema.properties.data.$ref);
-             } else if (wrapperSchema?.properties?.data?.type) {
-               refName = schemaToTsType(wrapperSchema.properties.data);
-             }
+        if (refName !== RESPONSE_BODY_STRUCT) {
+          if (refName.startsWith(RESPONSE_BODY_PREFIX)) {
+            const schemaKey = Object.keys(schemas).find(
+              (k) => cleanRefName(k) === refName,
+            );
+            const wrapperSchema = schemaKey ? schemas[schemaKey] : undefined;
+            if (wrapperSchema?.properties?.data?.$ref) {
+              refName = cleanRefName(wrapperSchema.properties.data.$ref);
+            } else if (wrapperSchema?.properties?.data?.type) {
+              refName = schemaToTsType(wrapperSchema.properties.data);
+            }
           }
-          if (refName && !refName.includes("{") && !["string", "number", "boolean"].includes(refName)) {
-             if (sharedSchemas.has(refName)) modelsToImport.add(refName);
+          if (
+            refName &&
+            !refName.includes("{") &&
+            !["string", "number", "boolean"].includes(refName)
+          ) {
+            if (sharedSchemas.has(refName)) modelsToImport.add(refName);
           }
-          resType = refName;
+          resType = refName || "void";
         }
+      } else if (op.responseSchema) {
+        const nestedRefs = extractRefs(op.responseSchema);
+        for (const ref of nestedRefs) {
+          if (sharedSchemas.has(ref)) modelsToImport.add(ref);
+        }
+        resType = schemaToTsType(op.responseSchema);
       }
 
       let configType = "AppRequestConfig";
-      const pathParamsList = [];
+      const pathParamsList: { original: string; safe: string }[] = [];
       if (op.hasPathParams) {
-        const params = (op.parameters || []).filter((p: any) => p.in === "path");
+        const params = (op.parameters || []).filter((p) => p.in === "path");
         for (const p of params) {
           pathParamsList.push({ original: p.name, safe: toCamelCase(p.name) });
         }
       }
 
-      if (op.hasQuery) configType = `Omit<AppRequestConfig, "params"> & { params?: ${typeNameParams} }`;
+      if (op.hasQuery)
+        configType = `Omit<AppRequestConfig, "params"> & { params?: ${typeNameParams} }`;
 
       let urlStr = op.path;
       for (const p of pathParamsList) {
@@ -429,7 +306,7 @@ function schemaToZod(schema: any): string {
       imports: Array.from(modelsToImport),
       specificSchemas: specificSchemasList,
       operations: operationsList,
-      customCode: typesCustomCode
+      customCode: typesCustomCode,
     };
 
     const typesTemplate = compileTemplate(path.join(templatesDir, "types.hbs"));
@@ -445,7 +322,7 @@ function schemaToZod(schema: any): string {
       exportsToReExport: [...Array.from(specificSchemas), ...typeNames],
       operations: operationsList,
       corePath: servicesCorePath,
-      customCode: serviceCustomCode
+      customCode: serviceCustomCode,
     };
 
     const serviceTemplate = compileTemplate(path.join(templatesDir, "service.hbs"));
@@ -459,7 +336,12 @@ function schemaToZod(schema: any): string {
   if (fs.existsSync(interceptorsDir)) {
     const entries = fs.readdirSync(interceptorsDir);
     for (const entry of entries) {
-      if (entry === "index.ts" || entry === "bearer-auth-manager.ts" || !entry.endsWith(".ts")) continue;
+      if (
+        entry === "index.ts" ||
+        entry === "bearer-auth-manager.ts" ||
+        !entry.endsWith(".ts")
+      )
+        continue;
       const filePath = path.join(interceptorsDir, entry);
       const content = fs.readFileSync(filePath, "utf8");
       const matches = content.matchAll(/export function (install\w+)/g);
@@ -471,28 +353,28 @@ function schemaToZod(schema: any): string {
 
   // Auto-generate interceptors index
   const interceptorsIndexPath = path.join(providerDir, "interceptors", "index.ts");
-  const interceptorsIndexTemplate = compileTemplate(path.join(templatesDir, "interceptors-index.hbs"));
+  const interceptorsIndexTemplate = compileTemplate(
+    path.join(templatesDir, "interceptors-index.hbs"),
+  );
   if (!fs.existsSync(path.dirname(interceptorsIndexPath))) {
     fs.mkdirSync(path.dirname(interceptorsIndexPath), { recursive: true });
   }
   writeGenerated(interceptorsIndexPath, interceptorsIndexTemplate({ plugins: pluginImports }));
   console.log(`Generated interceptors/index.ts`);
 
-  // ==========================================
-  // 5. AUTO-GENERATE PROVIDER index.ts
-  // ==========================================
+  // Auto-generate provider index.ts
   const indexPath = path.join(providerDir, "index.ts");
   const indexCustomCode = extractCustomCode(indexPath);
 
   const indexData = {
     hasHooks: fs.existsSync(path.join(providerDir, "hooks.ts")),
     corePath: corePathStr,
-    tags: Object.keys(services).map(t => ({
+    tags: Object.keys(services).map((t) => ({
       tag: t.toLowerCase(),
-      className: toClassName(t)
+      className: toClassName(t),
     })),
     plugins: pluginImports,
-    customCode: indexCustomCode
+    customCode: indexCustomCode,
   };
 
   const indexTemplate = compileTemplate(path.join(templatesDir, "index.hbs"));
@@ -504,7 +386,7 @@ function schemaToZod(schema: any): string {
     const { execSync } = await import("child_process");
     console.log(`\nFormatting generated files...`);
     execSync(`npx prettier --write "${providerDir}/**/*.{ts,tsx}"`, { stdio: "ignore" });
-  } catch (e) {
+  } catch (_e) {
     // Ignore if prettier fails or is missing
   }
 
