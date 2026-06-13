@@ -37,14 +37,100 @@ describe("CLI", () => {
   });
 
   describe("generate command options", () => {
-    it("should have --url, --output, --dry-run options", () => {
+    it("should have --url, --output, --file, --dry-run options", () => {
       const cmd = program.commands.find((c) => c.name() === "generate")!;
       const longs = cmd.options.map((o) => o.long);
       expect(longs).toContain("--url");
+      expect(longs).toContain("--file");
       expect(longs).toContain("--output");
       expect(longs).toContain("--dry-run");
       expect(longs).toContain("--alias");
       expect(longs).toContain("--templates");
+      expect(longs).toContain("--config");
+    });
+  });
+
+  describe("generate --config", () => {
+    let consoleLogSpy: any;
+
+    beforeAll(() => {
+      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    afterAll(() => {
+      consoleLogSpy.mockRestore();
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    it("should read config from custom path", async () => {
+      const tmpDir = path.join(os.tmpdir(), `specshot-cli-config-${Date.now()}`);
+      const outputDir = path.join(tmpDir, "services");
+      const configPath = path.join(tmpDir, "my-config.json");
+      fs.mkdirSync(outputDir, { recursive: true });
+      fs.writeFileSync(configPath, JSON.stringify({
+        providerDir: path.join(tmpDir, "custom-provider"),
+      }));
+
+      await program.parseAsync([
+        "node",
+        "cli.js",
+        "generate",
+        "--file",
+        fixturePath,
+        "--output",
+        outputDir,
+        "--config",
+        configPath,
+      ]);
+
+      // Should prefer explicit --output over config
+      const logs = consoleLogSpy.mock.calls.map((c: any) => c[0]).join("\n");
+      expect(logs).toContain("Generated pets.service.ts");
+      expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+  });
+
+  describe("generate --file", () => {
+    let consoleLogSpy: any;
+
+    beforeAll(() => {
+      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    afterAll(() => {
+      consoleLogSpy.mockRestore();
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    it("should generate from local file", async () => {
+      const tmpDir = path.join(os.tmpdir(), `specshot-cli-file-${Date.now()}`);
+      const outputDir = path.join(tmpDir, "services");
+      fs.mkdirSync(outputDir, { recursive: true });
+
+      await program.parseAsync([
+        "node",
+        "cli.js",
+        "generate",
+        "--file",
+        fixturePath,
+        "--output",
+        outputDir,
+      ]);
+
+      const logs = consoleLogSpy.mock.calls.map((c: any) => c[0]).join("\n");
+      expect(logs).toContain("Generated pets.service.ts");
+      expect(logs).toContain("Generated stores.service.ts");
+      expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
     });
   });
 
@@ -61,12 +147,15 @@ describe("CLI", () => {
         statusText: "OK",
         json: async () => JSON.parse(fixture),
       } as Response)) as typeof fetch;
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
     });
 
     afterAll(() => {
       consoleLogSpy.mockRestore();
       globalThis.fetch = originalFetch;
       (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
     });
 
     it("should log what would be generated without writing files", async () => {
@@ -136,6 +225,262 @@ describe("CLI", () => {
 
       const errors = consoleErrorSpy.mock.calls.map((c: any) => c[0]).join("\n");
       expect(errors).toContain("not found");
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+  });
+
+  describe("generate --alias", () => {
+    let consoleLogSpy: any;
+    let originalFetch: typeof fetch;
+
+    beforeAll(() => {
+      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      originalFetch = globalThis.fetch;
+      globalThis.fetch = (async () => ({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => JSON.parse(fixture),
+      } as Response)) as typeof fetch;
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    afterAll(() => {
+      consoleLogSpy.mockRestore();
+      globalThis.fetch = originalFetch;
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    it("should use alias in generated service imports", async () => {
+      const tmpDir = path.join(os.tmpdir(), `specshot-cli-alias-${Date.now()}`);
+      const outputDir = path.join(tmpDir, "services");
+      fs.mkdirSync(outputDir, { recursive: true });
+
+      await program.parseAsync([
+        "node",
+        "cli.js",
+        "generate",
+        "--url",
+        "https://example.com/openapi.json",
+        "--output",
+        outputDir,
+        "--alias",
+        "@/my-api",
+      ]);
+
+      const svcContent = fs.readFileSync(
+        path.join(outputDir, "pets.service.ts"),
+        "utf8",
+      );
+      expect(svcContent).toContain('"@/my-api/core/base-service"');
+      expect(svcContent).toContain('"@/my-api/core/api-client"');
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+  });
+
+  describe("generate with config providing url", () => {
+    let consoleLogSpy: any;
+
+    beforeAll(() => {
+      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    afterAll(() => {
+      consoleLogSpy.mockRestore();
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    it("should read openapiUrl and providerDir from config", async () => {
+      const tmpDir = path.join(os.tmpdir(), `specshot-cli-config-url-${Date.now()}`);
+      const providerDir = path.join(tmpDir, "auto-services");
+      const configPath = path.join(tmpDir, "specshot.json");
+      fs.mkdirSync(providerDir, { recursive: true });
+      fs.writeFileSync(
+        configPath,
+        JSON.stringify({
+          openapiUrl: fixturePath,
+          providerDir: providerDir,
+        }),
+      );
+
+      await program.parseAsync([
+        "node",
+        "cli.js",
+        "generate",
+        "--config",
+        configPath,
+      ]);
+
+      const servicesDir = path.join(providerDir, "services");
+      expect(fs.existsSync(path.join(servicesDir, "models.ts"))).toBe(true);
+      expect(fs.existsSync(path.join(servicesDir, "pets.service.ts"))).toBe(true);
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+  });
+
+  describe("generate --templates", () => {
+    let consoleLogSpy: any;
+    let originalFetch: typeof fetch;
+
+    beforeAll(() => {
+      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      originalFetch = globalThis.fetch;
+      globalThis.fetch = (async () => ({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({
+          openapi: "3.0.0",
+          paths: {
+            "/tasks": {
+              get: {
+                tags: ["tasks"],
+                operationId: "listTasks",
+                responses: { "200": { description: "OK" } },
+              },
+            },
+          },
+        }),
+      } as Response)) as typeof fetch;
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    afterAll(() => {
+      consoleLogSpy.mockRestore();
+      globalThis.fetch = originalFetch;
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    it("should use custom templates passed via --templates", async () => {
+      const tmpDir = path.join(os.tmpdir(), `specshot-cli-tpl-${Date.now()}`);
+      const outputDir = path.join(tmpDir, "services");
+      const tplDir = path.join(tmpDir, "my-templates");
+      fs.mkdirSync(outputDir, { recursive: true });
+      fs.mkdirSync(tplDir, { recursive: true });
+
+      fs.writeFileSync(path.join(tplDir, "models.hbs"), `// CLI-TPL models\n`);
+      fs.writeFileSync(
+        path.join(tplDir, "types.hbs"),
+        `// CLI-TPL {{tag}} types\n{{#each operations}}\nexport type {{typeNameResponse}} = void;\n{{/each}}\n// --- CUSTOM CODE START ---\n{{#if customCode}}{{{customCode}}}{{/if}}\n// --- CUSTOM CODE END ---\n`,
+      );
+      fs.writeFileSync(
+        path.join(tplDir, "service.hbs"),
+        `// CLI-TPL {{className}} service\nimport { BaseService } from "{{corePath}}/base-service";\n// --- CUSTOM CODE START ---\n{{#if customCode}}{{{customCode}}}{{/if}}\n// --- CUSTOM CODE END ---\n`,
+      );
+      fs.writeFileSync(path.join(tplDir, "index.hbs"), `// CLI-TPL index\n`);
+      fs.writeFileSync(
+        path.join(tplDir, "interceptors-index.hbs"),
+        `// CLI-TPL interceptors\n`,
+      );
+
+      await program.parseAsync([
+        "node",
+        "cli.js",
+        "generate",
+        "--url",
+        "https://example.com/tpl.json",
+        "--output",
+        outputDir,
+        "--templates",
+        tplDir,
+      ]);
+
+      const modelsContent = fs.readFileSync(
+        path.join(outputDir, "models.ts"),
+        "utf8",
+      );
+      expect(modelsContent).toContain("CLI-TPL models");
+
+      const typesContent = fs.readFileSync(
+        path.join(outputDir, "tasks.types.ts"),
+        "utf8",
+      );
+      expect(typesContent).toContain("CLI-TPL tasks types");
+
+      const svcContent = fs.readFileSync(
+        path.join(outputDir, "tasks.service.ts"),
+        "utf8",
+      );
+      expect(svcContent).toContain("CLI-TPL tasksService service");
+
+      const indexContent = fs.readFileSync(
+        path.join(path.dirname(outputDir), "index.ts"),
+        "utf8",
+      );
+      expect(indexContent).toContain("CLI-TPL index");
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+  });
+
+  describe("generate --config missing file", () => {
+    let consoleLogSpy: any;
+    let consoleErrorSpy: any;
+    let originalFetch: typeof fetch;
+
+    beforeAll(() => {
+      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      originalFetch = globalThis.fetch;
+      globalThis.fetch = (async () => ({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({
+          openapi: "3.0.0",
+          paths: {
+            "/ping": {
+              get: {
+                tags: ["ping"],
+                operationId: "ping",
+                responses: { "200": { description: "OK" } },
+              },
+            },
+          },
+        }),
+      } as Response)) as typeof fetch;
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    afterAll(() => {
+      consoleLogSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
+      globalThis.fetch = originalFetch;
+      (program as any)._optionValues = {};
+      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+    });
+
+    it("should fall back gracefully when config file does not exist", async () => {
+      const tmpDir = path.join(os.tmpdir(), `specshot-cli-missing-cfg-${Date.now()}`);
+      const outputDir = path.join(tmpDir, "services");
+      fs.mkdirSync(outputDir, { recursive: true });
+
+      await program.parseAsync([
+        "node",
+        "cli.js",
+        "generate",
+        "--url",
+        "https://example.com/ping.json",
+        "--output",
+        outputDir,
+        "--config",
+        "/nonexistent/config.json",
+      ]);
+
+      // Should generate services normally despite missing config
+      expect(fs.existsSync(path.join(outputDir, "ping.service.ts"))).toBe(true);
+      expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });

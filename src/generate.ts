@@ -6,19 +6,38 @@ import Handlebars from "handlebars";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function generateApi(openapiUrl: string, outputDir: string, importAlias?: string, templatesDirOverride?: string) {
-  console.log(`\nFetching OpenAPI spec from ${openapiUrl}...`);
-  const res = await fetch(openapiUrl);
-  if (!res.ok) {
-    if (res.status === 404) {
-      throw new Error(`OpenAPI spec not found at ${openapiUrl} — is your backend running?`);
+export async function generateApi(specSource: string, outputDir: string, importAlias?: string, templatesDirOverride?: string, opts?: { dryRun?: boolean; configPath?: string }) {
+  const isUrl = specSource.startsWith("http://") || specSource.startsWith("https://");
+
+  let spec: any;
+  if (isUrl) {
+    console.log(`\nFetching OpenAPI spec from ${specSource}...`);
+    const res = await fetch(specSource);
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error(`OpenAPI spec not found at ${specSource} — is your backend running?`);
+      }
+      throw new Error(`Failed to fetch OpenAPI spec from ${specSource}: HTTP ${res.status} ${res.statusText}`);
     }
-    throw new Error(`Failed to fetch OpenAPI spec from ${openapiUrl}: HTTP ${res.status} ${res.statusText}`);
+    spec = await res.json();
+  } else {
+    console.log(`\nLoading OpenAPI spec from ${specSource}...`);
+    if (!fs.existsSync(specSource)) {
+      throw new Error(`OpenAPI spec file not found at ${specSource} — check the file path`);
+    }
+    try {
+      spec = JSON.parse(fs.readFileSync(specSource, "utf8"));
+    } catch (e) {
+      throw new Error(`Failed to parse OpenAPI spec from ${specSource}: ${(e as Error).message}`);
+    }
   }
-  const spec = await res.json() as any;
 
   if (!spec.paths || Object.keys(spec.paths).length === 0) {
-    throw new Error(`OpenAPI spec at ${openapiUrl} has no endpoints — check your backend routes`);
+    throw new Error(`OpenAPI spec at ${specSource} has no endpoints — check your backend routes`);
+  }
+
+  if (opts?.dryRun) {
+    return Object.keys(spec.paths).length;
   }
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
@@ -262,7 +281,9 @@ function schemaToZod(schema: any): string {
   const providerDir = path.dirname(outputDir);
   
   // Try to load config
-  const configPath = path.resolve(process.cwd(), "specshot.json");
+  const configPath = opts?.configPath
+    ? path.resolve(process.cwd(), opts.configPath)
+    : path.resolve(process.cwd(), "specshot.json");
   let config: any = {};
   if (fs.existsSync(configPath)) {
     try {
@@ -366,7 +387,7 @@ function schemaToZod(schema: any): string {
       let configType = "AppRequestConfig";
       const pathParamsList = [];
       if (op.hasPathParams) {
-        const params = op.parameters.filter((p: any) => p.in === "path");
+        const params = (op.parameters || []).filter((p: any) => p.in === "path");
         for (const p of params) {
           pathParamsList.push({ original: p.name, safe: toCamelCase(p.name) });
         }
