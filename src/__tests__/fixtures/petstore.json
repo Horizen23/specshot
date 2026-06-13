@@ -1,0 +1,151 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Petstore",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "operationId": "listPets",
+        "tags": ["pets"],
+        "summary": "List all pets",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of pets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Pet"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPet",
+        "tags": ["pets"],
+        "summary": "Create a pet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created pet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pets/{petId}": {
+      "get": {
+        "operationId": "getPet",
+        "tags": ["pets"],
+        "summary": "Get a pet by ID",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A pet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stores": {
+      "get": {
+        "operationId": "listStores",
+        "tags": ["stores"],
+        "summary": "List stores",
+        "responses": {
+          "200": {
+            "description": "A list of stores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Store"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Pet": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "age": { "type": "integer" },
+          "tag": { "type": "string" }
+        }
+      },
+      "CreatePetRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "age": { "type": "integer" },
+          "tag": { "type": "string" }
+        }
+      },
+      "Store": {
+        "type": "object",
+        "required": ["id", "address"],
+        "properties": {
+          "id": { "type": "string" },
+          "address": { "type": "string" },
+          "pet": { "$ref": "#/components/schemas/Pet" }
+        }
+      }
+    }
+  }
+}
