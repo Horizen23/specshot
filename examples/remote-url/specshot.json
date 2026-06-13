@@ -1,0 +1,7 @@
+{
+  "coreDir": "src/lib/api/core",
+  "providerDir": "src/lib/api/default",
+  "integration": "none",
+  "plugins": ["bearer"],
+  "openapiUrl": "http://localhost:8080/openapi.json"
+}

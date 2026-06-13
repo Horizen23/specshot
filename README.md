@@ -1,78 +1,107 @@
-# ⚡ SpecShot
+# SpecShot
 
-SpecShot is a zero-dependency, ultra-fast, strictly-typed API Client Generator for TypeScript. Inspired by `shadcn/ui`, it doesn't wrap your fetch requests in opaque dependencies. Instead, it **injects** the core API logic directly into your project, giving you 100% control over how requests, intercepts, and errors are handled.
+**One command. Zero dependencies. 100% type-safe API client.**
 
-### Features
-- **shadcn/ui style**: No `node_modules` lock-in for the core logic. You own the code.
-- **Go/Rust-style Result Pattern**: Bye-bye `try/catch`. Every method returns `{ data, error, ok }`.
-- **Runtime Validation**: Automatically generates Zod schemas for your API models, allowing you to validate payloads at runtime if you choose to.
-- **Isomorphic**: Uses native Web `fetch`, works seamlessly on the client and server.
-- **Auto-Magic SWR/React Query Support**: Ready to be wrapped by your favorite data-fetching libraries.
+Drop an OpenAPI spec in, get production-ready TypeScript out. No SDKs to install. No generated bloat to maintain. You own every line — like shadcn/ui, but for your API layer.
 
 ---
 
-## 🚀 Quick Start
+### Why SpecShot?
 
-### 1. Initialize the Core
-Run the init command inside your project:
+| Instead of... | You get... |
+|---|---|
+| `fetch()` with no types | Fully typed `{ data, error, ok }` |
+| `try/catch` everywhere | Clean result pattern |
+| Manual Zod schemas | Auto-generated validation |
+| Vendor lock-in | Code you own, edit, and extend |
+
+### What you get
+
+- **Typed API client** — every endpoint, param, body, and response strictly typed
+- **Zod schemas** — optional runtime validation, auto-generated from your spec
+- **Result pattern** — `{ data, error, ok }` pattern. No exceptions. No guessing.
+- **Plugins** — Bearer auth with auto-refresh, request logging built-in
+- **SWR ready** — optional React hooks out of the box
+- **Zero deps** — your generated code depends on nothing
+
+---
+
+## 30 Seconds
+
 ```bash
+# 1. Scaffold the core
 npx specshot init
-```
-*This will copy the Agnostic Core files into your codebase (default: `src/lib/api/core`).*
 
-### 2. Generate Your Services
-Run the generator against your OpenAPI specs:
-```bash
-npx specshot generate -u http://localhost:8080/openapi.json -o src/lib/api/services
+# 2. Point at your spec
+npx specshot generate --url http://localhost:8080/openapi.json
+
+# 3. Use it
 ```
 
-With import alias (preferred for Next.js/TS path aliases):
-```bash
-npx specshot generate -u http://localhost:8080/openapi.json -o src/lib/api/services -a @/lib/api
+```typescript
+import { createApi } from "./lib/api/default";
+
+const api = createApi(/* your client */);
+
+// Everything is typed — no generics, no casting
+const { data, error, ok } = await api.pets.listPets();
+const { data: pet } = await api.pets.getPet("abc123");
+const result = await api.pets.createPet({ name: "Buddy", species: "dog" });
 ```
-*This will generate strongly-typed Services, Types, and Zod Schemas with clean alias imports.*
+
+That's it. No config files. No code generation pipelines. Just typed API calls.
 
 ---
 
-## 🛠 Usage Example
+## Commands
 
-### Creating the Client
-Create an index file (e.g. `src/lib/api/client.ts`) and instantiate the generated services:
-```typescript
-import { ApiClient } from "./core/ApiClient";
-import { FleetService } from "./services/fleet.service";
-
-export const apiClient = new ApiClient({ baseUrl: "https://api.example.com" });
-
-// Setup Interceptors
-apiClient.interceptors.request.use(async (config) => {
-  config.headers.set("Authorization", "Bearer token");
-  return config;
-});
-
-// Export Services
-export const api = {
-  fleet: new FleetService(apiClient),
-};
+```
+specshot init              Scaffold API core into your project
+specshot generate          Generate services from OpenAPI
 ```
 
-### Making a Request
-```typescript
-import { api } from "@/lib/api/client";
-import { TruckSchema } from "@/lib/api/services/fleet.types";
+### `generate` options
 
-async function fetchTruck(id: string) {
-  const { data, error, ok } = await api.fleet.getTruck(id, {
-    responseSchema: TruckSchema // Optional: Validates the response at runtime!
-  });
+| Flag | Description |
+|---|---|
+| `--url, -u <url>` | Remote OpenAPI spec URL |
+| `--file, -f <path>` | Local OpenAPI JSON file |
+| `--output, -o <dir>` | Output directory |
+| `--alias, -a <alias>` | Import alias (e.g. `@/lib/api`) |
+| `--config, -c <path>` | Custom config file path |
+| `--templates, -t <dir>` | Custom Handlebars templates |
+| `--dry-run` | Preview without writing files |
 
-  if (!ok) {
-    console.error("Error:", error.message);
-    return;
-  }
+### `specshot.json`
 
-  console.log("Truck data:", data);
+```json
+{
+  "coreDir": "src/lib/api/core",
+  "providerDir": "src/lib/api/default",
+  "integration": "swr",
+  "plugins": ["bearer", "logger"],
+  "openapiUrl": "http://localhost:8080/openapi.json"
 }
 ```
 
-## Built by the open-source community 🚀
+---
+
+## Examples
+
+| Example | What it shows |
+|---|---|
+| [`examples/local-file`](examples/local-file) | Generate from a `openapi.json` on disk |
+| [`examples/remote-url`](examples/remote-url) | Fetch from a running backend + mock server |
+
+---
+
+## Development
+
+```bash
+npm install
+npm run build
+npm test
+npm run lint
+```
+
+Built by the open-source community

@@ -1,0 +1,10 @@
+{
+  "name": "specshot-petstore",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "specshot": "file:../..",
+    "zod": "^3.23.0"
+  }
+}
