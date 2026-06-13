@@ -36,7 +36,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-        continue-on-error: true
 
   build:
     name: Build

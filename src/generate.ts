@@ -15,7 +15,7 @@ export async function generateApi(openapiUrl: string, outputDir: string, importA
     }
     throw new Error(`Failed to fetch OpenAPI spec from ${openapiUrl}: HTTP ${res.status} ${res.statusText}`);
   }
-  const spec = await res.json();
+  const spec = await res.json() as any;
 
   if (!spec.paths || Object.keys(spec.paths).length === 0) {
     throw new Error(`OpenAPI spec at ${openapiUrl} has no endpoints — check your backend routes`);
@@ -50,25 +50,25 @@ function writeGenerated(filePath: string, content: string): void {
   }
 }
 
-function toClassName(str) { return str.replace(/[^a-zA-Z0-9]/g, "") + "Service"; }
-const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+function toClassName(str: string): string { return str.replace(/[^a-zA-Z0-9]/g, "") + "Service"; }
+const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
 
-const toCamelCase = str => str.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase().replace('-', '').replace('_', ''));
+const toCamelCase = (str: string): string => str.replace(/([-_][a-z])/ig, ($1: string) => $1.toUpperCase().replace('-', '').replace('_', ''));
 
-function toMethodName(operationId) {
+function toMethodName(operationId: string): string {
   if (!operationId) return "unknownMethod";
   const parts = operationId.split(":");
   const name = parts[parts.length - 1];
-  return name.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  return name.replace(/-([a-z])/g, (g: string) => g[1].toUpperCase());
 }
 
-function cleanRefName(ref) {
-  if (!ref) return null;
-  return ref.split('/').pop().replace(/[^a-zA-Z0-9_]/g, "");
+function cleanRefName(ref: string | undefined): string {
+  if (!ref) return "";
+  return ref.split('/').pop()!.replace(/[^a-zA-Z0-9_]/g, "");
 }
 
 // Extract all direct $refs from a schema object
-function extractRefs(schema, refs = new Set()) {
+function extractRefs(schema: any, refs: Set<string> = new Set()): Set<string> {
   if (!schema) return refs;
   if (schema.$ref) refs.add(cleanRefName(schema.$ref));
   if (schema.type === "array" && schema.items) extractRefs(schema.items, refs);
@@ -81,12 +81,12 @@ function extractRefs(schema, refs = new Set()) {
 }
 
 // Convert JSON Schema to pure TS String
-function schemaToTsType(schema) {
+function schemaToTsType(schema: any): string {
   if (!schema) return "any";
   if (schema.$ref) {
     let refName = cleanRefName(schema.$ref);
     if (refName === "ResponseBodyStruct") return "void";
-    return refName;
+    return refName!;
   }
   
   if (schema.type === "array") {
@@ -94,12 +94,12 @@ function schemaToTsType(schema) {
   }
   
   if (schema.type === "object" || schema.properties) {
-    const props = [];
-    const required = schema.required || [];
+    const props: string[] = [];
+    const required: string[] = schema.required || [];
     for (const [key, propSchema] of Object.entries(schema.properties || {})) {
       const isRequired = required.includes(key);
       const q = isRequired ? "" : "?";
-      const safeKey = key.includes("-") || key.includes(" ") ? `"${key}"` : key;
+      const safeKey = (key as string).includes("-") || (key as string).includes(" ") ? `"${key}"` : key;
       props.push(`  ${safeKey}${q}: ${schemaToTsType(propSchema)};`);
     }
     if (props.length === 0) return "Record<string, any>";
@@ -108,7 +108,7 @@ function schemaToTsType(schema) {
 
   if (schema.type === "integer" || schema.type === "number") return "number";
   if (schema.type === "string") {
-    if (schema.enum) return schema.enum.map(e => `"${e}"`).join(" | ");
+    if (schema.enum) return schema.enum.map((e: string) => `"${e}"`).join(" | ");
     return "string";
   }
   if (schema.type === "boolean") return "boolean";
@@ -116,7 +116,7 @@ function schemaToTsType(schema) {
   return "any";
 }
 
-function schemaToZod(schema) {
+function schemaToZod(schema: any): string {
   if (schema.$ref) {
     return `${cleanRefName(schema.$ref)}Schema`;
   }
@@ -124,12 +124,12 @@ function schemaToZod(schema) {
     return `z.array(${schemaToZod(schema.items)})`;
   }
   if (schema.type === "object" || schema.properties) {
-    const props = [];
-    const required = schema.required || [];
+    const props: string[] = [];
+    const required: string[] = schema.required || [];
     for (const [key, propSchema] of Object.entries(schema.properties || {})) {
       const isRequired = required.includes(key);
-      const safeKey = key.includes("-") || key.includes(" ") ? `"${key}"` : key;
-      let zodType = schemaToZod(propSchema);
+      const safeKey = (key as string).includes("-") || (key as string).includes(" ") ? `"${key}"` : key;
+      let zodType: string = schemaToZod(propSchema);
       if (!isRequired) zodType += ".optional()";
       props.push(`  ${safeKey}: ${zodType},`);
     }
@@ -138,7 +138,7 @@ function schemaToZod(schema) {
   }
   if (schema.type === "integer" || schema.type === "number") return "z.number()";
   if (schema.type === "string") {
-    if (schema.enum) return `z.enum([${schema.enum.map(e => `"${e}"`).join(", ")}])`;
+    if (schema.enum) return `z.enum([${schema.enum.map((e: string) => `"${e}"`).join(", ")}])`;
     return "z.string()";
   }
   if (schema.type === "boolean") return "z.boolean()";
@@ -156,12 +156,12 @@ function schemaToZod(schema) {
   }
 
   // Scan operations to assign tags
-  for (const methods of Object.values(spec.paths)) {
-    for (const operation of Object.values(methods)) {
+  for (const methods of Object.values(spec.paths ?? {}) as any[]) {
+    for (const operation of Object.values(methods ?? {}) as any[]) {
       if (!operation.tags || operation.tags.length === 0) continue;
       const tag = operation.tags[0];
       
-      const refsInOp = new Set();
+      const refsInOp = new Set<string>();
       if (operation.requestBody?.content?.["application/json"]?.schema) {
         extractRefs(operation.requestBody.content["application/json"].schema, refsInOp);
       }
@@ -226,7 +226,7 @@ function schemaToZod(schema) {
       const schemaKey = Object.keys(schemas).find(k => cleanRefName(k) === name);
       return {
         name,
-        zod: schemaToZod(schemas[schemaKey])
+        zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()"
       };
     }),
     customCode: modelsCustomCode
@@ -237,9 +237,9 @@ function schemaToZod(schema) {
   console.log(`Generated models.ts (Shared Models)`);
 
   // Group paths by tags
-  const services = {};
-  for (const [pathUrl, methods] of Object.entries(spec.paths)) {
-    for (const [method, operation] of Object.entries(methods)) {
+  const services: Record<string, any> = {};
+  for (const [pathUrl, methods] of Object.entries(spec.paths) as [string, any][]) {
+    for (const [method, operation] of Object.entries(methods) as [string, any][]) {
       if (!operation.tags || operation.tags.length === 0) continue;
       const tag = operation.tags[0];
       if (!services[tag]) services[tag] = { name: tag, operations: [] };
@@ -251,8 +251,8 @@ function schemaToZod(schema) {
         description: operation.description,
         parameters: operation.parameters || [],
         hasBody: !!operation.requestBody,
-        hasQuery: !!operation.parameters?.some(p => p.in === "query"),
-        hasPathParams: !!operation.parameters?.some(p => p.in === "path"),
+        hasQuery: !!operation.parameters?.some((p: any) => p.in === "query"),
+        hasPathParams: !!operation.parameters?.some((p: any) => p.in === "path"),
         responseSchema: operation.responses?.["200"]?.content?.["application/json"]?.schema,
         bodySchema: operation.requestBody?.content?.["application/json"]?.schema
       });
@@ -335,7 +335,7 @@ function schemaToZod(schema) {
       if (op.hasQuery) {
         typeNameParams = `${tag}${capMethod}Params`;
         typeNames.push(typeNameParams);
-        const queryParams = op.parameters.filter(p => p.in === "query");
+        const queryParams = op.parameters.filter((p: any) => p.in === "query");
         for (const p of queryParams) {
           queryParamsList.push({ name: p.name, required: p.required, tsType: schemaToTsType(p.schema) });
         }
@@ -348,14 +348,15 @@ function schemaToZod(schema) {
         let refName = cleanRefName(op.responseSchema.$ref);
         if (refName !== "ResponseBodyStruct") {
           if (refName.startsWith("ResponseBody")) {
-             const wrapperSchema = schemas[Object.keys(schemas).find(k => cleanRefName(k) === refName)];
+             const schemaKey = Object.keys(schemas).find(k => cleanRefName(k) === refName);
+             const wrapperSchema = schemaKey ? schemas[schemaKey] : undefined;
              if (wrapperSchema?.properties?.data?.$ref) {
                refName = cleanRefName(wrapperSchema.properties.data.$ref);
              } else if (wrapperSchema?.properties?.data?.type) {
                refName = schemaToTsType(wrapperSchema.properties.data);
              }
           }
-          if (!refName.includes("{") && !["string", "number", "boolean"].includes(refName)) {
+          if (refName && !refName.includes("{") && !["string", "number", "boolean"].includes(refName)) {
              if (sharedSchemas.has(refName)) modelsToImport.add(refName);
           }
           resType = refName;
@@ -365,7 +366,7 @@ function schemaToZod(schema) {
       let configType = "AppRequestConfig";
       const pathParamsList = [];
       if (op.hasPathParams) {
-        const params = op.parameters.filter(p => p.in === "path");
+        const params = op.parameters.filter((p: any) => p.in === "path");
         for (const p of params) {
           pathParamsList.push({ original: p.name, safe: toCamelCase(p.name) });
         }

@@ -12,12 +12,14 @@ import { generateApi } from "./generate";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json"), "utf8"));
+
 const program = new Command();
 
 program
   .name("specshot")
   .description("Fire an OpenAPI spec, get strictly-typed TypeScript code — with Zod validation")
-  .version("1.0.0");
+  .version(pkg.version);
 
 program
   .command("init")
@@ -228,4 +230,8 @@ program
     }
   });
 
-program.parse(process.argv);
+export { program };
+
+if (!process.env.VITEST) {
+  program.parse(process.argv);
+}
