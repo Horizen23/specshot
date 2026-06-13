@@ -2,7 +2,12 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import path from "path";
 import fs from "fs";
 import os from "os";
+import Handlebars from "handlebars";
+import { fileURLToPath } from "url";
 import { program } from "../cli.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const fixturePath = path.join(
   path.dirname(new URL(import.meta.url).pathname),
@@ -483,6 +488,73 @@ describe("CLI", () => {
       expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+  });
+
+  describe("react-query integration", () => {
+    it("should have react-query hooks template", () => {
+      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      expect(fs.existsSync(tplPath)).toBe(true);
+    });
+
+    it("should compile react-query hooks template to valid TypeScript", () => {
+      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      const templateStr = fs.readFileSync(tplPath, "utf8");
+      const template = Handlebars.compile(templateStr);
+      const result = template({ corePath: "../core" });
+
+      // Verify imports
+      expect(result).toContain('"@tanstack/react-query"');
+      expect(result).toContain("useQuery");
+      expect(result).toContain("useQueryClient");
+      expect(result).toContain("UseQueryResult");
+
+      // Verify query key factory
+      expect(result).toContain("queryKeys");
+      expect(result).toContain('all: ["api"] as const');
+      expect(result).toContain("service: (serviceName: string)");
+      expect(result).toContain("method: (serviceName: string, methodName: string)");
+
+      // Verify proxy types
+      expect(result).toContain("RQProxyMethod");
+      expect(result).toContain("RQProxyService");
+      expect(result).toContain("ApiHooksProxy");
+
+      // Verify proxy implementation
+      expect(result).toContain("createApiHooks");
+      expect(result).toContain("useQueryClient");
+      expect(result).toContain("invalidateQueries");
+
+      // Verify error types
+      expect(result).toContain("ApiHookError");
+
+      // Verify it's a client component
+      expect(result).toContain('"use client"');
+    });
+
+    it("should generate queryKey and invalidate helpers on hook methods", () => {
+      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      const templateStr = fs.readFileSync(tplPath, "utf8");
+      const template = Handlebars.compile(templateStr);
+      const result = template({ corePath: "../core" });
+
+      // queryKey assignment
+      expect(result).toContain("hookFn.queryKey");
+
+      // invalidate assignment
+      expect(result).toContain("hookFn.invalidate");
+    });
+
+    it("should exclude abort/getSignal/withSignal from proxy mapping (same as SWR)", () => {
+      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      const templateStr = fs.readFileSync(tplPath, "utf8");
+      const template = Handlebars.compile(templateStr);
+      const result = template({ corePath: "../core" });
+
+      expect(result).toContain("abort");
+      expect(result).toContain("getSignal");
+      expect(result).toContain("withSignal");
+      expect(result).toContain("extends (...args: any[]) => Promise<any>");
     });
   });
 });

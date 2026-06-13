@@ -1,0 +1,7 @@
+{
+  "coreDir": "src/lib/api/core",
+  "providerDir": "src/lib/api/default",
+  "integration": "swr",
+  "plugins": ["bearer"],
+  "openapiUrl": "./openapi.json"
+}

@@ -46,6 +46,7 @@ program
         message: "Which data fetching library do you want to use?",
         choices: [
           { name: "SWR (React)", value: "swr" },
+          { name: "TanStack Query (React Query)", value: "react-query" },
           { name: "None (Vanilla TS / Fetch)", value: "none" }
         ],
         default: "swr",
@@ -73,6 +74,7 @@ program
     const templateCoreDir = path.join(__dirname, "../templates/core");
     const templateProviderDir = path.join(__dirname, "../templates/provider");
     const templateSWRDir = path.join(__dirname, "../templates/integrations/swr");
+    const templateReactQueryDir = path.join(__dirname, "../templates/integrations/react-query");
 
     const spinner = ora("Installing API files...").start();
     
@@ -129,6 +131,10 @@ program
         compileAndWrite(templateSWRDir, targetProviderDir, templateData);
       }
 
+      if (answers.integration === "react-query") {
+        compileAndWrite(templateReactQueryDir, targetProviderDir, templateData);
+      }
+
       // Save config file
       const config = {
         coreDir: answers.coreDir,
@@ -144,6 +150,10 @@ program
       
       if (answers.integration === "swr") {
         console.log(chalk.blue(`Note: React SWR Hooks included! Make sure you have 'swr' installed: npm install swr`));
+      }
+
+      if (answers.integration === "react-query") {
+        console.log(chalk.blue(`Note: React Query Hooks included! Make sure you have '@tanstack/react-query' installed: npm install @tanstack/react-query`));
       }
 
       if (answers.openapiUrl && answers.openapiUrl.trim() !== "") {
