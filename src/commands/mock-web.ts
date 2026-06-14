@@ -422,8 +422,8 @@ export async function startMockWebServer(options: {
   mockServerPort =
     (existingConfig as any).mockServerPort || 3457;
 
-  const initialSpecSource = options.file || options.url || "";
-  const initialOutputDir = options.output || "";
+  const initialSpecSource = options.file || options.url || existingConfig.specSource || "";
+  const initialOutputDir = options.output || existingConfig.outputDir || "";
 
   // Pre-load spec at startup so browser doesn't need to fetch it
   let preloadedSpecData: string | null = null;
@@ -441,10 +441,16 @@ export async function startMockWebServer(options: {
       const tags = Array.from(groupedByTag.entries()).map(([tag, eps]) => ({
         tag,
         count: eps.length,
-        endpoints: eps.map((ep) => ({
-          ...ep,
-          mockExample: mockJsonFromSchema(ep.responseSchema, schemas),
-        })),
+        endpoints: eps.map((ep) => {
+          const key = endpointKey(ep.tag, ep.operationId);
+          const savedCfg = existingConfig.endpoints?.[key];
+          return {
+            ...ep,
+            mockExample: mockJsonFromSchema(ep.responseSchema, schemas),
+            enabled: savedCfg?.enabled || false,
+            savedConfig: savedCfg || null,
+          };
+        }),
       }));
       preloadedSpecData = JSON.stringify({
         specSource: resolvedSource,
@@ -466,12 +472,37 @@ export async function startMockWebServer(options: {
         const pathname = url.pathname;
 
         if (req.method === "GET" && pathname === "/") {
+          let specData = preloadedSpecData;
+          let currentSpecSource = initialSpecSource;
+          let currentOutputDir = initialOutputDir;
+          if (specData) {
+            try {
+              const freshConfig = loadMockConfig(cwd);
+              const parsed = JSON.parse(specData);
+              parsed.tags = parsed.tags.map((t: any) => ({
+                ...t,
+                endpoints: t.endpoints.map((ep: any) => {
+                  const savedCfg = freshConfig.endpoints?.[ep.key];
+                  return {
+                    ...ep,
+                    enabled: savedCfg?.enabled || false,
+                    savedConfig: savedCfg || null,
+                  };
+                }),
+              }));
+              specData = JSON.stringify(parsed);
+            } catch {}
+          } else {
+            const freshConfig = loadMockConfig(cwd);
+            if (!currentSpecSource) currentSpecSource = freshConfig.specSource || "";
+            if (!currentOutputDir) currentOutputDir = freshConfig.outputDir || "";
+          }
           res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
           res.end(
             getDashboardHtml(
-              initialSpecSource,
-              initialOutputDir,
-              preloadedSpecData,
+              currentSpecSource,
+              currentOutputDir,
+              specData,
             ),
           );
           return;
@@ -2316,15 +2347,19 @@ ${
     endpointConfigs = {};
     data.tags.forEach(function(t) {
       t.endpoints.forEach(function(ep) {
+        var sc = ep.savedConfig;
         endpointConfigs[ep.key] = {
           enabled: ep.enabled || false,
           tag: ep.tag,
           operationId: ep.operationId,
           method: ep.method,
           path: ep.path,
-          statusCode: defaultStatusCode(ep.method),
-          delay: 0,
-          mockData: ep.mockExample || ''
+          statusCode: (sc && sc.statusCode) || defaultStatusCode(ep.method),
+          delay: (sc && sc.delay) || 0,
+          mockData: (sc && sc.mockData) || ep.mockExample || '',
+          errorEnabled: (sc && sc.errorEnabled) || false,
+          errorStatus: (sc && sc.errorStatus) || 500,
+          errorBody: (sc && sc.errorBody) || '',
         };
       });
     });
