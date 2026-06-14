@@ -445,6 +445,12 @@ export async function startMockWebServer(options: {
           const config = loadMockConfig(cwd);
           (config as any).mockServerPort = mockServerPort;
           (config as any).mockServerRunning = mockServer !== null;
+          if (options.file || options.url) {
+            config.specSource = options.file || options.url || config.specSource;
+          }
+          if (options.output) {
+            config.outputDir = options.output;
+          }
           jsonResponse(res, config);
           return;
         }

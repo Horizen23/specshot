@@ -637,3 +637,33 @@
 .response-time { font-size: 11px; color: var(--text-muted); font-weight: 400; }
 .response-body { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow: auto; color: var(--text); }
 .response-body:empty::after { content: '(empty)'; color: var(--text-muted); }
+
+/* NAVBAR TABS */
+.nav-tabs {
+  display: flex;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  gap: 4px;
+}
+.nav-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.nav-tab:hover {
+  color: var(--text);
+}
+.nav-tab.active {
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}

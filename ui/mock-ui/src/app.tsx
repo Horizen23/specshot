@@ -138,6 +138,35 @@ export function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (tags.length === 0) return;
+    const timeout = setTimeout(() => {
+      const endpoints: Record<string, EndpointConfig> = {};
+      tags.forEach(tg => {
+        tg.endpoints.forEach(ep => {
+          if (ep.enabled || ep.config) {
+            endpoints[ep.key] = {
+              enabled: ep.enabled,
+              tag: ep.tag,
+              operationId: ep.operationId,
+              method: ep.method,
+              path: ep.path,
+              statusCode: ep.config?.statusCode || 200,
+              delay: ep.config?.delay || 0,
+              mockData: ep.config?.mockData !== undefined ? ep.config.mockData : (ep.mockExample || ''),
+            };
+          }
+        });
+      });
+      fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoints })
+      }).catch(console.error);
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [tags]);
+
   const toast = (msg: string, type = 'success') => {
     setToastMsg({ msg, type });
     setTimeout(() => setToastMsg(null), 3000);
@@ -283,7 +312,7 @@ export function App() {
         opts.body = testBody;
       }
       
-      const baseUrl = window.location.port === '5173' ? `http://localhost:${mockServerPort}` : '';
+      const baseUrl = `http://localhost:${mockServerPort}`;
       const res = await fetch(`${baseUrl}${testPath}`, opts);
       const data = await res.text();
       let parsedBody = data;
@@ -310,7 +339,14 @@ export function App() {
     <>
       <div id="topbar" class="topbar">
         <div class="logo">⚡ SpecShot <span>Mock</span></div>
+
+        <div class="nav-tabs" style={{ marginLeft: '24px' }}>
+          <button class={`nav-tab ${view === 'config' ? 'active' : ''}`} onClick={() => setView('config')}>Configuration</button>
+          <button class={`nav-tab ${view === 'test' ? 'active' : ''}`} onClick={() => setView('test')}>Test API</button>
+        </div>
         
+        <div class="spacer"></div>
+
         {view === 'config' ? (
           <>
             <input 
@@ -322,8 +358,7 @@ export function App() {
             <button class="btn" onClick={() => loadSpec(specSource)} disabled={loading}>
               {loading ? 'Loading...' : 'Load Spec'}
             </button>
-            <div class="spacer"></div>
-            <button class="btn" onClick={() => setView('test')}>Test API</button>
+            <div style={{ width: '16px' }}></div>
             <button class={`btn mock-server-btn ${mockServerRunning ? 'running' : ''}`} onClick={toggleMockServer}>
               {mockServerRunning ? 'Stop Server' : 'Start Server'}
             </button>
@@ -333,9 +368,13 @@ export function App() {
           </>
         ) : (
           <>
-            <div class="spacer"></div>
-            <button class="btn" onClick={() => setView('config')}>⚙ Configuration</button>
-            <span class={`badge ${mockServerRunning ? 'on' : 'off'}`}>{enabledCount} active mocks</span>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              Server Port: <span style={{ color: 'var(--text)' }}>{mockServerPort}</span>
+            </div>
+            <div style={{ width: '16px' }}></div>
+            <button class={`btn mock-server-btn ${mockServerRunning ? 'running' : ''}`} onClick={toggleMockServer}>
+              {mockServerRunning ? 'Stop Server' : 'Start Server'}
+            </button>
           </>
         )}
       </div>

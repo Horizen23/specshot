@@ -6,7 +6,9 @@
       "operationId": "listMemes",
       "method": "GET",
       "path": "/memes",
-      "mockData": "[{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}]"
+      "statusCode": 200,
+      "delay": 0,
+      "mockData": "[\n  {\n    \"id\": \"string\",\n    \"imageUrl\": \"string\",\n    \"caption\": \"string\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 0,\n    \"realVotes\": 0,\n    \"fakeVotes\": 0\n  }\n]"
     },
     "memes-createMeme": {
       "enabled": false,
@@ -14,6 +16,8 @@
       "operationId": "createMeme",
       "method": "POST",
       "path": "/memes",
+      "statusCode": 200,
+      "delay": 0,
       "mockData": "null"
     },
     "memes-getMeme": {
@@ -22,6 +26,8 @@
       "operationId": "getMeme",
       "method": "GET",
       "path": "/memes/{memeId}",
+      "statusCode": 200,
+      "delay": 0,
       "mockData": "{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
     },
     "memes-voteMeme": {
@@ -30,6 +36,8 @@
       "operationId": "voteMeme",
       "method": "POST",
       "path": "/memes/{memeId}/vote",
+      "statusCode": 200,
+      "delay": 0,
       "mockData": "{\n  \"correct\": true,\n  \"isReal\": true,\n  \"score\": 0,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
     },
     "leaderboard-getLeaderboard": {
@@ -38,13 +46,10 @@
       "operationId": "getLeaderboard",
       "method": "GET",
       "path": "/leaderboard",
-      "mockData": "[{\n  \"rank\": 0,\n  \"username\": \"string\",\n  \"score\": 0,\n  \"totalVotes\": 0,\n  \"accuracy\": 0\n}]"
+      "statusCode": 200,
+      "delay": 0,
+      "mockData": "[\n  {\n    \"rank\": 0,\n    \"username\": \"string\",\n    \"score\": 0,\n    \"totalVotes\": 0,\n    \"accuracy\": 0\n  }\n]"
     }
   },
-  "outputDir": "src/mocks/handlers",
-  "specSource": "/Users/anuchitbuaprom/Desktop/me/specshot/examples/real-or-fake/meme.json",
-  "lastGenerated": "2026-06-14T09:01:39.501Z",
-  "mockServerPort": 3457,
-  "proxyTarget": "http://localhost:3000",
-  "proxyEnabled": true
+  "mockServerPort": 3457
 }
