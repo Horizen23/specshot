@@ -61,23 +61,33 @@ describe("CLI", () => {
     beforeAll(() => {
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
       consoleLogSpy.mockRestore();
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     it("should read config from custom path", async () => {
-      const tmpDir = path.join(os.tmpdir(), `specshot-cli-config-${Date.now()}`);
+      const tmpDir = path.join(
+        os.tmpdir(),
+        `specshot-cli-config-${Date.now()}`,
+      );
       const outputDir = path.join(tmpDir, "services");
       const configPath = path.join(tmpDir, "my-config.json");
       fs.mkdirSync(outputDir, { recursive: true });
-      fs.writeFileSync(configPath, JSON.stringify({
-        providerDir: path.join(tmpDir, "custom-provider"),
-      }));
+      fs.writeFileSync(
+        configPath,
+        JSON.stringify({
+          providerDir: path.join(tmpDir, "custom-provider"),
+        }),
+      );
 
       await program.parseAsync([
         "node",
@@ -106,13 +116,17 @@ describe("CLI", () => {
     beforeAll(() => {
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
       consoleLogSpy.mockRestore();
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     it("should generate from local file", async () => {
@@ -146,21 +160,26 @@ describe("CLI", () => {
     beforeAll(() => {
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       originalFetch = globalThis.fetch;
-      globalThis.fetch = (async () => ({
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => JSON.parse(fixture),
-      } as Response)) as typeof fetch;
+      globalThis.fetch = (async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: async () => JSON.parse(fixture),
+        }) as Response) as typeof fetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
       consoleLogSpy.mockRestore();
       globalThis.fetch = originalFetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     it("should log what would be generated without writing files", async () => {
@@ -197,14 +216,17 @@ describe("CLI", () => {
       consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       originalFetch = globalThis.fetch;
-      globalThis.fetch = (async () => ({
-        ok: false,
-        status: 404,
-        statusText: "Not Found",
-        json: async () => ({}),
-      } as Response)) as typeof fetch;
+      globalThis.fetch = (async () =>
+        ({
+          ok: false,
+          status: 404,
+          statusText: "Not Found",
+          json: async () => ({}),
+        }) as Response) as typeof fetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
@@ -228,7 +250,9 @@ describe("CLI", () => {
         outputDir,
       ]);
 
-      const errors = consoleErrorSpy.mock.calls.map((c: any) => c[0]).join("\n");
+      const errors = consoleErrorSpy.mock.calls
+        .map((c: any) => c[0])
+        .join("\n");
       expect(errors).toContain("not found");
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -242,21 +266,26 @@ describe("CLI", () => {
     beforeAll(() => {
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       originalFetch = globalThis.fetch;
-      globalThis.fetch = (async () => ({
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => JSON.parse(fixture),
-      } as Response)) as typeof fetch;
+      globalThis.fetch = (async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: async () => JSON.parse(fixture),
+        }) as Response) as typeof fetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
       consoleLogSpy.mockRestore();
       globalThis.fetch = originalFetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     it("should use alias in generated service imports", async () => {
@@ -293,17 +322,24 @@ describe("CLI", () => {
     beforeAll(() => {
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
       consoleLogSpy.mockRestore();
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     it("should read openapiUrl and providerDir from config", async () => {
-      const tmpDir = path.join(os.tmpdir(), `specshot-cli-config-url-${Date.now()}`);
+      const tmpDir = path.join(
+        os.tmpdir(),
+        `specshot-cli-config-url-${Date.now()}`,
+      );
       const providerDir = path.join(tmpDir, "auto-services");
       const configPath = path.join(tmpDir, "specshot.json");
       fs.mkdirSync(providerDir, { recursive: true });
@@ -325,7 +361,9 @@ describe("CLI", () => {
 
       const servicesDir = path.join(providerDir, "services");
       expect(fs.existsSync(path.join(servicesDir, "models.ts"))).toBe(true);
-      expect(fs.existsSync(path.join(servicesDir, "pets.service.ts"))).toBe(true);
+      expect(fs.existsSync(path.join(servicesDir, "pets.service.ts"))).toBe(
+        true,
+      );
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
@@ -338,32 +376,37 @@ describe("CLI", () => {
     beforeAll(() => {
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       originalFetch = globalThis.fetch;
-      globalThis.fetch = (async () => ({
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => ({
-          openapi: "3.0.0",
-          paths: {
-            "/tasks": {
-              get: {
-                tags: ["tasks"],
-                operationId: "listTasks",
-                responses: { "200": { description: "OK" } },
+      globalThis.fetch = (async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: async () => ({
+            openapi: "3.0.0",
+            paths: {
+              "/tasks": {
+                get: {
+                  tags: ["tasks"],
+                  operationId: "listTasks",
+                  responses: { "200": { description: "OK" } },
+                },
               },
             },
-          },
-        }),
-      } as Response)) as typeof fetch;
+          }),
+        }) as Response) as typeof fetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
       consoleLogSpy.mockRestore();
       globalThis.fetch = originalFetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     it("should use custom templates passed via --templates", async () => {
@@ -437,25 +480,28 @@ describe("CLI", () => {
       consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
       consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       originalFetch = globalThis.fetch;
-      globalThis.fetch = (async () => ({
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => ({
-          openapi: "3.0.0",
-          paths: {
-            "/ping": {
-              get: {
-                tags: ["ping"],
-                operationId: "ping",
-                responses: { "200": { description: "OK" } },
+      globalThis.fetch = (async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          json: async () => ({
+            openapi: "3.0.0",
+            paths: {
+              "/ping": {
+                get: {
+                  tags: ["ping"],
+                  operationId: "ping",
+                  responses: { "200": { description: "OK" } },
+                },
               },
             },
-          },
-        }),
-      } as Response)) as typeof fetch;
+          }),
+        }) as Response) as typeof fetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     afterAll(() => {
@@ -463,11 +509,16 @@ describe("CLI", () => {
       consoleErrorSpy.mockRestore();
       globalThis.fetch = originalFetch;
       (program as any)._optionValues = {};
-      (program.commands.find((c) => c.name() === "generate")! as any)._optionValues = {};
+      (
+        program.commands.find((c) => c.name() === "generate")! as any
+      )._optionValues = {};
     });
 
     it("should fall back gracefully when config file does not exist", async () => {
-      const tmpDir = path.join(os.tmpdir(), `specshot-cli-missing-cfg-${Date.now()}`);
+      const tmpDir = path.join(
+        os.tmpdir(),
+        `specshot-cli-missing-cfg-${Date.now()}`,
+      );
       const outputDir = path.join(tmpDir, "services");
       fs.mkdirSync(outputDir, { recursive: true });
 
@@ -493,12 +544,18 @@ describe("CLI", () => {
 
   describe("react-query integration", () => {
     it("should have react-query hooks template", () => {
-      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      const tplPath = path.join(
+        __dirname,
+        "../../templates/integrations/react-query/hooks.hbs",
+      );
       expect(fs.existsSync(tplPath)).toBe(true);
     });
 
     it("should compile react-query hooks template to valid TypeScript", () => {
-      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      const tplPath = path.join(
+        __dirname,
+        "../../templates/integrations/react-query/hooks.hbs",
+      );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
       const result = template({ corePath: "../core" });
@@ -513,7 +570,9 @@ describe("CLI", () => {
       expect(result).toContain("queryKeys");
       expect(result).toContain('all: ["api"] as const');
       expect(result).toContain("service: (serviceName: string)");
-      expect(result).toContain("method: (serviceName: string, methodName: string)");
+      expect(result).toContain(
+        "method: (serviceName: string, methodName: string)",
+      );
 
       // Verify proxy types
       expect(result).toContain("RQProxyMethod");
@@ -533,7 +592,10 @@ describe("CLI", () => {
     });
 
     it("should generate queryKey and invalidate helpers on hook methods", () => {
-      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      const tplPath = path.join(
+        __dirname,
+        "../../templates/integrations/react-query/hooks.hbs",
+      );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
       const result = template({ corePath: "../core" });
@@ -546,7 +608,10 @@ describe("CLI", () => {
     });
 
     it("should exclude abort/getSignal/withSignal from proxy mapping (same as SWR)", () => {
-      const tplPath = path.join(__dirname, "../../templates/integrations/react-query/hooks.hbs");
+      const tplPath = path.join(
+        __dirname,
+        "../../templates/integrations/react-query/hooks.hbs",
+      );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
       const result = template({ corePath: "../core" });

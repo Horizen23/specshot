@@ -1,0 +1,48 @@
+{
+  "endpoints": {
+    "memes-listMemes": {
+      "enabled": true,
+      "tag": "memes",
+      "operationId": "listMemes",
+      "method": "GET",
+      "path": "/memes",
+      "mockData": "[{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}]"
+    },
+    "memes-createMeme": {
+      "enabled": false,
+      "tag": "memes",
+      "operationId": "createMeme",
+      "method": "POST",
+      "path": "/memes",
+      "mockData": "null"
+    },
+    "memes-getMeme": {
+      "enabled": false,
+      "tag": "memes",
+      "operationId": "getMeme",
+      "method": "GET",
+      "path": "/memes/{memeId}",
+      "mockData": "{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
+    },
+    "memes-voteMeme": {
+      "enabled": false,
+      "tag": "memes",
+      "operationId": "voteMeme",
+      "method": "POST",
+      "path": "/memes/{memeId}/vote",
+      "mockData": "{\n  \"correct\": false,\n  \"isReal\": false,\n  \"score\": 0,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
+    },
+    "leaderboard-getLeaderboard": {
+      "enabled": false,
+      "tag": "leaderboard",
+      "operationId": "getLeaderboard",
+      "method": "GET",
+      "path": "/leaderboard",
+      "mockData": "[{\n  \"rank\": 0,\n  \"username\": \"string\",\n  \"score\": 0,\n  \"totalVotes\": 0,\n  \"accuracy\": 0\n}]"
+    }
+  },
+  "outputDir": "src/mocks/handlers",
+  "specSource": "/Users/anuchitbuaprom/Desktop/me/specshot/examples/real-or-fake/meme.json",
+  "lastGenerated": "2026-06-14T08:44:15.431Z",
+  "mockServerPort": 3457
+}

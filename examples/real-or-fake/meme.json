@@ -1,0 +1,234 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Real or Fake Meme",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/memes": {
+      "get": {
+        "operationId": "listMemes",
+        "tags": ["memes"],
+        "summary": "List memes to vote on",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["news", "history", "science", "pop-culture"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of memes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Meme"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createMeme",
+        "tags": ["memes"],
+        "summary": "Submit a new meme for voting",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMemeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created meme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meme"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memes/{memeId}": {
+      "get": {
+        "operationId": "getMeme",
+        "tags": ["memes"],
+        "summary": "Get a single meme by ID",
+        "parameters": [
+          {
+            "name": "memeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A meme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meme"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memes/{memeId}/vote": {
+      "post": {
+        "operationId": "voteMeme",
+        "tags": ["memes"],
+        "summary": "Vote whether a meme is real or fake",
+        "parameters": [
+          {
+            "name": "memeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vote result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leaderboard": {
+      "get": {
+        "operationId": "getLeaderboard",
+        "tags": ["leaderboard"],
+        "summary": "Get top players by score",
+        "responses": {
+          "200": {
+            "description": "Leaderboard entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeaderboardEntry"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Meme": {
+        "type": "object",
+        "required": ["id", "imageUrl", "isReal"],
+        "properties": {
+          "id": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "caption": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["news", "history", "science", "pop-culture"]
+          },
+          "isReal": { "type": "boolean" },
+          "totalVotes": { "type": "integer" },
+          "realVotes": { "type": "integer" },
+          "fakeVotes": { "type": "integer" }
+        }
+      },
+      "CreateMemeRequest": {
+        "type": "object",
+        "required": ["imageUrl", "isReal"],
+        "properties": {
+          "imageUrl": { "type": "string" },
+          "caption": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["news", "history", "science", "pop-culture"]
+          },
+          "isReal": { "type": "boolean" }
+        }
+      },
+      "VoteRequest": {
+        "type": "object",
+        "required": ["guess"],
+        "properties": {
+          "guess": {
+            "type": "string",
+            "enum": ["real", "fake"]
+          }
+        }
+      },
+      "VoteResult": {
+        "type": "object",
+        "required": ["correct", "isReal"],
+        "properties": {
+          "correct": { "type": "boolean" },
+          "isReal": { "type": "boolean" },
+          "score": { "type": "integer" },
+          "totalVotes": { "type": "integer" },
+          "realVotes": { "type": "integer" },
+          "fakeVotes": { "type": "integer" }
+        }
+      },
+      "LeaderboardEntry": {
+        "type": "object",
+        "required": ["rank", "username", "score"],
+        "properties": {
+          "rank": { "type": "integer" },
+          "username": { "type": "string" },
+          "score": { "type": "integer" },
+          "totalVotes": { "type": "integer" },
+          "accuracy": { "type": "number", "format": "float" }
+        }
+      }
+    }
+  }
+}

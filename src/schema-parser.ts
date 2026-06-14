@@ -3,7 +3,10 @@ import type { OpenApiSchema, PropEntry } from "./types";
 
 export function cleanRefName(ref: string | undefined): string {
   if (!ref) return "";
-  return ref.split("/").pop()!.replace(/[^a-zA-Z0-9_]/g, "");
+  return ref
+    .split("/")
+    .pop()!
+    .replace(/[^a-zA-Z0-9_]/g, "");
 }
 
 export function extractRefs(
@@ -55,7 +58,9 @@ export function schemaToTsType(schema: OpenApiSchema | undefined): string {
   if (schema.type === "integer" || schema.type === "number") return "number";
   if (schema.type === "string") {
     if (schema.enum)
-      return schema.enum.map((e) => (typeof e === "number" ? String(e) : `"${e}"`)).join(" | ");
+      return schema.enum
+        .map((e) => (typeof e === "number" ? String(e) : `"${e}"`))
+        .join(" | ");
     return "string";
   }
   if (schema.type === "number" && schema.enum) {
@@ -75,15 +80,18 @@ export function schemaToZod(schema: OpenApiSchema | undefined): string {
     return `z.array(${schemaToZod(schema.items)})`;
   }
   if (schema.type === "object" || schema.properties) {
-    const props = getSchemaPropEntries(schema).map(({ safeKey, isRequired, schema: ps }) => {
-      let zodType = schemaToZod(ps);
-      if (!isRequired) zodType += ".optional()";
-      return `  ${safeKey}: ${zodType},`;
-    });
+    const props = getSchemaPropEntries(schema).map(
+      ({ safeKey, isRequired, schema: ps }) => {
+        let zodType = schemaToZod(ps);
+        if (!isRequired) zodType += ".optional()";
+        return `  ${safeKey}: ${zodType},`;
+      },
+    );
     if (props.length === 0) return "z.record(z.any())";
     return `z.object({\n${props.join("\n")}\n})`;
   }
-  if (schema.type === "integer" || schema.type === "number") return "z.number()";
+  if (schema.type === "integer" || schema.type === "number")
+    return "z.number()";
   if (schema.type === "string") {
     if (schema.enum) {
       if (schema.enum.every((e) => typeof e === "string")) {

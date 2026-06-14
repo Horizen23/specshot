@@ -1,0 +1,11 @@
+{
+  "name": "specshot-petstore",
+  "private": true,
+  "scripts": {
+    "mock": "specshot mock --web --file meme.json",
+    "generate": "specshot generate --file meme.json -o src/mocks"
+  },
+  "dependencies": {
+    "specshot": "file:../.."
+  }
+}

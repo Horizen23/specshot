@@ -8,11 +8,27 @@ import {
   RESPONSE_BODY_PREFIX,
 } from "./constants";
 import type { OpenApiSpec, OpenApiOperation, ServiceGroup } from "./types";
-import { cleanRefName, extractRefs, schemaToTsType, schemaToZod } from "./schema-parser";
-import { toClassName, capitalize, toCamelCase, toMethodName } from "./naming-utils";
-import { extractCustomCode, compileTemplate, writeGenerated } from "./file-writer";
+import {
+  cleanRefName,
+  extractRefs,
+  schemaToTsType,
+  schemaToZod,
+} from "./schema-parser";
+import {
+  toClassName,
+  capitalize,
+  toCamelCase,
+  toMethodName,
+} from "./naming-utils";
+import {
+  extractCustomCode,
+  compileTemplate,
+  writeGenerated,
+} from "./file-writer";
 import { loadSpec } from "./spec-loader";
 import { resolveConfig } from "./config-resolver";
+import { mockValueFromSchema } from "./msw-utils";
+import { endpointKey, type MockEndpointEntry } from "./mock-config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +38,14 @@ export async function generateApi(
   outputDir: string,
   importAlias?: string,
   templatesDirOverride?: string,
-  opts?: { dryRun?: boolean; configPath?: string },
+  opts?: {
+    dryRun?: boolean;
+    configPath?: string;
+    msw?: boolean;
+    mswOutputDir?: string;
+    mswEndpointFilter?: Set<string>;
+    mswEndpointConfigs?: Record<string, MockEndpointEntry>;
+  },
 ) {
   const spec = await loadSpec(specSource);
 
@@ -56,10 +79,18 @@ export async function generateApi(
 
       const refsInOp = new Set<string>();
       if (operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema) {
-        extractRefs(operation.requestBody.content[JSON_CONTENT_TYPE].schema, refsInOp);
+        extractRefs(
+          operation.requestBody.content[JSON_CONTENT_TYPE].schema,
+          refsInOp,
+        );
       }
-      if (operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema) {
-        extractRefs(operation.responses[HTTP_OK].content[JSON_CONTENT_TYPE].schema, refsInOp);
+      if (
+        operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema
+      ) {
+        extractRefs(
+          operation.responses[HTTP_OK].content[JSON_CONTENT_TYPE].schema,
+          refsInOp,
+        );
       }
 
       for (const ref of refsInOp) {
@@ -95,7 +126,8 @@ export async function generateApi(
   const tagSchemas = new Map<string, Set<string>>();
 
   for (const [name, tags] of schemaUsage.entries()) {
-    if (name === RESPONSE_BODY_STRUCT || name.startsWith(RESPONSE_BODY_PREFIX)) continue;
+    if (name === RESPONSE_BODY_STRUCT || name.startsWith(RESPONSE_BODY_PREFIX))
+      continue;
 
     if (tags.size === 1) {
       const tag = Array.from(tags)[0];
@@ -116,7 +148,9 @@ export async function generateApi(
 
   const modelsData = {
     schemas: Array.from(sharedSchemas).map((name) => {
-      const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
+      const schemaKey = Object.keys(schemas).find(
+        (k) => cleanRefName(k) === name,
+      );
       return {
         name,
         zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
@@ -157,14 +191,19 @@ export async function generateApi(
         hasBody: !!operation.requestBody,
         hasQuery: !!operation.parameters?.some((p) => p.in === "query"),
         hasPathParams: !!operation.parameters?.some((p) => p.in === "path"),
-        responseSchema: operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema,
+        responseSchema:
+          operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema,
         bodySchema: operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema,
       });
     }
   }
 
   const providerDir = path.dirname(outputDir);
-  const { corePathStr, servicesCorePath } = resolveConfig(outputDir, importAlias, opts?.configPath);
+  const { corePathStr, servicesCorePath } = resolveConfig(
+    outputDir,
+    importAlias,
+    opts?.configPath,
+  );
 
   for (const [tag, data] of Object.entries(services)) {
     const className = toClassName(tag);
@@ -178,10 +217,13 @@ export async function generateApi(
 
     if (specificSchemas.size > 0) {
       for (const name of specificSchemas) {
-        const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
+        const schemaKey = Object.keys(schemas).find(
+          (k) => cleanRefName(k) === name,
+        );
         if (schemaKey) {
           const nested = extractRefs(schemas[schemaKey]);
-          for (const n of nested) if (sharedSchemas.has(n)) modelsToImport.add(n);
+          for (const n of nested)
+            if (sharedSchemas.has(n)) modelsToImport.add(n);
           specificSchemasList.push({
             name,
             zod: schemaToZod(schemas[schemaKey]),
@@ -212,7 +254,11 @@ export async function generateApi(
       }
 
       let typeNameParams: string | null = null;
-      const queryParamsList: { name: string; required: boolean | undefined; tsType: string }[] = [];
+      const queryParamsList: {
+        name: string;
+        required: boolean | undefined;
+        tsType: string;
+      }[] = [];
       if (op.hasQuery) {
         typeNameParams = `${tag}${capMethod}Params`;
         typeNames.push(typeNameParams);
@@ -284,7 +330,9 @@ export async function generateApi(
         hasBody: op.hasBody,
         hasQuery: op.hasQuery,
         summary: op.summary,
-        description: op.description ? op.description.replace(/\n/g, "\n   * ") : null,
+        description: op.description
+          ? op.description.replace(/\n/g, "\n   * ")
+          : null,
         typeNamePayload,
         bodyType,
         typeNameParams,
@@ -325,9 +373,146 @@ export async function generateApi(
       customCode: serviceCustomCode,
     };
 
-    const serviceTemplate = compileTemplate(path.join(templatesDir, "service.hbs"));
+    const serviceTemplate = compileTemplate(
+      path.join(templatesDir, "service.hbs"),
+    );
     writeGenerated(servicePath, serviceTemplate(serviceData));
     console.log(`Generated ${serviceFileName}`);
+  }
+
+  // -- MSW handler generation --
+  if (opts?.msw) {
+    const mswDir =
+      opts.mswOutputDir || path.join(providerDir, "msw", "handlers");
+    if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
+
+    const mswTemplatesDir = path.join(__dirname, "../templates/msw");
+    const servicesForIndex: { tag: string; tagLowerCase: string }[] = [];
+
+    const filter = opts.mswEndpointFilter;
+    const epConfigs = opts.mswEndpointConfigs || {};
+
+    for (const [tag, data] of Object.entries(services)) {
+      const tagLowerCase = tag.toLowerCase();
+
+      const handlerFns: Record<string, unknown>[] = [];
+      const typeImports: Set<string> = new Set();
+
+      for (const op of data.operations) {
+        const opKey = endpointKey(tag, op.operationId || "unknown");
+        if (filter && !filter.has(opKey)) continue;
+
+        const epCfg = epConfigs[opKey];
+
+        const fnName = `${op.operationId || "unknown"}Handler`;
+        const httpMethod = op.method.toLowerCase();
+
+        let pathPattern = op.path;
+        for (const p of op.parameters || []) {
+          if (p.in === "path") {
+            pathPattern = pathPattern.replace(`{${p.name}}`, `:${p.name}`);
+          }
+        }
+
+        const methodName = toMethodName(op.operationId);
+        const capMethod = capitalize(methodName);
+        const typeNameResponse = `${tag}${capMethod}Response`;
+
+        let responseTypeName: string | null = null;
+        let mockResponse: string;
+        let mockComment = false;
+        let statusCode =
+          httpMethod === "post" ? 201 : httpMethod === "delete" ? 204 : 200;
+
+        // Apply endpoint config override for status code
+        if (epCfg?.statusCode) {
+          statusCode = epCfg.statusCode;
+        }
+
+        if (op.responseSchema) {
+          if (op.responseSchema.$ref) {
+            mockComment = epCfg?.mockData ? false : true;
+            responseTypeName = typeNameResponse;
+            mockResponse = `{} as ${responseTypeName}`;
+            typeImports.add(typeNameResponse);
+          } else if (
+            op.responseSchema.type === "array" &&
+            op.responseSchema.items?.$ref
+          ) {
+            mockComment = epCfg?.mockData ? false : true;
+            responseTypeName = typeNameResponse;
+            mockResponse = `[] as ${responseTypeName}`;
+            typeImports.add(typeNameResponse);
+          } else if (epCfg?.mockData) {
+            responseTypeName = typeNameResponse;
+            mockResponse = mockValueFromSchema(op.responseSchema);
+            mockComment = false;
+          } else {
+            responseTypeName = typeNameResponse;
+            mockResponse = mockValueFromSchema(op.responseSchema);
+          }
+        } else {
+          mockResponse = "null";
+        }
+
+        let bodyTypeName: string | null = null;
+        let typeNamePayload: string | null = null;
+        if (op.hasBody) {
+          typeNamePayload = `${tag}${capMethod}Payload`;
+          bodyTypeName = typeNamePayload;
+          typeImports.add(typeNamePayload);
+        }
+
+        handlerFns.push({
+          fnName,
+          httpMethod,
+          pathPattern,
+          summary: op.summary || op.operationId || op.method,
+          hasBody: op.hasBody,
+          bodyTypeName,
+          mockResponse,
+          mockComment,
+          responseTypeName,
+          statusCode,
+          delayMs: epCfg?.delay || undefined,
+          customMockData: epCfg?.mockData || undefined,
+          hasError: epCfg?.errorEnabled || false,
+          errorStatus: epCfg?.errorStatus || 500,
+          errorBody: epCfg?.errorBody || '{"message":"Internal Server Error"}',
+        });
+      }
+
+      if (handlerFns.length === 0) continue;
+
+      const handlersData = {
+        tag,
+        tagLowerCase,
+        handlers: handlerFns,
+        typeImports: Array.from(typeImports),
+      };
+
+      const handlersTemplate = compileTemplate(
+        path.join(mswTemplatesDir, "handlers.hbs"),
+      );
+      writeGenerated(
+        path.join(mswDir, `${tagLowerCase}.handlers.ts`),
+        handlersTemplate(handlersData),
+      );
+      console.log(`Generated MSW ${tagLowerCase}.handlers.ts`);
+
+      servicesForIndex.push({ tag, tagLowerCase });
+    }
+
+    if (servicesForIndex.length > 0) {
+      const indexTemplate = compileTemplate(
+        path.join(mswTemplatesDir, "index.hbs"),
+      );
+      writeGenerated(
+        path.join(mswDir, "index.ts"),
+        indexTemplate({ services: servicesForIndex }),
+      );
+      console.log("Generated MSW handlers/index.ts");
+    }
   }
 
   // Auto-discover interceptors
@@ -352,14 +537,21 @@ export async function generateApi(
   }
 
   // Auto-generate interceptors index
-  const interceptorsIndexPath = path.join(providerDir, "interceptors", "index.ts");
+  const interceptorsIndexPath = path.join(
+    providerDir,
+    "interceptors",
+    "index.ts",
+  );
   const interceptorsIndexTemplate = compileTemplate(
     path.join(templatesDir, "interceptors-index.hbs"),
   );
   if (!fs.existsSync(path.dirname(interceptorsIndexPath))) {
     fs.mkdirSync(path.dirname(interceptorsIndexPath), { recursive: true });
   }
-  writeGenerated(interceptorsIndexPath, interceptorsIndexTemplate({ plugins: pluginImports }));
+  writeGenerated(
+    interceptorsIndexPath,
+    interceptorsIndexTemplate({ plugins: pluginImports }),
+  );
   console.log(`Generated interceptors/index.ts`);
 
   // Auto-generate provider index.ts
@@ -385,7 +577,9 @@ export async function generateApi(
   try {
     const { execSync } = await import("child_process");
     console.log(`\nFormatting generated files...`);
-    execSync(`npx prettier --write "${providerDir}/**/*.{ts,tsx}"`, { stdio: "ignore" });
+    execSync(`npx prettier --write "${providerDir}/**/*.{ts,tsx}"`, {
+      stdio: "ignore",
+    });
   } catch (_e) {
     // Ignore if prettier fails or is missing
   }

@@ -28,6 +28,8 @@ export function resolveConfig(
     if (!corePathStr.startsWith(".")) corePathStr = "./" + corePathStr;
   }
 
-  const servicesCorePath = importAlias ? `${importAlias}/core` : "../" + corePathStr;
+  const servicesCorePath = importAlias
+    ? `${importAlias}/core`
+    : "../" + corePathStr;
   return { corePathStr, servicesCorePath };
 }
