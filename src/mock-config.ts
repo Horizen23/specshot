@@ -20,6 +20,8 @@ export interface MockConfigFile {
   outputDir?: string;
   specSource?: string;
   lastGenerated?: string;
+  proxyTarget?: string;
+  proxyEnabled?: boolean;
 }
 
 export const MOCK_CONFIG_FILE = "specshot.mocks.json";

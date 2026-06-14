@@ -1,4 +1,5 @@
 import http from "http";
+import https from "https";
 import { exec } from "child_process";
 import path from "path";
 import fs from "fs";
@@ -296,6 +297,50 @@ function createMockRequestHandler(
       return;
     }
 
+    // No mock matched, try proxy
+    const proxyTarget = config.proxyTarget;
+    if (proxyTarget && config.proxyEnabled !== false) {
+      console.log(
+        `[MockServer] → proxy ${requestMethod} ${requestPath} → ${proxyTarget}`,
+      );
+      const targetUrl = new URL(proxyTarget);
+      const isHttps = targetUrl.protocol === "https:";
+      const proxyModule = isHttps ? https : http;
+
+      const proxyReq = proxyModule.request(
+        {
+          hostname: targetUrl.hostname,
+          port: targetUrl.port || (isHttps ? 443 : 80),
+          path: req.url,
+          method: requestMethod,
+          headers: {
+            ...Object.fromEntries(
+              Object.entries(req.headers).filter(
+                ([k]) => k !== "host",
+              ),
+            ),
+          },
+        },
+        (proxyRes) => {
+          res.writeHead(
+            proxyRes.statusCode || 502,
+            proxyRes.headers,
+          );
+          proxyRes.pipe(res);
+        },
+      );
+
+      proxyReq.on("error", () => {
+        res.writeHead(502, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({ error: "Proxy error" }),
+        );
+      });
+
+      req.pipe(proxyReq);
+      return;
+    }
+
     console.log(
       `[MockServer] 404 ${requestMethod} ${requestPath}`,
     );
@@ -414,6 +459,7 @@ export async function startMockWebServer(options: {
   output?: string;
   configPath?: string;
   port?: number;
+  proxy?: string;
 }): Promise<http.Server> {
   const cwd = process.cwd();
   const port = options.port || 3456;
@@ -422,8 +468,15 @@ export async function startMockWebServer(options: {
   mockServerPort =
     (existingConfig as any).mockServerPort || 3457;
 
+  if (options.proxy) {
+    existingConfig.proxyTarget = options.proxy;
+    existingConfig.proxyEnabled = true;
+    saveMockConfig(existingConfig, cwd);
+  }
+
   const initialSpecSource = options.file || options.url || existingConfig.specSource || "";
   const initialOutputDir = options.output || existingConfig.outputDir || "";
+  const initialProxyTarget = existingConfig.proxyTarget || "";
 
   // Pre-load spec at startup so browser doesn't need to fetch it
   let preloadedSpecData: string | null = null;
@@ -475,6 +528,7 @@ export async function startMockWebServer(options: {
           let specData = preloadedSpecData;
           let currentSpecSource = initialSpecSource;
           let currentOutputDir = initialOutputDir;
+          let currentProxyTarget = initialProxyTarget;
           if (specData) {
             try {
               const freshConfig = loadMockConfig(cwd);
@@ -491,11 +545,13 @@ export async function startMockWebServer(options: {
                 }),
               }));
               specData = JSON.stringify(parsed);
+              currentProxyTarget = freshConfig.proxyTarget || "";
             } catch {}
           } else {
             const freshConfig = loadMockConfig(cwd);
             if (!currentSpecSource) currentSpecSource = freshConfig.specSource || "";
             if (!currentOutputDir) currentOutputDir = freshConfig.outputDir || "";
+            if (!currentProxyTarget) currentProxyTarget = freshConfig.proxyTarget || "";
           }
           res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
           res.end(
@@ -503,6 +559,7 @@ export async function startMockWebServer(options: {
               currentSpecSource,
               currentOutputDir,
               specData,
+              currentProxyTarget,
             ),
           );
           return;
@@ -679,6 +736,17 @@ export async function startMockWebServer(options: {
           return;
         }
 
+        if (req.method === "POST" && pathname === "/api/proxy") {
+          const body = await parseBody(req);
+          const { proxyTarget, proxyEnabled } = JSON.parse(body);
+          const cfg = loadMockConfig(cwd);
+          if (proxyTarget !== undefined) cfg.proxyTarget = proxyTarget;
+          if (proxyEnabled !== undefined) cfg.proxyEnabled = proxyEnabled;
+          saveMockConfig(cfg, cwd);
+          jsonResponse(res, { ok: true });
+          return;
+        }
+
         if (req.method === "POST" && pathname === "/api/preview") {
           jsonResponse(
             res,
@@ -741,7 +809,9 @@ function getDashboardHtml(
   initialSpecSource?: string,
   initialOutputDir?: string,
   preloadedSpecData?: string | null,
+  initialProxyTarget?: string,
 ): string {
+  const proxyVal = initialProxyTarget || "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1388,6 +1458,9 @@ function getDashboardHtml(
   <div class="output-label">
     Output: <input type="text" id="outputDir" placeholder="src/mocks/handlers" value="${initialOutputDir || ""}" />
   </div>
+  <div class="output-label" style="display:flex;align-items:center;gap:6px">
+    Proxy: <input type="text" id="proxyTarget" placeholder="http://localhost:3000" value="${proxyVal}" style="width:180px" />
+  </div>
   <button class="btn btn-primary" id="generateBtn" disabled>Generate Handlers</button>
 </div>
 
@@ -1454,6 +1527,7 @@ ${
   const mainEl = document.getElementById('main');
   const mockServerBtn = document.getElementById('mockServerBtn');
   const mockServerStatusEl = document.getElementById('mockServerStatus');
+  const proxyTargetInput = document.getElementById('proxyTarget');
 
   function toast(msg, type) {
     type = type || '';
@@ -2290,6 +2364,17 @@ ${
   specSourceInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') loadSpec();
   });
+
+  if (proxyTargetInput) {
+    proxyTargetInput.addEventListener('change', function() {
+      var target = proxyTargetInput.value.trim();
+      fetch('/api/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proxyTarget: target, proxyEnabled: !!target })
+      }).catch(function() {});
+    });
+  }
 
   generateBtn.addEventListener('click', async function() {
     if (!currentData) return;

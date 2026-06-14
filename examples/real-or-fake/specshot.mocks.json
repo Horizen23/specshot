@@ -1,7 +1,7 @@
 {
   "endpoints": {
     "memes-listMemes": {
-      "enabled": true,
+      "enabled": false,
       "tag": "memes",
       "operationId": "listMemes",
       "method": "GET",
@@ -25,12 +25,12 @@
       "mockData": "{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
     },
     "memes-voteMeme": {
-      "enabled": false,
+      "enabled": true,
       "tag": "memes",
       "operationId": "voteMeme",
       "method": "POST",
       "path": "/memes/{memeId}/vote",
-      "mockData": "{\n  \"correct\": false,\n  \"isReal\": false,\n  \"score\": 0,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
+      "mockData": "{\n  \"correct\": true,\n  \"isReal\": true,\n  \"score\": 0,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
     },
     "leaderboard-getLeaderboard": {
       "enabled": false,
@@ -43,6 +43,8 @@
   },
   "outputDir": "src/mocks/handlers",
   "specSource": "/Users/anuchitbuaprom/Desktop/me/specshot/examples/real-or-fake/meme.json",
-  "lastGenerated": "2026-06-14T08:55:10.748Z",
-  "mockServerPort": 3457
+  "lastGenerated": "2026-06-14T09:01:39.501Z",
+  "mockServerPort": 3457,
+  "proxyTarget": "http://localhost:3000",
+  "proxyEnabled": true
 }

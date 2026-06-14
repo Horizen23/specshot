@@ -2,7 +2,7 @@
   "name": "specshot-petstore",
   "private": true,
   "scripts": {
-    "mock": "specshot mock --web --file meme.json",
+    "mock": "specshot mock --proxy http://localhost:3000 --web --file meme.json",
     "generate": "specshot generate --file meme.json -o src/mocks"
   },
   "dependencies": {

@@ -83,6 +83,7 @@ export async function mockCommand(options: {
   configPath?: string;
   web?: boolean;
   port?: number;
+  proxy?: string;
 }) {
   if (options.web) {
     await startMockWebServer({
@@ -91,6 +92,7 @@ export async function mockCommand(options: {
       output: options.output,
       configPath: options.configPath,
       port: options.port,
+      proxy: options.proxy,
     });
     return;
   }

@@ -346,6 +346,7 @@ program
   .option("-c, --config <path>", "Path to specshot.json config file")
   .option("-w, --web", "Launch web-based mock dashboard instead of CLI flow")
   .option("-p, --port <number>", "Port for web dashboard (default: 3456)")
+  .option("-x, --proxy <url>", "Proxy unmatched requests to target URL")
   .action(async (options) => {
     try {
       await mockCommand({
@@ -355,6 +356,7 @@ program
         configPath: options.config,
         web: options.web,
         port: options.port ? parseInt(options.port, 10) : undefined,
+        proxy: options.proxy,
       });
     } catch (err) {
       console.error(chalk.red("Mock command failed"));
