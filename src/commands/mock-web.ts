@@ -220,7 +220,9 @@ async function sendRequest() {
     var data = await res.json();
     var ms = Math.round(performance.now() - start);
     var color = res.status >= 400 ? '#f85149' : '#3fb950';
-    panel.innerHTML = '<div class="response-status" style="color:'+color+'">'+res.status+' '+res.statusText+' · '+ms+'ms</div><div class="response-body">'+JSON.stringify(data,null,2)+'</div>';
+    var jsonText = JSON.stringify(data, null, 2);
+    var escapedJson = jsonText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    panel.innerHTML = '<div class="response-status" style="color:'+color+'">'+res.status+' '+res.statusText+' · '+ms+'ms</div><div class="response-body">'+escapedJson+'</div>';
   } catch(e) {
     panel.innerHTML = '<div style="color:#f85149">Error: '+e.message+'</div>';
   }
@@ -1326,10 +1328,12 @@ function getDashboardHtml(
     position: relative;
     z-index: 1;
     color: transparent;
+    -webkit-text-fill-color: transparent;
     caret-color: var(--accent);
     resize: vertical;
     width: 100%;
     min-height: 80px;
+    background: transparent;
   }
   .code-editor textarea::selection { background: rgba(88,166,255,0.3); }
   .hl-k { color: #79c0ff; }
@@ -1575,7 +1579,7 @@ ${
             path: ep.path,
             statusCode: (ep.config && ep.config.statusCode) || defaultStatusCode(ep.method),
             delay: (ep.config && ep.config.delay) || 0,
-            mockData: (ep.config && ep.config.mockData) || ''
+            mockData: cleanMockData((ep.config && ep.config.mockData) || '')
           };
         });
       });
@@ -1589,6 +1593,12 @@ ${
     } finally {
       hideSpinner(loadBtn, 'Load Spec');
     }
+  }
+
+  function cleanMockData(val) {
+    if (!val) return '';
+    if (/hl-[ksnbp]/.test(val) || /<span\s/.test(val)) return '';
+    return val;
   }
 
   function defaultStatusCode(method) {
@@ -1945,7 +1955,12 @@ ${
       }
 
       function refreshHighlight() {
-        if (highlightCode) highlightCode.innerHTML = highlightJson(mockDataInput.value) + String.fromCharCode(10);
+        var val = mockDataInput.value;
+        if (!val.trim() || /<span\s/.test(val) || /hl-[ksnbp]/.test(val)) {
+          if (highlightCode) highlightCode.innerHTML = esc(val) + String.fromCharCode(10);
+        } else {
+          if (highlightCode) highlightCode.innerHTML = highlightJson(val) + String.fromCharCode(10);
+        }
         var pre = highlightCode ? highlightCode.parentElement : null;
         if (pre) { pre.scrollTop = mockDataInput.scrollTop; pre.scrollLeft = mockDataInput.scrollLeft; }
       }
@@ -2063,7 +2078,7 @@ ${
       };
       if (c.statusCode !== defaultStatusCode(c.method)) configEndpoints[k].statusCode = c.statusCode;
       if (c.delay && c.delay > 0) configEndpoints[k].delay = c.delay;
-      if (c.mockData) configEndpoints[k].mockData = c.mockData;
+      if (c.mockData) configEndpoints[k].mockData = cleanMockData(c.mockData);
       if (c.errorEnabled) {
         configEndpoints[k].errorEnabled = true;
         configEndpoints[k].errorStatus = c.errorStatus || 500;
@@ -2202,7 +2217,7 @@ ${
       };
       if (c.statusCode !== defaultStatusCode(c.method)) configEndpoints[k].statusCode = c.statusCode;
       if (c.delay && c.delay > 0) configEndpoints[k].delay = c.delay;
-      if (c.mockData) configEndpoints[k].mockData = c.mockData;
+      if (c.mockData) configEndpoints[k].mockData = cleanMockData(c.mockData);
       if (c.errorEnabled) {
         configEndpoints[k].errorEnabled = true;
         configEndpoints[k].errorStatus = c.errorStatus || 500;
@@ -2395,7 +2410,7 @@ ${
       };
       if (c.statusCode !== defaultStatusCode(c.method)) configEndpoints[k].statusCode = c.statusCode;
       if (c.delay && c.delay > 0) configEndpoints[k].delay = c.delay;
-      if (c.mockData) configEndpoints[k].mockData = c.mockData;
+      if (c.mockData) configEndpoints[k].mockData = cleanMockData(c.mockData);
       if (c.enabled) enabledCount++;
     });
 
@@ -2441,7 +2456,7 @@ ${
           path: ep.path,
           statusCode: (sc && sc.statusCode) || defaultStatusCode(ep.method),
           delay: (sc && sc.delay) || 0,
-          mockData: (sc && sc.mockData) || ep.mockExample || '',
+          mockData: cleanMockData((sc && sc.mockData) || ep.mockExample || ''),
           errorEnabled: (sc && sc.errorEnabled) || false,
           errorStatus: (sc && sc.errorStatus) || 500,
           errorBody: (sc && sc.errorBody) || '',
