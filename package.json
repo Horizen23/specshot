@@ -17,7 +17,7 @@
     "ui/mock-ui/dist"
   ],
   "scripts": {
-    "build:ui": "npm --prefix ui/mock-ui run build",
+    "build:ui": "npm --prefix ui/mock-ui install && npm --prefix ui/mock-ui run build",
     "build:cli": "tsup",
     "build": "npm run build:ui && npm run build:cli",
     "dev": "tsup --watch",
@@ -38,7 +38,10 @@
     "swr",
     "fetch",
     "cli",
-    "shadcn"
+    "shadcn",
+    "mock",
+    "mock-server",
+    "api-mocking"
   ],
   "author": "SpecShot Contributors",
   "license": "MIT",

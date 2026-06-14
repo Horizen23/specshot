@@ -58,6 +58,7 @@ That's it. No config files. No code generation pipelines. Just typed API calls.
 ```
 specshot init              Scaffold API core into your project
 specshot generate          Generate services from OpenAPI
+specshot mock              Launch an interactive Mock Server and Dashboard
 ```
 
 ### `generate` options
@@ -71,6 +72,23 @@ specshot generate          Generate services from OpenAPI
 | `--config, -c <path>` | Custom config file path |
 | `--templates, -t <dir>` | Custom Handlebars templates |
 | `--dry-run` | Preview without writing files |
+
+### `mock` options (Zero-config API Mocking)
+
+SpecShot includes a powerful built-in mock server and Web Dashboard. 
+No MSW or complex setup required. Just point it to your OpenAPI spec.
+
+```bash
+npx specshot mock --web --proxy http://localhost:3000
+```
+
+| Flag | Description |
+|---|---|
+| `--web` | Launch the beautiful Web Dashboard (SPA) |
+| `--proxy, -p <url>` | Proxy un-mocked requests to a real backend |
+| `--url, -u <url>` | Remote OpenAPI spec URL |
+| `--file, -f <path>` | Local OpenAPI JSON file |
+| `--port <number>` | Port for the mock API server |
 
 ### `specshot.json`
 
