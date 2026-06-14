@@ -110,6 +110,9 @@ npx specshot mock --web --proxy http://localhost:3000
 |---|---|
 | [`examples/local-file`](examples/local-file) | Generate from a `openapi.json` on disk |
 | [`examples/remote-url`](examples/remote-url) | Fetch from a running backend + mock server |
+| [`examples/react-query`](examples/react-query) | Integration with `@tanstack/react-query` |
+| [`examples/swr`](examples/swr) | Integration with `swr` for data fetching |
+| [`examples/real-or-fake`](examples/real-or-fake) | Full-stack usage with the mock server |
 
 ---
 
