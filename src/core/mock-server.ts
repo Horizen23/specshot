@@ -346,44 +346,15 @@ export async function startMockWebServer(options: {
   const initialOutputDir = options.output || existingConfig.outputDir || "";
   const initialProxyTarget = existingConfig.proxyTarget || "";
 
-  // Pre-load spec at startup so browser doesn't need to fetch it
-  let preloadedSpecData: string | null = null;
   if (initialSpecSource) {
-    try {
-      const resolvedSource =
-        initialSpecSource.startsWith("http://") ||
-        initialSpecSource.startsWith("https://")
-          ? initialSpecSource
-          : path.resolve(cwd, initialSpecSource);
-      const spec = await loadSpec(resolvedSource);
-      const schemas = spec.components?.schemas || {};
-      const endpoints = flattenEndpoints(spec);
-      const groupedByTag = groupByTag(endpoints);
-      const tags = Array.from(groupedByTag.entries()).map(([tag, eps]) => ({
-        tag,
-        count: eps.length,
-        endpoints: eps.map((ep) => {
-          const key = endpointKey(ep.tag, ep.operationId);
-          const savedCfg = existingConfig.endpoints?.[key];
-          return {
-            ...ep,
-            mockExample: mockJsonFromSchema(ep.responseSchema, schemas),
-            enabled: savedCfg?.enabled || false,
-            savedConfig: savedCfg || null,
-          };
-        }),
-      }));
-      preloadedSpecData = JSON.stringify({
-        specSource: resolvedSource,
-        tags,
-        totalEndpoints: endpoints.length,
-      });
-      console.log(
-        `Pre-loaded spec: ${tags.length} tags, ${endpoints.length} endpoints`,
-      );
-    } catch (e) {
-      console.error(`Failed to pre-load spec: ${(e as Error).message}`);
-    }
+    const resolvedSource =
+      initialSpecSource.startsWith("http://") ||
+      initialSpecSource.startsWith("https://")
+        ? initialSpecSource
+        : path.resolve(cwd, initialSpecSource);
+    console.log(
+      `Pre-loaded spec source: ${resolvedSource}`,
+    );
   }
 
   const serverInstance = http.createServer(
@@ -457,9 +428,17 @@ export async function startMockWebServer(options: {
 
         if (req.method === "POST" && pathname === "/api/config") {
           const body = await parseBody(req);
-          const config: MockConfigFile = JSON.parse(body);
-          (config as any).mockServerPort = mockServerPort;
-          saveMockConfig(config, cwd);
+          const incomingConfig: MockConfigFile = JSON.parse(body);
+          const existingConfig = loadMockConfig(cwd);
+          
+          const newConfig = {
+            ...existingConfig,
+            ...incomingConfig,
+            endpoints: incomingConfig.endpoints || existingConfig.endpoints || {}
+          };
+          
+          (newConfig as any).mockServerPort = mockServerPort;
+          saveMockConfig(newConfig, cwd);
           restartMockServerOnConfigChange(cwd);
           jsonResponse(res, { ok: true });
           return;

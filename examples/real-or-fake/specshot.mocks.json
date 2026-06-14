@@ -1,7 +1,7 @@
 {
   "endpoints": {
     "memes-listMemes": {
-      "enabled": false,
+      "enabled": true,
       "tag": "memes",
       "operationId": "listMemes",
       "method": "GET",
@@ -51,5 +51,7 @@
       "mockData": "[\n  {\n    \"rank\": 0,\n    \"username\": \"string\",\n    \"score\": 0,\n    \"totalVotes\": 0,\n    \"accuracy\": 0\n  }\n]"
     }
   },
-  "mockServerPort": 3457
+  "mockServerPort": 3457,
+  "proxyTarget": "http://localhost:3000",
+  "proxyEnabled": true
 }

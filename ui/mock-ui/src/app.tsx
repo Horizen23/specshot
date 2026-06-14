@@ -490,7 +490,19 @@ export function App() {
                 <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>No mocked endpoints.</div>
               ) : (
                 enabledEndpoints.map(ep => (
-                  <div class="ep-card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div 
+                    class="ep-card" 
+                    style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                    onClick={() => {
+                      setTestMethod(ep.method.toUpperCase());
+                      setTestPath(ep.path);
+                      if (ep.method.toUpperCase() !== 'GET' && ep.method.toUpperCase() !== 'HEAD') {
+                        setTestBody(ep.mockExample || '{}');
+                      } else {
+                        setTestBody('');
+                      }
+                    }}
+                  >
                     <span class={`method-badge ${ep.method.toLowerCase()}`}>{ep.method}</span>
                     <span class="ep-path">{ep.path}</span>
                     <span style={{ fontSize: '11px', color: 'var(--green)' }}>✓ {ep.config?.statusCode || 200}</span>
