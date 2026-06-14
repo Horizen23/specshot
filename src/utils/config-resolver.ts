@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { CONFIG_FILE } from "./constants";
+import { CONFIG_FILE } from "../types/constants";
 
 export function resolveConfig(
   outputDir: string,

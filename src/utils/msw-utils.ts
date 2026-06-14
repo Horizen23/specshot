@@ -1,6 +1,6 @@
-import type { OpenApiSchema } from "./types";
-import { cleanRefName } from "./schema-parser";
-import { getSchemaPropEntries } from "./schema-parser";
+import type { OpenApiSchema } from "../types/types";
+import { cleanRefName } from "../core/schema-parser";
+import { getSchemaPropEntries } from "../core/schema-parser";
 
 export function mockValueFromSchema(schema: OpenApiSchema | undefined): string {
   if (!schema) return "null";
@@ -70,7 +70,8 @@ export function mockJsonFromSchema(
   if (schema.type === "array") {
     if (schema.items) {
       const itemMock = mockJsonFromSchema(schema.items, schemas, new Set(seen));
-      return `[${itemMock}]`;
+      const indented = itemMock.split('\n').map(l => `  ${l}`).join('\n');
+      return `[\n${indented}\n]`;
     }
     return "[]";
   }
@@ -79,7 +80,11 @@ export function mockJsonFromSchema(
     const props = getSchemaPropEntries(schema);
     if (props.length === 0) return "{}";
     const entries = props.map(({ safeKey, schema: ps }) => {
-      const value = mockJsonFromSchema(ps, schemas, new Set(seen));
+      let value = mockJsonFromSchema(ps, schemas, new Set(seen));
+      if (value.includes('\n')) {
+        const lines = value.split('\n');
+        value = lines[0] + '\n' + lines.slice(1).map(l => `  ${l}`).join('\n');
+      }
       return `  "${safeKey.replace(/^"|"$/g, "")}": ${value}`;
     });
     return `{\n${entries.join(",\n")}\n}`;

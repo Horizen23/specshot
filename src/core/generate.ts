@@ -6,8 +6,8 @@ import {
   HTTP_OK,
   RESPONSE_BODY_STRUCT,
   RESPONSE_BODY_PREFIX,
-} from "./constants";
-import type { OpenApiSpec, OpenApiOperation, ServiceGroup } from "./types";
+} from "../types/constants";
+import type { OpenApiSpec, OpenApiOperation, ServiceGroup } from "../types/types";
 import {
   cleanRefName,
   extractRefs,
@@ -19,16 +19,16 @@ import {
   capitalize,
   toCamelCase,
   toMethodName,
-} from "./naming-utils";
+} from "../utils/naming-utils";
 import {
   extractCustomCode,
   compileTemplate,
   writeGenerated,
-} from "./file-writer";
+} from "../utils/file-writer";
 import { loadSpec } from "./spec-loader";
-import { resolveConfig } from "./config-resolver";
-import { mockValueFromSchema } from "./msw-utils";
-import { endpointKey, type MockEndpointEntry } from "./mock-config";
+import { resolveConfig } from "../utils/config-resolver";
+import { mockValueFromSchema } from "../utils/msw-utils";
+import { endpointKey, type MockEndpointEntry } from "../types/mock-config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -140,7 +140,7 @@ export async function generateApi(
 
   const templatesDir = templatesDirOverride
     ? path.resolve(process.cwd(), templatesDirOverride)
-    : path.join(__dirname, "../templates/generator");
+    : path.join(__dirname, "../../templates/generator");
 
   // GENERATE SHARED MODELS (models.ts)
   const modelsPath = path.join(outputDir, "models.ts");

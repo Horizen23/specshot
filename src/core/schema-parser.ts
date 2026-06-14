@@ -1,5 +1,5 @@
-import { RESPONSE_BODY_STRUCT } from "./constants";
-import type { OpenApiSchema, PropEntry } from "./types";
+import { RESPONSE_BODY_STRUCT } from "../types/constants";
+import type { OpenApiSchema, PropEntry } from "../types/types";
 
 export function cleanRefName(ref: string | undefined): string {
   if (!ref) return "";

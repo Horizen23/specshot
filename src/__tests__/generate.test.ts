@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { generateApi } from "../generate.js";
+import { generateApi } from "../core/generate.js";
 
 const tmpDir = path.join(os.tmpdir(), `specshot-test-${Date.now()}`);
 const outputDir = path.join(tmpDir, "src", "lib", "api", "__generated__");

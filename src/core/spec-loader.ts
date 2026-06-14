@@ -1,5 +1,5 @@
 import fs from "fs";
-import type { OpenApiSpec } from "./types";
+import type { OpenApiSpec } from "../types/types";
 
 export async function loadSpec(specSource: string): Promise<OpenApiSpec> {
   const isUrl =
