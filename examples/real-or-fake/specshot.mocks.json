@@ -8,8 +8,8 @@
       "path": "/memes",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "[\n  {\n    \"id\": \"sperno\",\n    \"imageUrl\": \"vallum\",\n    \"caption\": \"qui\",\n    \"category\": \"news\",\n    \"isReal\": true,\n    \"totalVotes\": 186,\n    \"realVotes\": 326,\n    \"fakeVotes\": 517\n  }\n]",
-      "mockMode": "manual",
+      "mockData": "[\n  {\n    \"id\": \"omnis\",\n    \"imageUrl\": \"acsi\",\n    \"caption\": \"cumque\",\n    \"category\": \"news\",\n    \"isReal\": true,\n    \"totalVotes\": 4,\n    \"realVotes\": 739,\n    \"fakeVotes\": 834\n  }\n]",
+      "mockMode": "faker",
       "fakerArraySize": 1
     },
     "memes-createMeme": {
