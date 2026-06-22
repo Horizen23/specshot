@@ -8,7 +8,9 @@
       "path": "/memes",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "[\n  {\n    \"id\": \"string\",\n    \"imageUrl\": \"string\",\n    \"caption\": \"string\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 0,\n    \"realVotes\": 0,\n    \"fakeVotes\": 0\n  }\n]"
+      "mockData": "[\n  {\n    \"id\": \"sperno\",\n    \"imageUrl\": \"vallum\",\n    \"caption\": \"qui\",\n    \"category\": \"news\",\n    \"isReal\": true,\n    \"totalVotes\": 186,\n    \"realVotes\": 326,\n    \"fakeVotes\": 517\n  }\n]",
+      "mockMode": "manual",
+      "fakerArraySize": 1
     },
     "memes-createMeme": {
       "enabled": false,
@@ -18,7 +20,9 @@
       "path": "/memes",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "null"
+      "mockData": "null",
+      "mockMode": "manual",
+      "fakerArraySize": 3
     },
     "memes-getMeme": {
       "enabled": false,
@@ -28,7 +32,9 @@
       "path": "/memes/{memeId}",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
+      "mockData": "{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}",
+      "mockMode": "auto",
+      "fakerArraySize": 3
     },
     "memes-voteMeme": {
       "enabled": true,
@@ -38,7 +44,9 @@
       "path": "/memes/{memeId}/vote",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "{\n  \"correct\": true,\n  \"isReal\": true,\n  \"score\": 0,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}"
+      "mockData": "{\n  \"correct\": true,\n  \"isReal\": true,\n  \"score\": 838,\n  \"totalVotes\": 854,\n  \"realVotes\": 205,\n  \"fakeVotes\": 316\n}",
+      "mockMode": "faker",
+      "fakerArraySize": 3
     },
     "leaderboard-getLeaderboard": {
       "enabled": false,
@@ -48,7 +56,9 @@
       "path": "/leaderboard",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "[\n  {\n    \"rank\": 0,\n    \"username\": \"string\",\n    \"score\": 0,\n    \"totalVotes\": 0,\n    \"accuracy\": 0\n  }\n]"
+      "mockData": "[\n  {\n    \"rank\": 0,\n    \"username\": \"string\",\n    \"score\": 0,\n    \"totalVotes\": 0,\n    \"accuracy\": 0\n  }\n]",
+      "mockMode": "auto",
+      "fakerArraySize": 3
     }
   },
   "mockServerPort": 3457,

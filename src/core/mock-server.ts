@@ -401,6 +401,8 @@ export async function startMockWebServer(options: {
               ...ep,
               enabled: enabledKeys.has(ep.key),
               config: existingConfig.endpoints?.[ep.key] || null,
+              mockExample: mockJsonFromSchema(ep.responseSchema, spec.components?.schemas || {}, new Set(), "auto", 1),
+              mockExampleFaker: mockJsonFromSchema(ep.responseSchema, spec.components?.schemas || {}, new Set(), "faker", existingConfig.endpoints?.[ep.key]?.fakerArraySize || 3, existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {})
             })),
           }));
 

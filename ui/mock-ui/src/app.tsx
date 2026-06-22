@@ -10,6 +10,9 @@ interface EndpointConfig {
   statusCode: number;
   delay: number;
   mockData: string;
+  mockMode?: 'auto' | 'faker' | 'manual';
+  fakerArraySize?: number;
+  fakerArraySizes?: Record<string, number>;
   errorEnabled?: boolean;
   errorStatus?: number;
   errorBody?: string;
@@ -25,6 +28,7 @@ interface Endpoint {
   enabled: boolean;
   config: Partial<EndpointConfig> | null;
   mockExample?: string;
+  mockExampleFaker?: string;
 }
 
 interface TagGroup {
@@ -46,7 +50,7 @@ function highlightJson(json: string): string {
   });
 }
 
-function JsonEditor({ value, onChange }: { value: string, onChange: (v: string) => void }) {
+function JsonEditor({ value, onChange, readOnly }: { value: string, onChange: (v: string) => void, readOnly?: boolean }) {
   const [isValid, setIsValid] = useState(true);
   
   useEffect(() => {
@@ -82,9 +86,174 @@ function JsonEditor({ value, onChange }: { value: string, onChange: (v: string) 
             onInput={(e) => onChange((e.target as HTMLTextAreaElement).value)}
             onKeyDown={handleKeyDown}
             spellcheck={false}
+            readOnly={readOnly}
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+function JsonViewerNode({ 
+  name, 
+  value, 
+  isLast, 
+  isRoot = false, 
+  path = 'root',
+  fakerArraySizes = {},
+  onSizeChange
+}: { 
+  name?: string, 
+  value: any, 
+  isLast: boolean, 
+  isRoot?: boolean,
+  path?: string,
+  fakerArraySizes?: Record<string, number>,
+  onSizeChange?: (path: string, size: number) => void
+}) {
+  const isObject = value !== null && typeof value === 'object';
+  const isArray = Array.isArray(value);
+  const [expanded, setExpanded] = useState(true);
+
+  if (isObject) {
+    const keys = Object.keys(value);
+    const isEmpty = keys.length === 0;
+    
+    return (
+      <div style={{ marginLeft: isRoot ? '0' : '20px', fontFamily: "'SF Mono', monospace", fontSize: '12px', lineHeight: '1.6' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          {!isEmpty && (
+            <span 
+              onClick={() => setExpanded(!expanded)} 
+              style={{ cursor: 'pointer', color: 'var(--text-muted)', width: '16px', display: 'inline-block', userSelect: 'none', fontSize: '10px', paddingTop: '2px' }}
+            >
+              {expanded ? '▼' : '▶'}
+            </span>
+          )}
+          {isEmpty && <span style={{ width: '16px', display: 'inline-block' }}></span>}
+          
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+            {name && <span style={{ color: '#e06c75' }}>{name}: </span>}
+            <span style={{ color: 'var(--text-muted)', marginLeft: name ? '4px' : '0' }}>
+              {isArray ? `Array(${keys.length}) ` : 'Object '}
+              {isEmpty ? (isArray ? '[]' : '{}') : (isArray ? '[' : '{')}
+            </span>
+            {isArray && onSizeChange && (
+              <div style={{ marginLeft: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>size:</span>
+                <input 
+                  type="number" 
+                  min="1" max="100" 
+                  value={fakerArraySizes[path] ?? fakerArraySizes['root'] ?? 3}
+                  onChange={(e) => onSizeChange(path, parseInt((e.target as HTMLInputElement).value) || 1)}
+                  style={{ width: '40px', padding: '2px 4px', fontSize: '10px', background: 'rgba(255,255,255,0.1)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px' }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {expanded && !isEmpty && (
+          <div style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', marginLeft: '4px', paddingLeft: '12px', marginTop: '2px', marginBottom: '2px' }}>
+            {keys.map((k, i) => {
+              const childPath = isArray ? `${path}[]` : (path === 'root' ? k : `${path}.${k}`);
+              return (
+                <JsonViewerNode 
+                  key={k} 
+                  name={isArray ? undefined : k} 
+                  value={value[k as keyof typeof value]} 
+                  isLast={i === keys.length - 1} 
+                  path={childPath}
+                  fakerArraySizes={fakerArraySizes}
+                  onSizeChange={onSizeChange}
+                />
+              );
+            })}
+          </div>
+        )}
+        
+        {!isEmpty && (
+          <div style={{ color: 'var(--text-muted)', marginLeft: expanded ? '4px' : '20px', display: expanded ? 'block' : 'inline' }}>
+            {isArray ? ']' : '}'}{!isLast && ','}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Primitives
+  let displayValue = String(value);
+  let valueColor = 'var(--text)';
+  let typeLabel: string = typeof value;
+
+  if (typeof value === 'string') {
+    displayValue = `"${value}"`;
+    valueColor = '#98c379'; // Green
+    typeLabel = 'String';
+  } else if (typeof value === 'number') {
+    valueColor = '#d19a66'; // Orange
+    typeLabel = 'Int32'; // Simplified
+  } else if (typeof value === 'boolean') {
+    valueColor = '#c678dd'; // Purple
+    typeLabel = 'Boolean';
+  } else if (value === null) {
+    displayValue = 'null';
+    valueColor = 'var(--text-muted)';
+    typeLabel = 'Null';
+  }
+
+  return (
+    <div style={{ marginLeft: '20px', fontFamily: "'SF Mono', monospace", fontSize: '12px', lineHeight: '1.6', display: 'flex' }}>
+      <div style={{ flex: 1 }}>
+        {name && <span style={{ color: '#e06c75' }}>{name}: </span>}
+        <span style={{ color: valueColor }}>{displayValue}</span>
+        {!isLast && <span style={{ color: 'var(--text-muted)' }}>,</span>}
+      </div>
+      <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', marginLeft: '16px', userSelect: 'none' }}>
+        {typeLabel}
+      </div>
+    </div>
+  );
+}
+
+function CompassJsonViewer({ 
+  jsonString,
+  fakerArraySizes,
+  onSizeChange
+}: { 
+  jsonString: string,
+  fakerArraySizes?: Record<string, number>,
+  onSizeChange?: (path: string, size: number) => void 
+}) {
+  let parsed = null;
+  let error = false;
+  try {
+    parsed = JSON.parse(jsonString || 'null');
+  } catch(e) {
+    error = true;
+  }
+
+  if (error) {
+    return <div style={{ color: 'var(--red)', padding: '16px', background: 'var(--surface)', borderRadius: 'var(--radius)' }}>Invalid JSON</div>;
+  }
+
+  return (
+    <div style={{ 
+      background: '#1e1e1e', // Dark VSCode/Compass like bg
+      padding: '16px', 
+      borderRadius: 'var(--radius)', 
+      border: '1px solid var(--border)',
+      overflowX: 'auto',
+      maxHeight: '400px',
+      overflowY: 'auto'
+    }}>
+      <JsonViewerNode 
+        value={parsed} 
+        isLast={true} 
+        isRoot={true} 
+        fakerArraySizes={fakerArraySizes}
+        onSizeChange={onSizeChange}
+      />
     </div>
   );
 }
@@ -154,6 +323,11 @@ export function App() {
               statusCode: ep.config?.statusCode || 200,
               delay: ep.config?.delay || 0,
               mockData: ep.config?.mockData !== undefined ? ep.config.mockData : (ep.mockExample || ''),
+              mockMode: ep.config?.mockMode || 'auto',
+              fakerArraySize: ep.config?.fakerArraySize || 3,
+              errorEnabled: ep.config?.errorEnabled,
+              errorStatus: ep.config?.errorStatus,
+              errorBody: ep.config?.errorBody
             };
           }
         });
@@ -239,6 +413,44 @@ export function App() {
       ...t,
       endpoints: t.endpoints.map(ep => ep.key === key ? { ...ep, ...updates } : ep)
     })));
+  };
+
+  const applyFakerSizes = (data: any, sizes: Record<string, number>, path: string = 'root'): any => {
+    if (Array.isArray(data)) {
+      if (data.length === 0) return [];
+      const size = sizes[path] ?? sizes['root'] ?? 3;
+      const template = applyFakerSizes(data[0], sizes, `${path}[]`);
+      return Array.from({ length: size }, (_, i) => {
+        const item = JSON.parse(JSON.stringify(template));
+        if (item && typeof item === 'object' && item.id) {
+          if (typeof item.id === 'number') item.id += i;
+          else if (typeof item.id === 'string') item.id = item.id.replace(/-[a-z0-9]+$/, `-${i}`);
+        }
+        return item;
+      });
+    } else if (data !== null && typeof data === 'object') {
+      const res: any = {};
+      for (const key of Object.keys(data)) {
+        const childPath = path === 'root' ? key : `${path}.${key}`;
+        res[key] = applyFakerSizes(data[key], sizes, childPath);
+      }
+      return res;
+    }
+    return data;
+  };
+
+  const getPreviewValue = (ep: Endpoint) => {
+    if (ep.config?.mockMode === 'faker') {
+      try {
+        const parsed = JSON.parse(ep.mockExampleFaker || 'null');
+        if (parsed !== null) {
+          const resized = applyFakerSizes(parsed, ep.config.fakerArraySizes || {});
+          return JSON.stringify(resized, null, 2);
+        }
+      } catch (e) {}
+      return ep.mockExampleFaker || '';
+    }
+    return ep.config?.mockData !== undefined ? ep.config.mockData : (ep.mockExample || '');
   };
 
   const saveAndGenerate = async () => {
@@ -444,29 +656,58 @@ export function App() {
                                  <input type="number" value={ep.config?.statusCode || 200} onChange={(e) => updateEndpointConfig(ep.key, { config: { ...ep.config, statusCode: parseInt((e.target as HTMLInputElement).value) } })} />
                                  <label style={{ marginLeft: '16px' }}>Delay (ms)</label>
                                  <input type="number" value={ep.config?.delay || 0} onChange={(e) => updateEndpointConfig(ep.key, { config: { ...ep.config, delay: parseInt((e.target as HTMLInputElement).value) } })} />
+                                 <label style={{ marginLeft: '16px' }}>Data Mode</label>
+                                 <div class="segmented-control">
+                                   <button 
+                                     class={ep.config?.mockMode !== 'faker' ? 'active' : ''}
+                                     onClick={() => updateEndpointConfig(ep.key, { config: { ...ep.config, mockMode: 'manual', mockData: ep.config?.mockData !== undefined ? ep.config.mockData : (ep.mockExample || '') } })}
+                                   >Auto / Manual</button>
+                                   <button 
+                                     class={ep.config?.mockMode === 'faker' ? 'active' : ''}
+                                     onClick={() => updateEndpointConfig(ep.key, { config: { ...ep.config, mockMode: 'faker', mockData: ep.mockExampleFaker || '' } })}
+                                   >Faker.js</button>
+                                 </div>
                                </div>
                                <div class="config-row" style={{ marginTop: '12px', alignItems: 'flex-start' }}>
-                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '120px' }}>
-                                   <label>Mock Data (JSON)</label>
-                                   <button 
-                                     class="btn" 
-                                     style={{ padding: '4px 8px', fontSize: '10px' }}
-                                     onClick={() => {
-                                       try {
-                                         const current = ep.config?.mockData !== undefined ? ep.config.mockData : ep.mockExample || '';
-                                         const formatted = JSON.stringify(JSON.parse(current), null, 2);
-                                         updateEndpointConfig(ep.key, { config: { ...ep.config, mockData: formatted } });
-                                         toast('JSON Formatted!', 'success');
-                                       } catch (e) {
-                                         toast('Invalid JSON, cannot format', 'error');
-                                       }
-                                     }}
-                                   >Format</button>
-                                 </div>
-                                 <JsonEditor 
-                                   value={ep.config?.mockData !== undefined ? ep.config.mockData : ep.mockExample || ''} 
-                                   onChange={(val) => updateEndpointConfig(ep.key, { config: { ...ep.config, mockData: val } })}
-                                 />
+                                 {ep.config?.mockMode === 'faker' ? (
+                                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                       <div>
+                                         <h4 style={{ color: 'var(--text)', marginBottom: '4px', fontSize: '13px' }}>Faker.js Preview</h4>
+                                         <p style={{ color: 'var(--text-muted)', fontSize: '11px', margin: 0 }}>Faker generates random data on every request. Adjust array sizes directly inside the tree below.</p>
+                                       </div>
+                                     </div>
+                                     <CompassJsonViewer 
+                                       jsonString={getPreviewValue(ep)} 
+                                       fakerArraySizes={ep.config?.fakerArraySizes || {}}
+                                       onSizeChange={(path, size) => updateEndpointConfig(ep.key, { config: { ...ep.config, fakerArraySizes: { ...(ep.config?.fakerArraySizes || {}), [path]: size } } })}
+                                     />
+                                   </div>
+                                 ) : (
+                                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                       <label style={{ fontSize: '13px', color: 'var(--text)', fontWeight: 600 }}>Mock Data (JSON)</label>
+                                       <button 
+                                         class="btn" 
+                                         style={{ padding: '4px 12px', fontSize: '11px' }}
+                                         onClick={() => {
+                                           try {
+                                             const current = ep.config?.mockData !== undefined ? ep.config.mockData : ep.mockExample || '';
+                                             const formatted = JSON.stringify(JSON.parse(current), null, 2);
+                                             updateEndpointConfig(ep.key, { config: { ...ep.config, mockData: formatted } });
+                                             toast('JSON Formatted!', 'success');
+                                           } catch (e) {
+                                             toast('Invalid JSON, cannot format', 'error');
+                                           }
+                                         }}
+                                       >Format JSON</button>
+                                     </div>
+                                     <JsonEditor 
+                                       value={getPreviewValue(ep)} 
+                                       onChange={(v) => updateEndpointConfig(ep.key, { config: { ...ep.config, mockData: v, mockMode: 'manual' } })} 
+                                     />
+                                   </div>
+                                 )}
                                </div>
                             </div>
                           )}

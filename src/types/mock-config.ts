@@ -10,6 +10,9 @@ export interface MockEndpointEntry {
   statusCode?: number;
   delay?: number;
   mockData?: string;
+  mockMode?: "auto" | "faker" | "manual";
+  fakerArraySize?: number; // legacy global
+  fakerArraySizes?: Record<string, number>; // per-path sizes
   errorEnabled?: boolean;
   errorStatus?: number;
   errorBody?: string;

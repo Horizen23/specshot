@@ -398,6 +398,7 @@ export async function generateApi(
 
       const handlerFns: Record<string, unknown>[] = [];
       const typeImports: Set<string> = new Set();
+      let usesFaker = false;
 
       for (const op of data.operations) {
         const opKey = endpointKey(tag, op.operationId || "unknown");
@@ -444,13 +445,19 @@ export async function generateApi(
             responseTypeName = typeNameResponse;
             mockResponse = `[] as ${responseTypeName}`;
             typeImports.add(typeNameResponse);
-          } else if (epCfg?.mockData) {
-            responseTypeName = typeNameResponse;
-            mockResponse = mockValueFromSchema(op.responseSchema);
-            mockComment = false;
           } else {
             responseTypeName = typeNameResponse;
-            mockResponse = mockValueFromSchema(op.responseSchema);
+            const mockMode = epCfg?.mockMode || "auto";
+            if (mockMode === "faker") {
+              usesFaker = true;
+              mockResponse = mockValueFromSchema(op.responseSchema, mockMode, schemas, new Set(), epCfg?.fakerArraySize || 3, epCfg?.fakerArraySizes || {});
+              mockComment = false;
+            } else if (epCfg?.mockData) {
+              mockResponse = epCfg.mockData;
+              mockComment = false;
+            } else {
+              mockResponse = mockValueFromSchema(op.responseSchema, mockMode, schemas);
+            }
           }
         } else {
           mockResponse = "null";
@@ -490,6 +497,7 @@ export async function generateApi(
         tagLowerCase,
         handlers: handlerFns,
         typeImports: Array.from(typeImports),
+        usesFaker,
       };
 
       const handlersTemplate = compileTemplate(

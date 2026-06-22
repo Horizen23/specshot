@@ -1,6 +1,7 @@
 export interface OpenApiSchema {
   $ref?: string;
   type?: string;
+  format?: string;
   enum?: (string | number)[];
   properties?: Record<string, OpenApiSchema>;
   required?: string[];
