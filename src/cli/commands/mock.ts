@@ -54,7 +54,7 @@ export async function mockCommand(options: {
   const configPath = options.configPath
     ? path.resolve(cwd, options.configPath)
     : path.resolve(cwd, CONFIG_FILE);
-  let config: any = {};
+  let config: Partial<MockConfigFile> & Record<string, unknown> = {};
   if (fs.existsSync(configPath)) {
     try {
       config = JSON.parse(fs.readFileSync(configPath, "utf8"));
@@ -65,7 +65,7 @@ export async function mockCommand(options: {
     ? path.resolve(cwd, options.file)
     : options.url
       ? options.url
-      : config.openapiUrl || undefined;
+      : (config.openapiUrl as string | undefined) || undefined;
 
   // Load existing mock config to pre-fill selections
   const existingMockConfig = loadMockConfig(cwd);
@@ -202,7 +202,7 @@ export async function mockCommand(options: {
           name: "statusCode",
           message: `${label} — Status code:`,
           default: existing?.statusCode ?? defaultStatusCode,
-          validate: (v: any) =>
+          validate: (v: number) =>
             (v >= 100 && v < 600) || "Enter valid HTTP status code (100-599)",
         },
         {
@@ -210,7 +210,7 @@ export async function mockCommand(options: {
           name: "delay",
           message: `${label} — Response delay (ms):`,
           default: existing?.delay ?? 0,
-          validate: (v: any) =>
+          validate: (v: number) =>
             (v >= 0 && v <= 30000) || "Delay must be 0-30000ms",
         },
         {
@@ -240,7 +240,7 @@ export async function mockCommand(options: {
   // 7. Output directory
   const defaultOutput =
     existingMockConfig.outputDir ||
-    path.join(config.providerDir || "src/lib/api/default", "msw", "handlers");
+    path.join((config.providerDir as string) || "src/lib/api/default", "msw", "handlers");
 
   const { outputDir } = await inquirer.prompt([
     {

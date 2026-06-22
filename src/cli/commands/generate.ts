@@ -6,7 +6,19 @@ import chalk from "chalk";
 import { generateApi } from "../../core/generate";
 import { CONFIG_FILE } from "../../types/constants";
 
-export async function generateCommand(options: any) {
+interface GenerateOptions {
+  url?: string;
+  file?: string;
+  output?: string;
+  alias?: string;
+  config?: string;
+  templates?: string;
+  dryRun?: boolean;
+  msw?: boolean;
+  interceptors?: string;
+}
+
+export async function generateCommand(options: GenerateOptions) {
     let url = options.url;
     let file = options.file;
     let outputDir = options.output;
@@ -25,6 +37,7 @@ export async function generateCommand(options: any) {
         if (!outputDir && config.providerDir)
           outputDir = path.join(config.providerDir, "services");
         if (!alias && config.alias) alias = config.alias;
+        if (!options.templates && config.templates) options.templates = config.templates;
       } catch (e) {
         // ignore
       }
@@ -61,7 +74,7 @@ export async function generateCommand(options: any) {
     }
 
     const sourceLabel = file ? file : url!;
-    const targetDir = path.resolve(process.cwd(), outputDir);
+    const targetDir = path.resolve(process.cwd(), outputDir!);
     const spinner = ora("Generating API services...").start();
 
     try {
@@ -82,7 +95,12 @@ export async function generateCommand(options: any) {
           targetDir,
           alias,
           options.templates,
-          { dryRun: true, configPath, msw: options.msw },
+          {
+            dryRun: true,
+            configPath,
+            msw: options.msw,
+            interceptorsDir: options.interceptors,
+          },
         );
         console.log(chalk.gray(`  Endpoints: ${spec}`));
         return;
@@ -91,6 +109,7 @@ export async function generateCommand(options: any) {
       await generateApi(sourceLabel, targetDir, alias, options.templates, {
         configPath,
         msw: options.msw,
+        interceptorsDir: options.interceptors,
       });
       spinner.succeed(
         chalk.green(`\nAPI services generated successfully at ${outputDir}!`),

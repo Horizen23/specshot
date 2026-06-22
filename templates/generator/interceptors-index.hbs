@@ -1,5 +1,5 @@
-{{#if plugins.length}}
-{{#each plugins}}
+{{#if interceptors.length}}
+{{#each interceptors}}
 import { {{this.fn}} } from "./{{this.file}}";
 {{/each}}
 
@@ -15,7 +15,7 @@ import type { ApiClientWithPlugins } from "../client";
 
 type PluginInstaller = (client: ApiClientWithPlugins) => void;
 const registry: PluginInstaller[] = [];
-{{#each plugins}}
+{{#each interceptors}}
 registry.push({{this.fn}});
 {{/each}}
 

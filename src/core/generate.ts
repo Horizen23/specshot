@@ -45,6 +45,7 @@ export async function generateApi(
     mswOutputDir?: string;
     mswEndpointFilter?: Set<string>;
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
+    interceptorsDir?: string;
   },
 ) {
   const spec = await loadSpec(specSource);
@@ -516,8 +517,10 @@ export async function generateApi(
   }
 
   // Auto-discover interceptors
-  const interceptorsDir = path.join(providerDir, "interceptors");
-  const pluginImports: { file: string; fn: string }[] = [];
+  const interceptorsDir = opts?.interceptorsDir
+    ? path.resolve(process.cwd(), opts.interceptorsDir)
+    : path.join(providerDir, "interceptors");
+  const interceptorImports: { file: string; fn: string }[] = [];
   if (fs.existsSync(interceptorsDir)) {
     const entries = fs.readdirSync(interceptorsDir);
     for (const entry of entries) {
@@ -531,15 +534,14 @@ export async function generateApi(
       const content = fs.readFileSync(filePath, "utf8");
       const matches = content.matchAll(/export function (install\w+)/g);
       for (const m of matches) {
-        pluginImports.push({ file: entry.replace(/\.ts$/, ""), fn: m[1] });
+        interceptorImports.push({ file: entry.replace(/\.ts$/, ""), fn: m[1] });
       }
     }
   }
 
   // Auto-generate interceptors index
   const interceptorsIndexPath = path.join(
-    providerDir,
-    "interceptors",
+    interceptorsDir,
     "index.ts",
   );
   const interceptorsIndexTemplate = compileTemplate(
@@ -550,7 +552,7 @@ export async function generateApi(
   }
   writeGenerated(
     interceptorsIndexPath,
-    interceptorsIndexTemplate({ plugins: pluginImports }),
+    interceptorsIndexTemplate({ interceptors: interceptorImports }),
   );
   console.log(`Generated interceptors/index.ts`);
 
@@ -558,14 +560,18 @@ export async function generateApi(
   const indexPath = path.join(providerDir, "index.ts");
   const indexCustomCode = extractCustomCode(indexPath);
 
+  let relInterceptorsPath = path.relative(providerDir, interceptorsDir).replace(/\\/g, "/");
+  if (!relInterceptorsPath.startsWith(".")) relInterceptorsPath = "./" + relInterceptorsPath;
+
   const indexData = {
     hasHooks: fs.existsSync(path.join(providerDir, "hooks.ts")),
     corePath: corePathStr,
+    interceptorsPath: relInterceptorsPath,
     tags: Object.keys(services).map((t) => ({
       tag: t.toLowerCase(),
       className: toClassName(t),
     })),
-    plugins: pluginImports,
+    interceptors: interceptorImports,
     customCode: indexCustomCode,
   };
 

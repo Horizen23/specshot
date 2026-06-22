@@ -28,18 +28,25 @@ program
 
 program
   .command("init")
-  .description("Initialize the API core files in your project")
+  .description("Scaffold the API core infrastructure (One-time setup)")
+  .option("--core-dir <dir>", "Directory to install the API Core")
+  .option("--provider-dir <dir>", "Directory to install the API Provider skeleton")
+  .option("--integration <type>", "Data fetching integration: 'swr', 'react-query', or 'none'")
+  .option("-i, --interceptors <list>", "Comma-separated list of built-in interceptors to include (e.g. bearer,logger) or 'none'")
+  .option("-u, --url <url>", "OpenAPI JSON URL to auto-generate services after init")
+  .option("-t, --templates <dir>", "Custom Handlebars templates directory")
   .action(initCommand);
 
 program
   .command("generate")
-  .description("Generate API services from an OpenAPI URL or local file")
+  .description("Generate API services and auto-wire interceptors (Run repeatedly on API updates)")
   .option("-u, --url <url>", "OpenAPI JSON URL")
   .option("-f, --file <path>", "Path to local OpenAPI JSON file")
   .option("-o, --output <dir>", "Output directory for generated services")
   .option("-a, --alias <alias>", "Import alias prefix (e.g. @/lib/api)")
   .option("-c, --config <path>", "Path to specshot.json config file")
   .option("-t, --templates <dir>", "Custom templates directory")
+  .option("-i, --interceptors <dir>", "Custom interceptors directory")
   .option("--dry-run", "Show what would be generated without writing files")
   .option(
     "--msw",

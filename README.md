@@ -55,10 +55,47 @@ That's it. No config files. No code generation pipelines. Just typed API calls.
 
 ## Commands
 
+### 1. `init` (One-time setup)
+Scaffolds the API core infrastructure, including your base client, React hooks, and **Built-in Interceptors** (like Bearer Auth or Logger).
+*This code is meant to be yours. You can edit the interceptors or client logic.*
+
+**Interactive mode:**
+```bash
+npx specshot init
 ```
-specshot init              Scaffold API core into your project
-specshot generate          Generate services from OpenAPI
-specshot mock              Launch an interactive Mock Server and Dashboard
+
+**Non-interactive mode (CI/CD friendly):**
+```bash
+npx specshot init \
+  --core-dir src/lib/api/core \
+  --provider-dir src/lib/api/default \
+  --integration react-query \
+  --interceptors bearer,logger \
+  --url http://localhost:8080/openapi.json
+```
+
+| Flag | Description |
+|---|---|
+| `--core-dir <dir>` | Directory to install the API Core |
+| `--provider-dir <dir>` | Directory to install the API Provider skeleton |
+| `--integration <type>` | `swr`, `react-query`, or `none` |
+| `--interceptors, -i <list>` | Comma-separated list (e.g. `bearer,logger`) or `none` |
+| `--templates, -t <dir>` | Custom Handlebars templates directory |
+| `--url, -u <url>` | OpenAPI JSON URL to auto-generate services after init |
+
+### 2. `generate` (Run repeatedly on API updates)
+Reads your OpenAPI spec to generate strictly-typed API services, Zod schemas, and models. 
+*It also Auto-discovers any Interceptors in your folder and wires them up automatically!*
+
+If you already provided a `--url` during `init` (which saves it to `specshot.json`), you can simply run:
+```bash
+npx specshot generate
+```
+*(No flags or prompts required! Perfect for an `npm run api:sync` script.)*
+
+Or, if you want to override the source:
+```bash
+npx specshot generate --url http://localhost:8080/openapi.json
 ```
 
 ### `generate` options
@@ -71,6 +108,7 @@ specshot mock              Launch an interactive Mock Server and Dashboard
 | `--alias, -a <alias>` | Import alias (e.g. `@/lib/api`) |
 | `--config, -c <path>` | Custom config file path |
 | `--templates, -t <dir>` | Custom Handlebars templates |
+| `--interceptors, -i <dir>` | Custom interceptors directory (Auto-discovery) |
 | `--dry-run` | Preview without writing files |
 
 ### `mock` options (Zero-config API Mocking)
@@ -97,7 +135,8 @@ npx specshot mock --web --proxy http://localhost:3000
   "coreDir": "src/lib/api/core",
   "providerDir": "src/lib/api/default",
   "integration": "swr",
-  "plugins": ["bearer", "logger"],
+  "interceptors": ["bearer", "logger"],
+  "templates": "src/lib/api/templates",
   "openapiUrl": "http://localhost:8080/openapi.json"
 }
 ```

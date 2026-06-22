@@ -1,7 +1,7 @@
 {
   "endpoints": {
     "memes-listMemes": {
-      "enabled": true,
+      "enabled": false,
       "tag": "memes",
       "operationId": "listMemes",
       "method": "GET",

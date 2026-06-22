@@ -31,7 +31,7 @@ describe("CLI", () => {
     it("should register init command", () => {
       const cmd = program.commands.find((c) => c.name() === "init");
       expect(cmd).toBeDefined();
-      expect(cmd?.description()).toContain("Initialize");
+      expect(cmd?.description()).toContain("Scaffold");
     });
 
     it("should register generate command", () => {

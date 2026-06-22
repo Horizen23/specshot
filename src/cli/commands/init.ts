@@ -11,7 +11,16 @@ import { CONFIG_FILE } from "../../types/constants";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function initCommand() {
+interface InitOptions {
+  coreDir?: string;
+  providerDir?: string;
+  integration?: string;
+  interceptors?: string;
+  url?: string;
+  templates?: string;
+}
+
+export async function initCommand(options: InitOptions = {}) {
     console.log(chalk.cyan("Welcome to SpecShot!"));
 
     const answers = await inquirer.prompt([
@@ -19,13 +28,15 @@ export async function initCommand() {
         type: "input",
         name: "coreDir",
         message: "Where would you like to install the API Core?",
-        default: "src/lib/api/core",
+        default: options.coreDir || "src/lib/api/core",
+        when: !options.coreDir,
       },
       {
         type: "input",
         name: "providerDir",
         message: "Where would you like to install the Provider skeleton?",
-        default: "src/lib/api/default",
+        default: options.providerDir || "src/lib/api/default",
+        when: !options.providerDir,
       },
       {
         type: "list",
@@ -36,12 +47,14 @@ export async function initCommand() {
           { name: "TanStack Query (React Query)", value: "react-query" },
           { name: "None (Vanilla TS / Fetch)", value: "none" },
         ],
-        default: "swr",
+        default: options.integration || "swr",
+        when: !options.integration,
       },
       {
         type: "checkbox",
-        name: "plugins",
+        name: "interceptors",
         message: "Which interceptors do you want to include?",
+        when: !options.interceptors,
         choices: [
           {
             name: "Bearer Auth — JWT token + auto-refresh",
@@ -59,12 +72,18 @@ export async function initCommand() {
         name: "openapiUrl",
         message:
           "What is your OpenAPI JSON URL? (Leave blank to skip auto-generation)",
-        default: "http://localhost:8080/openapi.json",
+        default: options.url || "http://localhost:8080/openapi.json",
+        when: options.url === undefined,
       },
     ]);
 
-    const targetCoreDir = path.resolve(process.cwd(), answers.coreDir);
-    const targetProviderDir = path.resolve(process.cwd(), answers.providerDir);
+    const finalCoreDir = options.coreDir || answers.coreDir;
+    const finalProviderDir = options.providerDir || answers.providerDir;
+    const finalIntegration = options.integration || answers.integration;
+    const finalOpenapiUrl = options.url !== undefined ? options.url : answers.openapiUrl;
+
+    const targetCoreDir = path.resolve(process.cwd(), finalCoreDir);
+    const targetProviderDir = path.resolve(process.cwd(), finalProviderDir);
 
     const templateCoreDir = path.join(__dirname, "../../../templates/core");
     const templateProviderDir = path.join(__dirname, "../../../templates/provider");
@@ -94,7 +113,7 @@ export async function initCommand() {
       const compileAndWrite = (
         sourceDir: string,
         targetDir: string,
-        data: any,
+        data: Record<string, unknown>,
         filter?: (file: string) => boolean,
       ) => {
         const walk = (src: string, dest: string) => {
@@ -119,13 +138,20 @@ export async function initCommand() {
 
       const templateData = { corePath: coreRelativePath };
 
-      // Build plugin filter: file prefix → required plugin key
-      const pluginMap: Record<string, string> = {
+      // Build interceptor filter: file prefix → required interceptor key
+      const interceptorMap: Record<string, string> = {
         "bearer-auth-manager": "bearer",
         bearer: "bearer",
         logger: "logger",
       };
-      const selectedPlugins: string[] = answers.plugins || [];
+      let selectedInterceptors: string[] = answers.interceptors || [];
+      if (options.interceptors) {
+        if (options.interceptors.toLowerCase() === "none") {
+          selectedInterceptors = [];
+        } else {
+          selectedInterceptors = options.interceptors.split(",").map((s: string) => s.trim());
+        }
+      }
 
       compileAndWrite(templateCoreDir, targetCoreDir, templateData);
       compileAndWrite(
@@ -136,42 +162,43 @@ export async function initCommand() {
           // In interceptors dir, skip unselected files
           if (file.includes("/interceptors/")) {
             const base = path.basename(file, ".hbs");
-            const required = pluginMap[base];
-            if (required && !selectedPlugins.includes(required)) return false;
+            const required = interceptorMap[base];
+            if (required && !selectedInterceptors.includes(required)) return false;
           }
           return true;
         },
       );
 
-      if (answers.integration === "swr") {
+      if (finalIntegration === "swr") {
         compileAndWrite(templateSWRDir, targetProviderDir, templateData);
       }
 
-      if (answers.integration === "react-query") {
+      if (finalIntegration === "react-query") {
         compileAndWrite(templateReactQueryDir, targetProviderDir, templateData);
       }
 
       // Save config file
       const config = {
-        coreDir: answers.coreDir,
-        providerDir: answers.providerDir,
-        integration: answers.integration,
-        plugins: answers.plugins || [],
-        openapiUrl: answers.openapiUrl || "",
+        coreDir: finalCoreDir,
+        providerDir: finalProviderDir,
+        integration: finalIntegration,
+        interceptors: selectedInterceptors,
+        templates: options.templates || undefined,
+        openapiUrl: finalOpenapiUrl || "",
       };
       fs.writeFileSync(
         path.resolve(process.cwd(), CONFIG_FILE),
         JSON.stringify(config, null, 2),
       );
 
-      spinner.succeed(chalk.green(`API Core installed at ${answers.coreDir}`));
+      spinner.succeed(chalk.green(`API Core installed at ${finalCoreDir}`));
       console.log(
         chalk.green(
-          `API Provider skeleton installed at ${answers.providerDir}`,
+          `API Provider skeleton installed at ${finalProviderDir}`,
         ),
       );
 
-      if (answers.integration === "swr") {
+      if (finalIntegration === "swr") {
         console.log(
           chalk.blue(
             `Note: React SWR Hooks included! Make sure you have 'swr' installed: npm install swr`,
@@ -179,7 +206,7 @@ export async function initCommand() {
         );
       }
 
-      if (answers.integration === "react-query") {
+      if (finalIntegration === "react-query") {
         console.log(
           chalk.blue(
             `Note: React Query Hooks included! Make sure you have '@tanstack/react-query' installed: npm install @tanstack/react-query`,
@@ -187,14 +214,14 @@ export async function initCommand() {
         );
       }
 
-      if (answers.openapiUrl && answers.openapiUrl.trim() !== "") {
+      if (finalOpenapiUrl && finalOpenapiUrl.trim() !== "") {
         console.log(
           chalk.cyan(
-            `\nAuto-generating services from ${answers.openapiUrl}...`,
+            `\nAuto-generating services from ${finalOpenapiUrl}...`,
           ),
         );
         const outputDir = path.join(targetProviderDir, "services");
-        await generateApi(answers.openapiUrl, outputDir);
+        await generateApi(finalOpenapiUrl, outputDir);
       } else {
         console.log(chalk.yellow("\nNext steps:"));
         console.log(

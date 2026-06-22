@@ -413,9 +413,9 @@ export async function startMockWebServer(options: {
         }
 
         if (req.method === "GET" && pathname === "/api/config") {
-          const config = loadMockConfig(cwd);
-          (config as any).mockServerPort = mockServerPort;
-          (config as any).mockServerRunning = mockServer !== null;
+          const config = loadMockConfig(cwd) as MockConfigFile & Record<string, unknown>;
+          config.mockServerPort = mockServerPort;
+          config.mockServerRunning = mockServer !== null;
           if (options.file || options.url) {
             config.specSource = options.file || options.url || config.specSource;
           }
@@ -435,9 +435,9 @@ export async function startMockWebServer(options: {
             ...existingConfig,
             ...incomingConfig,
             endpoints: incomingConfig.endpoints || existingConfig.endpoints || {}
-          };
+          } as MockConfigFile & Record<string, unknown>;
           
-          (newConfig as any).mockServerPort = mockServerPort;
+          newConfig.mockServerPort = mockServerPort;
           saveMockConfig(newConfig, cwd);
           restartMockServerOnConfigChange(cwd);
           jsonResponse(res, { ok: true });
@@ -475,8 +475,8 @@ export async function startMockWebServer(options: {
           };
 
           const selectedSet = new Set(
-            Object.entries(configEndpoints || {})
-              .filter(([, v]: [string, any]) => v.enabled)
+            Object.entries((configEndpoints || {}) as Record<string, { enabled?: boolean }>)
+              .filter(([, v]) => v.enabled)
               .map(([k]) => k),
           );
 
@@ -521,8 +521,8 @@ export async function startMockWebServer(options: {
             const targetPort = port || mockServerPort;
             try {
               await startMockServerInternal(cwd, targetPort);
-              const cfg = loadMockConfig(cwd);
-              (cfg as any).mockServerPort = mockServerPort;
+              const cfg = loadMockConfig(cwd) as MockConfigFile & Record<string, unknown>;
+              cfg.mockServerPort = mockServerPort;
               saveMockConfig(cfg, cwd);
               jsonResponse(res, {
                 ok: true,

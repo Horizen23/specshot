@@ -9,9 +9,7 @@ export interface FlatEndpoint {
   path: string;
   summary: string;
   key: string;
-  responseSchema: OpenApiSpec["components"] extends { schemas: infer S }
-    ? any
-    : any;
+  responseSchema: unknown;
 }
 
 export function flattenEndpoints(spec: OpenApiSpec): FlatEndpoint[] {
