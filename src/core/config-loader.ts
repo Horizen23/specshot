@@ -17,10 +17,8 @@ export interface SpecshotPlugin {
 
 export interface SpecshotUserConfig {
   coreDir?: string;
-  providerDir?: string;
   integration?: string;
   interceptors?: string[];
-  openapiUrl?: string;
   alias?: string;
   templates?: string;
   plugins?: SpecshotPlugin[];

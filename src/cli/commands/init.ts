@@ -31,10 +31,11 @@ export async function initCommand(options: InitOptions = {}) {
   const hasMultiApi = config && config.apis && Object.keys(config.apis).length > 0;
 
   if (config) {
+    const firstApi = config.apis && Object.values(config.apis)[0];
     options.coreDir = options.coreDir !== undefined ? options.coreDir : config.coreDir;
-    options.providerDir = options.providerDir !== undefined ? options.providerDir : config.providerDir;
+    options.providerDir = options.providerDir !== undefined ? options.providerDir : firstApi?.providerDir;
     options.integration = options.integration !== undefined ? options.integration : config.integration;
-    options.url = options.url !== undefined ? options.url : config.openapiUrl;
+    options.url = options.url !== undefined ? options.url : firstApi?.openapiUrl;
     options.templates = options.templates !== undefined ? options.templates : config.templates;
     if (config.interceptors && config.interceptors.length > 0 && options.interceptors === undefined) {
       options.interceptors = config.interceptors.join(",");
@@ -299,12 +300,21 @@ export async function initCommand(options: InitOptions = {}) {
           apisContent += `    },\n`;
         });
         apisContent += `  },\n`;
+      } else {
+        apisContent = `  apis: {\n`;
+        apisContent += `    default: {\n`;
+        apisContent += `      providerDir: ${JSON.stringify(finalProviderDir)},\n`;
+        apisContent += `      // \`openapiUrl\` รองรับ 2 รูปแบบ:\n`;
+        apisContent += `      // 1. URL ของ Backend (เช่น "http://localhost:3000/openapi.json") เพื่อให้ระบบดูด Spec มา Gen โค้ดได้\n`;
+        apisContent += `      // 2. ไฟล์ในเครื่อง (เช่น "./openapi.json") หากโหลด Spec เก็บไว้ในโปรเจกต์\n`;
+        apisContent += `      openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},\n`;
+        apisContent += `    }\n`;
+        apisContent += `  },\n`;
       }
       
       const configContent = `/** @type {import('specshot').SpecshotConfig} */
 export default {
   coreDir: ${JSON.stringify(finalCoreDir)},
-${apisToGenerate.length === 0 ? `  providerDir: ${JSON.stringify(finalProviderDir)},\n  // \`openapiUrl\` รองรับ 2 รูปแบบ:\n  // 1. URL ของ Backend (เช่น "http://localhost:3000/openapi.json") เพื่อให้ระบบดูด Spec มา Gen โค้ดได้\n  // 2. ไฟล์ในเครื่อง (เช่น "./openapi.json") หากโหลด Spec เก็บไว้ในโปรเจกต์\n  openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},\n` : ""}\
   integration: ${JSON.stringify(finalIntegration)},
   interceptors: ${JSON.stringify(selectedInterceptors)},
 ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : ""}${apisContent}
@@ -328,8 +338,8 @@ ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : "
       }
     } else if (hasMultiApi && config.apis) {
       for (const [apiName, apiConfig] of Object.entries(config.apis)) {
-        const apiProviderDir = apiConfig.providerDir || config.providerDir;
-        const apiOpenapiUrl = apiConfig.openapiUrl || config.openapiUrl;
+        const apiProviderDir = apiConfig.providerDir;
+        const apiOpenapiUrl = apiConfig.openapiUrl;
         const apiInterceptors = apiConfig.interceptors || selectedInterceptors;
         
         if (apiProviderDir) {

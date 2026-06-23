@@ -36,10 +36,10 @@ export async function generateCommand(options: GenerateOptions) {
     for (const [apiName, apiConfig] of Object.entries(config.apis)) {
       console.log(chalk.cyan(`\n--- Generating API: ${apiName} ---`));
       
-      const apiSpecUrl = apiConfig.openapiUrl || config.openapiUrl;
+      const apiSpecUrl = apiConfig.openapiUrl;
       const apiOutputDir = apiConfig.providerDir 
         ? path.join(apiConfig.providerDir, "services") 
-        : (config.providerDir ? path.join(config.providerDir, "services") : "");
+        : "";
         
       if (!apiSpecUrl || !apiOutputDir) {
         console.warn(chalk.yellow(`Skipping ${apiName} due to missing openapiUrl or providerDir.`));
@@ -72,9 +72,10 @@ export async function generateCommand(options: GenerateOptions) {
     return;
   }
 
-  if (!url && !file && config.openapiUrl) url = config.openapiUrl;
-  if (!outputDir && config.providerDir)
-    outputDir = path.join(config.providerDir, "services");
+  const firstApi = config.apis && Object.values(config.apis)[0];
+  if (!url && !file && firstApi?.openapiUrl) url = firstApi.openapiUrl;
+  if (!outputDir && firstApi?.providerDir)
+    outputDir = path.join(firstApi.providerDir, "services");
   if (!alias && config.alias) alias = config.alias;
   if (!options.templates && config.templates)
     options.templates = config.templates;

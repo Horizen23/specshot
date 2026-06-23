@@ -346,8 +346,12 @@ describe("CLI", () => {
       fs.writeFileSync(
         configPath,
         JSON.stringify({
-          openapiUrl: fixturePath,
-          providerDir: providerDir,
+          apis: {
+            default: {
+              openapiUrl: fixturePath,
+              providerDir: providerDir,
+            },
+          },
         }),
       );
 

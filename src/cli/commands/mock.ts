@@ -38,15 +38,16 @@ export async function mockCommand(options: {
   const cwd = process.cwd();
   const config = await loadUserConfig(cwd, options.configPath);
   
-  if (!options.url && !options.file && config.openapiUrl) {
-    if (config.openapiUrl.startsWith("http://") || config.openapiUrl.startsWith("https://")) {
-      options.url = config.openapiUrl;
+  const firstApi = config.apis && Object.values(config.apis)[0];
+  if (!options.url && !options.file && firstApi?.openapiUrl) {
+    if (firstApi.openapiUrl.startsWith("http://") || firstApi.openapiUrl.startsWith("https://")) {
+      options.url = firstApi.openapiUrl;
     } else {
-      options.file = config.openapiUrl;
+      options.file = firstApi.openapiUrl;
     }
   }
-  if (!options.output && config.providerDir) {
-    options.output = path.join(config.providerDir, "services");
+  if (!options.output && firstApi?.providerDir) {
+    options.output = path.join(firstApi.providerDir, "services");
   }
 
   if (options.web) {
@@ -242,11 +243,10 @@ export async function mockCommand(options: {
     }
   }
 
-  // 7. Output directory
   const defaultOutput =
     existingMockConfig.outputDir ||
     path.join(
-      (config.providerDir as string) || "src/lib/api/default",
+      (config.apis && Object.values(config.apis)[0]?.providerDir) || "src/lib/api/default",
       "msw",
       "handlers",
     );
