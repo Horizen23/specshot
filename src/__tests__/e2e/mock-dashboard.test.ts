@@ -106,10 +106,10 @@ describe("F3 Dashboard API (mock --web command)", () => {
     try {
       const res = await startDashboard(mockApiPort, fixturePath, tmpDir);
       serverProc = res.process;
-      
+
       const configRes = await fetch(`${res.url}/api/mock-server`);
       expect(configRes.status).toBe(200);
-      const data = await configRes.json() as any;
+      const data = (await configRes.json()) as any;
       expect(data.port).toBe(mockApiPort);
     } finally {
       if (serverProc) {
