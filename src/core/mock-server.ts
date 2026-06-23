@@ -15,6 +15,15 @@ import { flattenEndpoints, groupByTag } from "../utils/openapi-utils";
 import { mockJsonFromSchema, getSchemaTypes } from "../utils/msw-utils";
 import { fileURLToPath } from "url";
 
+// Handlers
+import type { HandlerContext } from "./handlers/types";
+import { jsonResponse, parseBody } from "./handlers/utils";
+import { handleGetSpec, handleRegenerateFaker } from "./handlers/spec-handler";
+import { handleGetConfig, handlePostConfig } from "./handlers/config-handler";
+import { handleGenerate } from "./handlers/generate-handler";
+import { handleGetMockServer, handlePostMockServer } from "./handlers/mock-server-handler";
+import { handleProxy } from "./handlers/proxy-config-handler";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -247,31 +256,7 @@ function restartMockServerOnConfigChange(cwd: string): void {
   }, 1000);
 }
 
-function jsonResponse(res: http.ServerResponse, data: unknown, status = 200) {
-  res.writeHead(status, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(data));
-}
 
-function parseBody(req: http.IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let body = "";
-    req.on("data", (chunk: Buffer) => {
-      body += chunk.toString();
-    });
-    req.on("end", () => resolve(body));
-    req.on("error", reject);
-  });
-}
-
-function resolveSpecSource(query: URLSearchParams, cwd: string): string | null {
-  const source = query.get("source");
-  if (!source) return null;
-
-  if (source.startsWith("http://") || source.startsWith("https://")) {
-    return source;
-  }
-  return path.resolve(cwd, source);
-}
 
 function getConfigPath(cwd: string): string {
   return path.resolve(cwd, CONFIG_FILE);
@@ -336,258 +321,52 @@ export async function startMockWebServer(options: {
           return;
         }
 
+        const ctx: HandlerContext = {
+          cwd,
+          state: mockState,
+          options,
+          startMockServer: startMockServerInternal,
+          stopMockServer: stopMockServerInternal,
+          restartMockServer: restartMockServerOnConfigChange,
+        };
+
         if (req.method === "GET" && pathname === "/api/spec") {
-          const specSource = resolveSpecSource(url.searchParams, cwd);
-          if (!specSource) {
-            jsonResponse(
-              res,
-              { error: "Missing 'source' query parameter" },
-              400,
-            );
-            return;
-          }
-
-          const spec = await loadSpec(specSource);
-          const endpoints = flattenEndpoints(spec);
-          const groupedByTag = groupByTag(endpoints);
-          const tags = Array.from(groupedByTag.entries()).map(([tag, eps]) => ({
-            tag,
-            count: eps.length,
-            endpoints: eps,
-          }));
-
-          const existingConfig = loadMockConfig(cwd);
-          const enabledKeys = new Set(
-            Object.entries(existingConfig.endpoints || {})
-              .filter(([, v]) => v.enabled)
-              .map(([k]) => k),
-          );
-
-          const tagsWithPreSelected = tags.map((t) => ({
-            ...t,
-            endpoints: t.endpoints.map((ep) => ({
-              ...ep,
-              enabled: enabledKeys.has(ep.key),
-              config: existingConfig.endpoints?.[ep.key] || null,
-              mockExample: mockJsonFromSchema(
-                ep.responseSchema,
-                spec.components?.schemas || {},
-                new Set(),
-                "auto",
-                1,
-              ),
-              mockExampleFaker: mockJsonFromSchema(
-                ep.responseSchema,
-                spec.components?.schemas || {},
-                new Set(),
-                "faker",
-                existingConfig.endpoints?.[ep.key]?.fakerArraySize || 3,
-                existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {},
-                "root",
-                existingConfig.endpoints?.[ep.key]?.fakerFormats || {},
-              ),
-              schemaTypes: getSchemaTypes(
-                ep.responseSchema,
-                spec.components?.schemas || {},
-              ),
-            })),
-          }));
-
-          jsonResponse(res, {
-            specSource,
-            tags: tagsWithPreSelected,
-            totalEndpoints: endpoints.length,
-          });
+          await handleGetSpec(req, res, url, ctx);
           return;
         }
 
         if (req.method === "POST" && pathname === "/api/regenerate-faker") {
-          let body = "";
-          req.on("data", (chunk) => (body += chunk));
-          req.on("end", async () => {
-            try {
-              const payload = JSON.parse(body);
-              const specSource = payload.specSource;
-              const key = payload.key;
-              const fakerArraySizes = payload.fakerArraySizes || {};
-              const fakerFormats = payload.fakerFormats || {};
-
-              const spec = await loadSpec(specSource);
-              const endpoints = flattenEndpoints(spec);
-              const ep = endpoints.find((e) => e.key === key);
-
-              if (!ep) {
-                res.writeHead(404, { "Content-Type": "application/json" });
-                res.end(JSON.stringify({ error: "Endpoint not found" }));
-                return;
-              }
-
-              const mockExampleFaker = mockJsonFromSchema(
-                ep.responseSchema,
-                spec.components?.schemas || {},
-                new Set(),
-                "faker",
-                fakerArraySizes["root"] || 3,
-                fakerArraySizes,
-                "root",
-                fakerFormats,
-              );
-
-              jsonResponse(res, { mockExampleFaker });
-            } catch (err: any) {
-              jsonResponse(res, { error: err.message }, 500);
-            }
-          });
+          await handleRegenerateFaker(req, res, ctx);
           return;
         }
 
         if (req.method === "GET" && pathname === "/api/config") {
-          const config = loadMockConfig(cwd);
-          config.mockServerPort = mockState.mockServerPort;
-          config.mockServerRunning = mockState.isRunning;
-          if (options.file || options.url) {
-            config.specSource = options.file || options.url || config.specSource;
-          }
-          if (options.output) {
-            config.outputDir = options.output;
-          }
-          jsonResponse(res, config);
+          handleGetConfig(req, res, ctx);
           return;
         }
 
         if (req.method === "POST" && pathname === "/api/config") {
-          const body = await parseBody(req);
-          const incomingConfig: MockConfigFile = JSON.parse(body);
-          const existingConfig = loadMockConfig(cwd);
-
-          const newConfig: MockConfigFile = {
-            ...existingConfig,
-            ...incomingConfig,
-            endpoints: incomingConfig.endpoints || existingConfig.endpoints || {},
-            mockServerPort: mockState.mockServerPort,
-          };
-
-          saveMockConfig(newConfig, cwd);
-          restartMockServerOnConfigChange(cwd);
-          jsonResponse(res, { ok: true });
+          await handlePostConfig(req, res, ctx);
           return;
         }
 
         if (req.method === "POST" && pathname === "/api/generate") {
-          const body = await parseBody(req);
-          const {
-            specSource,
-            outputDir,
-            endpoints: configEndpoints,
-          } = JSON.parse(body);
-
-          if (!specSource || !outputDir) {
-            jsonResponse(
-              res,
-              { error: "Missing specSource or outputDir" },
-              400,
-            );
-            return;
-          }
-
-          const resolvedOutputDir = path.resolve(cwd, outputDir);
-          const providerDirFromOutput = path.dirname(
-            path.dirname(resolvedOutputDir),
-          );
-          const servicesDir = path.join(providerDirFromOutput, "services");
-
-          const mockConfig: MockConfigFile = {
-            endpoints: configEndpoints || {},
-            outputDir,
-            specSource,
-            lastGenerated: new Date().toISOString(),
-          };
-
-          const selectedSet = new Set(
-            Object.entries(
-              (configEndpoints || {}) as Record<string, { enabled?: boolean }>,
-            )
-              .filter(([, v]) => v.enabled)
-              .map(([k]) => k),
-          );
-
-          await generateApi(specSource, servicesDir, undefined, undefined, {
-            msw: true,
-            mswOutputDir: resolvedOutputDir,
-            mswEndpointFilter: selectedSet.size > 0 ? selectedSet : undefined,
-            mswEndpointConfigs: configEndpoints || {},
-          });
-
-          saveMockConfig(mockConfig, cwd);
-
-          jsonResponse(res, {
-            ok: true,
-            outputDir: resolvedOutputDir,
-            handlersGenerated: selectedSet.size,
-          });
+          await handleGenerate(req, res, ctx);
           return;
         }
 
         if (req.method === "GET" && pathname === "/api/mock-server") {
-          jsonResponse(res, {
-            running: mockState.isRunning,
-            port: mockState.mockServerPort,
-          });
+          handleGetMockServer(req, res, ctx);
           return;
         }
 
         if (req.method === "POST" && pathname === "/api/mock-server") {
-          const body = await parseBody(req);
-          const { action, port } = JSON.parse(body);
-
-          if (action === "start") {
-            if (mockState.mockServer) {
-              jsonResponse(res, {
-                ok: true,
-                port: mockState.mockServerPort,
-                running: true,
-              });
-              return;
-            }
-            const targetPort = port || mockState.mockServerPort;
-            try {
-              await startMockServerInternal(cwd, targetPort);
-              const cfg = loadMockConfig(cwd);
-              cfg.mockServerPort = mockState.mockServerPort;
-              saveMockConfig(cfg, cwd);
-              jsonResponse(res, {
-                ok: true,
-                port: mockState.mockServerPort,
-                running: true,
-              });
-            } catch (err) {
-              jsonResponse(res, { error: (err as Error).message }, 500);
-            }
-            return;
-          }
-
-          if (action === "stop") {
-            stopMockServerInternal();
-            jsonResponse(res, { ok: true, running: false });
-            return;
-          }
-
-          jsonResponse(
-            res,
-            { error: "Invalid action. Use 'start' or 'stop'" },
-            400,
-          );
+          await handlePostMockServer(req, res, ctx);
           return;
         }
 
         if (req.method === "POST" && pathname === "/api/proxy") {
-          const body = await parseBody(req);
-          const { proxyTarget, proxyEnabled } = JSON.parse(body);
-          const cfg = loadMockConfig(cwd);
-          if (proxyTarget !== undefined) cfg.proxyTarget = proxyTarget;
-          if (proxyEnabled !== undefined) cfg.proxyEnabled = proxyEnabled;
-          saveMockConfig(cfg, cwd);
-          jsonResponse(res, { ok: true });
+          await handleProxy(req, res, ctx);
           return;
         }
 
