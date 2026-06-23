@@ -51,7 +51,7 @@ export default function App() {
       {error && <p className="status error">{error.message || "An error occurred"}</p>}
 
       <div className="meme-list">
-        {memes?.map((meme) => (
+        {memes?.map((meme: Meme) => (
           <MemeCard key={meme.id} meme={meme} />
         ))}
       </div>
