@@ -2,7 +2,7 @@ import { createApiClient } from "./lib/api/default/client";
 import { createApi } from "./lib/api/default/index";
 
 async function main() {
-  const client = createApiClient("http://localhost:8080");
+  const client = createApiClient();
   const api = createApi(client);
 
   console.log("Fetching pets from remote API...");

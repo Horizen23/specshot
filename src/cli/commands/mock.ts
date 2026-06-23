@@ -7,7 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { loadSpec } from "../../core/spec-loader";
 import { generateApi } from "../../core/generate";
-import { CONFIG_FILE } from "../../types/constants";
+import { loadUserConfig } from "../../core/config-loader";
 import {
   loadMockConfig,
   saveMockConfig,
@@ -32,6 +32,20 @@ export async function mockCommand(options: {
   proxy?: string;
   noOpen?: boolean;
 }) {
+  const cwd = process.cwd();
+  const config = await loadUserConfig(cwd, options.configPath);
+  
+  if (!options.url && !options.file && config.openapiUrl) {
+    if (config.openapiUrl.startsWith("http://") || config.openapiUrl.startsWith("https://")) {
+      options.url = config.openapiUrl;
+    } else {
+      options.file = config.openapiUrl;
+    }
+  }
+  if (!options.output && config.providerDir) {
+    options.output = path.join(config.providerDir, "services");
+  }
+
   if (options.web) {
     await startMockWebServer({
       url: options.url,
@@ -48,24 +62,12 @@ export async function mockCommand(options: {
 
   // 1. Resolve spec source
   let specSource: string | undefined;
-  const cwd = process.cwd();
-
-  // Try config
-  const configPath = options.configPath
-    ? path.resolve(cwd, options.configPath)
-    : path.resolve(cwd, CONFIG_FILE);
-  let config: Partial<MockConfigFile> & Record<string, unknown> = {};
-  if (fs.existsSync(configPath)) {
-    try {
-      config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    } catch {}
-  }
 
   specSource = options.file
     ? path.resolve(cwd, options.file)
     : options.url
       ? options.url
-      : (config.openapiUrl as string | undefined) || undefined;
+      : specSource;
 
   // Load existing mock config to pre-fill selections
   const existingMockConfig = loadMockConfig(cwd);

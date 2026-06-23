@@ -28,7 +28,7 @@ describe("F1 Scaffolding (init command)", () => {
 
     expect(fs.existsSync(path.join(tmpDir, "src/lib/api/core"))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, "src/lib/api/default"))).toBe(true);
-    expect(fs.existsSync(path.join(tmpDir, "specshot.json"))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, "specshot.config.mjs"))).toBe(true);
   });
 
   // Test 2
@@ -148,16 +148,16 @@ describe("F1 Scaffolding (init command)", () => {
       { cwd: tmpDir },
     );
 
-    const configPath = path.join(tmpDir, "specshot.json");
+    const configPath = path.join(tmpDir, "specshot.config.mjs");
     expect(fs.existsSync(configPath)).toBe(true);
 
-    const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-    expect(config.coreDir).toBe("libs/core");
-    expect(config.providerDir).toBe("libs/prov");
-    expect(config.integration).toBe("swr");
-    expect(config.interceptors).toContain("bearer");
-    expect(config.interceptors).toContain("logger");
-    expect(config.openapiUrl).toBe("http://api.example.com/swagger.json");
+    const configContent = fs.readFileSync(configPath, "utf-8");
+    expect(configContent).toContain("coreDir: \"libs/core\"");
+    expect(configContent).toContain("providerDir: \"libs/prov\"");
+    expect(configContent).toContain("integration: \"swr\"");
+    expect(configContent).toContain("bearer");
+    expect(configContent).toContain("logger");
+    expect(configContent).toContain("http://api.example.com/swagger.json");
   });
 
   // Test 8
@@ -258,10 +258,10 @@ describe("F1 Scaffolding (init command)", () => {
       { cwd: tmpDir },
     );
 
-    const configPath = path.join(tmpDir, "specshot.json");
+    const configPath = path.join(tmpDir, "specshot.config.mjs");
     expect(fs.existsSync(configPath)).toBe(true);
-    const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-    expect(config.templates).toBe("my-custom-templates");
+    const configContent = fs.readFileSync(configPath, "utf-8");
+    expect(configContent).toContain("templates: \"my-custom-templates\"");
   });
 
   // Test 12

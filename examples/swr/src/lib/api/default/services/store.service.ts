@@ -36,7 +36,17 @@ export class storeService extends BaseService<"store"> {
    * @returns `{ data, error, ok }`
    *   - `data`: `storeListStoresResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const { data, error, ok } = await api.store.listStores(...);
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
    */
   public listStores(
     config?: AppRequestConfig,
@@ -50,12 +60,23 @@ export class storeService extends BaseService<"store"> {
   /**
    * placeOrder
    * Place an order for a pet
+
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
    *   - `data`: `storePlaceOrderResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const { data, error, ok } = await api.store.placeOrder(...);
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
    */
   public placeOrder(
     payload: storePlaceOrderPayload,
@@ -76,7 +97,17 @@ export class storeService extends BaseService<"store"> {
    * @returns `{ data, error, ok }`
    *   - `data`: `storeGetOrderResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const { data, error, ok } = await api.store.getOrder(...);
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
    */
   public getOrder(
     orderId: string | number,

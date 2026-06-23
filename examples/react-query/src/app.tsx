@@ -194,7 +194,7 @@ export function UserProfile({ username }: { username: string }) {
 export function LoginButton() {
   const mutation = useMutation({
     mutationFn: (credentials: { username: string; password: string }) =>
-      browserApi.user.loginUser(credentials).then((result) => {
+      browserApi.user.loginUser({ params: credentials }).then((result) => {
         if (!result.ok) throw result.error;
         return result.data;
       }),

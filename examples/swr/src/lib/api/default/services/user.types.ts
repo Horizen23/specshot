@@ -13,20 +13,19 @@ export type User = z.infer<typeof UserSchema>;
 
 export const CreateUserRequestSchema = z.object({
   username: z.string(),
-  email: z.string(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  email: z.string(),
 });
 export type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>;
 
 export const LoginResultSchema = z.object({
   token: z.string(),
-  expiresIn: z.number().int().optional(),
+  expiresIn: z.number().optional(),
 });
 export type LoginResult = z.infer<typeof LoginResultSchema>;
 
 // -- Request & Response Types --
-
 export type userCreateUserPayload = CreateUserRequest;
 
 export type userCreateUserResponse = User;

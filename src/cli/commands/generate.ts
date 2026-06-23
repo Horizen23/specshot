@@ -4,7 +4,7 @@ import inquirer from "inquirer";
 import ora from "ora";
 import chalk from "chalk";
 import { generateApi } from "../../core/generate";
-import { CONFIG_FILE } from "../../types/constants";
+import { loadUserConfig } from "../../core/config-loader";
 
 interface GenerateOptions {
   url?: string;
@@ -16,6 +16,7 @@ interface GenerateOptions {
   dryRun?: boolean;
   msw?: boolean;
   interceptors?: string;
+  watch?: boolean;
 }
 
 export async function generateCommand(options: GenerateOptions) {
@@ -24,25 +25,13 @@ export async function generateCommand(options: GenerateOptions) {
   let outputDir = options.output;
   let alias = options.alias;
 
-  // Resolve config path
-  const configPath = options.config
-    ? path.resolve(process.cwd(), options.config)
-    : path.resolve(process.cwd(), CONFIG_FILE);
-
-  // Try to read config
-  if (fs.existsSync(configPath)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-      if (!url && !file && config.openapiUrl) url = config.openapiUrl;
-      if (!outputDir && config.providerDir)
-        outputDir = path.join(config.providerDir, "services");
-      if (!alias && config.alias) alias = config.alias;
-      if (!options.templates && config.templates)
-        options.templates = config.templates;
-    } catch (e) {
-      // ignore
-    }
-  }
+  const config = await loadUserConfig(process.cwd(), options.config);
+  if (!url && !file && config.openapiUrl) url = config.openapiUrl;
+  if (!outputDir && config.providerDir)
+    outputDir = path.join(config.providerDir, "services");
+  if (!alias && config.alias) alias = config.alias;
+  if (!options.templates && config.templates)
+    options.templates = config.templates;
 
   const specSource = file ? path.resolve(process.cwd(), file) : url;
 
@@ -81,42 +70,73 @@ export async function generateCommand(options: GenerateOptions) {
   try {
     // Pause spinner because generateApi uses console.log internally
     spinner.stop();
-    if (options.dryRun) {
-      console.log(
-        chalk.cyan(
-          `\n[DRY RUN] Would generate services from ${sourceLabel} to ${outputDir}`,
-        ),
-      );
-      console.log(
-        chalk.gray("  Templates: ") + (options.templates || "built-in"),
-      );
-      console.log(chalk.gray("  Alias:     ") + (alias || "none"));
-      const spec = await generateApi(
-        sourceLabel,
-        targetDir,
-        alias,
-        options.templates,
-        {
-          dryRun: true,
-          configPath,
+    const runGenerate = async () => {
+      try {
+        if (options.dryRun) {
+          console.log(
+            chalk.cyan(
+              `\n[DRY RUN] Would generate services from ${sourceLabel} to ${outputDir}`,
+            ),
+          );
+          console.log(
+            chalk.gray("  Templates: ") + (options.templates || "built-in"),
+          );
+          console.log(chalk.gray("  Alias:     ") + (alias || "none"));
+          const spec = await generateApi(
+            sourceLabel,
+            targetDir,
+            alias,
+            options.templates,
+            {
+              dryRun: true,
+              configPath: options.config,
+              msw: options.msw,
+              interceptorsDir: options.interceptors,
+            },
+          );
+          console.log(chalk.gray(`  Endpoints: ${spec}`));
+          return;
+        }
+
+        await generateApi(sourceLabel, targetDir, alias, options.templates, {
+          configPath: options.config,
           msw: options.msw,
           interceptorsDir: options.interceptors,
-        },
-      );
-      console.log(chalk.gray(`  Endpoints: ${spec}`));
-      return;
-    }
+        });
+        
+        console.log(
+          chalk.green(`\nAPI services generated successfully at ${outputDir}!`),
+        );
+        
+        if (options.watch) {
+          console.log(chalk.cyan(`\nWatching for changes in ${sourceLabel}...`));
+        }
+      } catch (err) {
+        console.error(chalk.red("Failed to generate API services"));
+        console.error(err);
+      }
+    };
 
-    await generateApi(sourceLabel, targetDir, alias, options.templates, {
-      configPath,
-      msw: options.msw,
-      interceptorsDir: options.interceptors,
-    });
-    spinner.succeed(
-      chalk.green(`\nAPI services generated successfully at ${outputDir}!`),
-    );
+    await runGenerate();
+
+    if (options.watch) {
+      if (sourceLabel.startsWith("http://") || sourceLabel.startsWith("https://")) {
+        console.warn(chalk.yellow("\nWarning: Watch mode is currently only supported for local files, not URLs. Polling is not implemented."));
+      } else {
+        let timeout: NodeJS.Timeout | null = null;
+        fs.watch(sourceLabel, (eventType) => {
+          if (eventType === "change") {
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(async () => {
+              console.log(chalk.yellow(`\nFile ${sourceLabel} changed. Regenerating...`));
+              await runGenerate();
+            }, 300); // Debounce to prevent double generation on save
+          }
+        });
+      }
+    }
   } catch (err) {
-    spinner.fail(chalk.red("Failed to generate API services"));
+    spinner.fail(chalk.red("Failed to setup code generation"));
     console.error(err);
   }
 }

@@ -10,7 +10,7 @@ import {
   saveMockConfig,
   type MockConfigFile,
 } from "../types/mock-config";
-import { CONFIG_FILE } from "../types/constants";
+
 import { flattenEndpoints, groupByTag } from "../utils/openapi-utils";
 import { mockJsonFromSchema, getSchemaTypes } from "../utils/msw-utils";
 import { fileURLToPath } from "url";
@@ -257,20 +257,6 @@ function restartMockServerOnConfigChange(cwd: string): void {
 }
 
 
-
-function getConfigPath(cwd: string): string {
-  return path.resolve(cwd, CONFIG_FILE);
-}
-
-function readConfigIfExists(cwd: string): Record<string, unknown> {
-  const configPath = getConfigPath(cwd);
-  if (fs.existsSync(configPath)) {
-    try {
-      return JSON.parse(fs.readFileSync(configPath, "utf8"));
-    } catch {}
-  }
-  return {};
-}
 
 export async function startMockWebServer(options: {
   url?: string;

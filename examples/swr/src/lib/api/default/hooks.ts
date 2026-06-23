@@ -1,37 +1,14 @@
 "use client";
 
-import useSWR, { SWRResponse, SWRConfiguration, mutate } from "swr";
+import useSWR, { SWRResponse, mutate } from "swr";
 import { BaseService } from "../core/base-service";
-import type { ApiError, ClientError } from "../core/types";
-import type { AppApiErrorData } from "./types";
-
-export type ApiHookError<TErrorData = AppApiErrorData> =
-  | ApiError<TErrorData>
-  | ClientError
-  | Error;
-
-/**
- * Filter out RequestConfig or specific objects from args to generate a clean cache key.
- */
-function extractCacheKeyArgs(args: any[]): any[] {
-  return args.filter(
-    (arg) =>
-      !(
-        typeof arg === "object" &&
-        arg !== null &&
-        ("signal" in arg || "headers" in arg || "timeout" in arg)
-      ),
-  );
-}
+import type { MethodData, ApiHookError } from "./hooks-shared";
+import { extractCacheKeyArgs } from "./hooks-shared";
+export type { ApiHookError } from "./hooks-shared";
 
 // ============================================================================
-// Types for Auto-Magic Hooks
+// SWR proxy types
 // ============================================================================
-import { ApiResult } from "../core/types";
-
-type UnwrapApiResult<T> = T extends ApiResult<infer U, any> ? U : never;
-type MethodData<TMethod extends (...args: any[]) => Promise<any>> =
-  UnwrapApiResult<Awaited<ReturnType<TMethod>>>;
 
 export type SWRProxyMethod<TMethod extends (...args: any[]) => Promise<any>> = {
   (

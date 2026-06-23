@@ -1,18 +1,32 @@
 import { ApiClient } from "../core/api-client";
 
-const API_BASE_URL = "http://localhost:8080";
+/**
+ * Base URL for all API requests.
+ *
+ * Resolved from (in priority order):
+ *   1. The `VITE_API_BASE_URL` environment variable (set at build time).
+ *   2. The first `url` entry in the OpenAPI `servers` array: (none defined).
+ *   3. The empty string — the browser's own origin is used (same-origin requests).
+ */
+const API_BASE_URL: string =
+  // @ts-ignore - VITE_API_BASE_URL is injected by the build tool when defined
+  (typeof import.meta !== "undefined" &&
+    (import.meta as any).env?.VITE_API_BASE_URL) ||
+  "";
 
 export function createApiClient() {
   const client = new ApiClient({
     baseUrl: API_BASE_URL,
     dataExtractor: (data: unknown) => {
+      // If the server wraps responses in `{ request_id, data, errors }`,
+      // unwrap the `data` field. Otherwise return the response as-is.
       if (
         typeof data === "object" &&
         data !== null &&
-        "request_id" in data &&
-        "data" in data
+        "data" in data &&
+        ("request_id" in data || "errors" in data)
       ) {
-        return (data as any).data;
+        return (data as Record<string, unknown>).data;
       }
       return data;
     },
@@ -20,7 +34,7 @@ export function createApiClient() {
       if (typeof data !== "object" || data === null) return undefined;
       const obj = data as Record<string, unknown>;
       if (Array.isArray(obj.errors) && obj.errors.length > 0) {
-        const firstError = obj.errors[0];
+        const firstError = obj.errors[0] as Record<string, unknown>;
         if (typeof firstError?.message === "string") return firstError.message;
       }
       if (typeof obj.message === "string") return obj.message;

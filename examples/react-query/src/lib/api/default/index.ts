@@ -8,10 +8,8 @@ export * from "./interceptors";
 
 export * from "./services/pets.service";
 import { petsService } from "./services/pets.service";
-
 export * from "./services/store.service";
 import { storeService } from "./services/store.service";
-
 export * from "./services/user.service";
 import { userService } from "./services/user.service";
 
@@ -24,7 +22,7 @@ export function createApi(client: ApiClient) {
   } as const;
 }
 
-// Client-side singletons for convenient browser usage (e.g. React Query)
+// Client-side singletons for convenient browser usage (e.g. SWR)
 import { createApiClient } from "./client";
 import { useAllPlugins } from "./interceptors";
 

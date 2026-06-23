@@ -6,7 +6,7 @@ import path from "path";
 import Handlebars from "handlebars";
 import { fileURLToPath } from "url";
 import { generateApi } from "../../core/generate";
-import { CONFIG_FILE } from "../../types/constants";
+import { DEFAULT_CONFIG_FILE, loadUserConfig } from "../../core/config-loader";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,20 +23,33 @@ interface InitOptions {
 export async function initCommand(options: InitOptions = {}) {
   console.log(chalk.cyan("Welcome to SpecShot!"));
 
+  const cwd = process.cwd();
+  const config = await loadUserConfig(cwd);
+  if (config) {
+    options.coreDir = options.coreDir !== undefined ? options.coreDir : config.coreDir;
+    options.providerDir = options.providerDir !== undefined ? options.providerDir : config.providerDir;
+    options.integration = options.integration !== undefined ? options.integration : config.integration;
+    options.url = options.url !== undefined ? options.url : config.openapiUrl;
+    options.templates = options.templates !== undefined ? options.templates : config.templates;
+    if (config.interceptors && config.interceptors.length > 0 && options.interceptors === undefined) {
+      options.interceptors = config.interceptors.join(",");
+    }
+  }
+
   const answers = await inquirer.prompt([
     {
       type: "input",
       name: "coreDir",
       message: "Where would you like to install the API Core?",
       default: options.coreDir || "src/lib/api/core",
-      when: !options.coreDir,
+      when: options.coreDir === undefined,
     },
     {
       type: "input",
       name: "providerDir",
       message: "Where would you like to install the Provider skeleton?",
       default: options.providerDir || "src/lib/api/default",
-      when: !options.providerDir,
+      when: options.providerDir === undefined,
     },
     {
       type: "list",
@@ -48,13 +61,13 @@ export async function initCommand(options: InitOptions = {}) {
         { name: "None (Vanilla TS / Fetch)", value: "none" },
       ],
       default: options.integration || "swr",
-      when: !options.integration,
+      when: options.integration === undefined,
     },
     {
       type: "checkbox",
       name: "interceptors",
       message: "Which interceptors do you want to include?",
-      when: !options.interceptors,
+      when: options.interceptors === undefined,
       choices: [
         {
           name: "Bearer Auth — JWT token + auto-refresh",
@@ -213,17 +226,27 @@ export async function initCommand(options: InitOptions = {}) {
     }
 
     // Save config file
-    const config = {
-      coreDir: finalCoreDir,
-      providerDir: finalProviderDir,
-      integration: finalIntegration,
-      interceptors: selectedInterceptors,
-      templates: options.templates || undefined,
-      openapiUrl: finalOpenapiUrl || "",
-    };
+    const configContent = `/** @type {import('specshot').SpecshotConfig} */
+export default {
+  coreDir: ${JSON.stringify(finalCoreDir)},
+  providerDir: ${JSON.stringify(finalProviderDir)},
+  integration: ${JSON.stringify(finalIntegration)},
+  interceptors: ${JSON.stringify(selectedInterceptors)},
+${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : ""}  openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},
+  
+  // Custom Plugins for Faker Mock Data
+  plugins: [
+    // {
+    //   name: "example-plugin",
+    //   match: (ctx) => ctx.path === "root.phone",
+    //   generate: (faker) => faker.phone.number()
+    // }
+  ]
+};
+`;
     fs.writeFileSync(
-      path.resolve(process.cwd(), CONFIG_FILE),
-      JSON.stringify(config, null, 2),
+      path.resolve(process.cwd(), DEFAULT_CONFIG_FILE),
+      configContent,
     );
 
     spinner.succeed(chalk.green(`API Core installed at ${finalCoreDir}`));

@@ -5,8 +5,8 @@ import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  Pet,
   CreatePetRequest,
+  petsListPetsParams,
   petsListPetsResponse,
   petsCreatePetPayload,
   petsCreatePetResponse,
@@ -14,8 +14,8 @@ import type {
 } from "./pets.types";
 
 export type {
-  Pet,
   CreatePetRequest,
+  petsListPetsParams,
   petsListPetsResponse,
   petsCreatePetPayload,
   petsCreatePetResponse,
@@ -47,7 +47,7 @@ export class petsService extends BaseService<"pets"> {
    * // use `data` safely here
    */
   public listPets(
-    config?: AppRequestConfig,
+    config?: Omit<AppRequestConfig, "params"> & { params?: petsListPetsParams },
   ): Promise<ApiResult<petsListPetsResponse, AppApiErrorData>> {
     return this.client.get<petsListPetsResponse, AppApiErrorData>(
       `/pets`,

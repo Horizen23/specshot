@@ -7,6 +7,8 @@ Guess whether each meme caption is real or fake. Toggle between real & fake API 
 ```
 examples/real-or-fake/
 ├── meme.json          → OpenAPI spec
+├── specshot.config.mjs→ Project settings & Faker plugins
+├── specshot.mocks.json→ Saved mock toggle state
 ├── client/            → React (Vite) frontend
 │   └── src/
 │       ├── App.jsx

@@ -1,5 +1,5 @@
 import type { ApiClientWithPlugins } from "../client";
-import type { ApiRequestConfig } from "../{{corePath}}/types";
+import type { ApiRequestConfig } from "../../core/types";
 import { AuthManager } from "./bearer-auth-manager";
 
 interface AuthConfig extends ApiRequestConfig {

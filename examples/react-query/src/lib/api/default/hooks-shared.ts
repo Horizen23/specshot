@@ -4,8 +4,8 @@
  * Shared utility types and helpers for API hooks (React Query & SWR).
  * Do not edit manually — regenerate with `npx specshot generate`.
  */
-import { BaseService } from "{{corePath}}/base-service";
-import type { ApiError, ClientError, ApiResult } from "{{corePath}}/types";
+import { BaseService } from "../core/base-service";
+import type { ApiError, ClientError, ApiResult } from "../core/types";
 import type { AppApiErrorData } from "./types";
 
 // ============================================================================
@@ -49,7 +49,5 @@ export function extractCacheKeyArgs(args: any[]): any[] {
 // ============================================================================
 
 export type ApiHooksProxy<TApi, TProxyService> = {
-  [S in keyof TApi]: TApi[S] extends BaseService<any>
-    ? TProxyService
-    : never;
+  [S in keyof TApi]: TApi[S] extends BaseService<any> ? TProxyService : never;
 };

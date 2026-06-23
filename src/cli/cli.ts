@@ -60,10 +60,11 @@ program
   .option("-c, --config <path>", "Path to specshot.json config file")
   .option("-t, --templates <dir>", "Custom templates directory")
   .option("-i, --interceptors <dir>", "Custom interceptors directory")
-  .option("--dry-run", "Show what would be generated without writing files")
+  .option("-w, --watch", "Watch for changes and auto-regenerate")
+  .option("--dry-run", "Run without writing any files")
   .option(
     "--msw",
-    "Also generate MSW (Mock Service Worker) handlers alongside services",
+    "Generate MSW mock handlers",
   )
   .action(generateCommand);
 

@@ -34,12 +34,23 @@ export class userService extends BaseService<"user"> {
   /**
    * createUser
    * Create a user
+
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
    *   - `data`: `userCreateUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const { data, error, ok } = await api.user.createUser(...);
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
    */
   public createUser(
     payload: userCreateUserPayload,
@@ -55,20 +66,30 @@ export class userService extends BaseService<"user"> {
   /**
    * loginUser
    * Login a user
-   * @param params - Query parameters (username, password)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
    *   - `data`: `userLoginUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const { data, error, ok } = await api.user.loginUser(...);
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
    */
   public loginUser(
-    params: userLoginUserParams,
-    config?: AppRequestConfig,
+    config?: Omit<AppRequestConfig, "params"> & {
+      params?: userLoginUserParams;
+    },
   ): Promise<ApiResult<userLoginUserResponse, AppApiErrorData>> {
     return this.client.get<userLoginUserResponse, AppApiErrorData>(
       `/user/login`,
-      this.withSignal({ ...config, params } as AppRequestConfig),
+      this.withSignal(config),
     );
   }
 
@@ -80,7 +101,17 @@ export class userService extends BaseService<"user"> {
    * @returns `{ data, error, ok }`
    *   - `data`: `userGetUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const { data, error, ok } = await api.user.getUser(...);
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
    */
   public getUser(
     username: string | number,

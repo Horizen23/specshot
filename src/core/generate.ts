@@ -31,12 +31,12 @@ import {
   writeGenerated,
 } from "../utils/file-writer";
 import { loadSpec } from "./spec-loader";
-import { resolveConfig } from "../utils/config-resolver";
+import { loadUserConfig, resolveCorePaths } from "./config-loader";
 import { formatGeneratedFiles } from "../utils/formatter";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { generateMswHandlers } from "./msw-generator";
 import { generateProviderIndex } from "./provider-index-generator";
-import { loadUserConfig } from "./config-loader";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -144,10 +144,10 @@ export async function generateApi(
   }
 
   const providerDir = path.dirname(outputDir);
-  const { corePathStr, servicesCorePath } = resolveConfig(
+  const { corePathStr, servicesCorePath } = resolveCorePaths(
+    userConfig,
     outputDir,
     importAlias,
-    opts?.configPath,
   );
 
   for (const [tag, data] of Object.entries(services)) {

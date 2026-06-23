@@ -137,8 +137,10 @@ export function UserProfile({ username }: { username: string }) {
 export function LoginButton() {
   const handleLogin = async () => {
     const result = await browserApi.user.loginUser({
-      username: "demo",
-      password: "demo123",
+      params: {
+        username: "demo",
+        password: "demo123",
+      }
     });
 
     if (!result.ok) {

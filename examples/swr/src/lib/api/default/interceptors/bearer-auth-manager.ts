@@ -1,3 +1,8 @@
+/**
+ * AuthManager — Isomorphic token manager for the API client.
+ * Works seamlessly in both Client and Server environments because
+ * it doesn't hardcode `next-auth` imports. The app layer will inject the logic.
+ */
 import type { AppApiErrorData } from "../types";
 
 export class AuthManager {

@@ -1,7 +1,0 @@
-{
-  "coreDir": "src/lib/api/core",
-  "providerDir": "src/lib/api/default",
-  "integration": "react-query",
-  "plugins": ["bearer"],
-  "openapiUrl": "./openapi.json"
-}

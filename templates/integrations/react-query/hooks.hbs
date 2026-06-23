@@ -5,8 +5,9 @@ import {
   useQueryClient,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { BaseService } from "{{corePath}}/BaseService";
-import type { MethodData, ApiHookError, extractCacheKeyArgs } from "./hooks-shared";
+import { BaseService } from "{{corePath}}/base-service";
+import type { MethodData, ApiHookError } from "./hooks-shared";
+import { extractCacheKeyArgs } from "./hooks-shared";
 export type { ApiHookError } from "./hooks-shared";
 
 // ============================================================================
