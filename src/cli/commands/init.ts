@@ -48,21 +48,17 @@ export async function initCommand(options: InitOptions = {}) {
   let selectedInterceptors: string[] = [];
 
   // Prompt logic
+  let apisToGenerate: { name: string; url: string; providerDir: string }[] = [];
+
   if (!hasMultiApi) {
-    const answers = await inquirer.prompt([
+    // 1. Ask for Global configs
+    const globalAnswers = await inquirer.prompt([
       {
         type: "input",
         name: "coreDir",
         message: "Where would you like to install the API Core?",
         default: options.coreDir || "src/lib/api/core",
         when: options.coreDir === undefined,
-      },
-      {
-        type: "input",
-        name: "providerDir",
-        message: "Where would you like to install the Provider skeleton?",
-        default: options.providerDir || "src/lib/api/default",
-        when: options.providerDir === undefined,
       },
       {
         type: "list",
@@ -94,19 +90,16 @@ export async function initCommand(options: InitOptions = {}) {
         ],
       },
       {
-        type: "input",
-        name: "openapiUrl",
-        message:
-          "What is your OpenAPI JSON URL? (Leave blank to skip auto-generation)",
-        default: options.url || "http://localhost:8080/openapi.json",
-        when: options.url === undefined,
-      },
+        type: "confirm",
+        name: "isMultiApi",
+        message: "Do you want to configure multiple APIs? (e.g. Auth API, Product API)",
+        default: false,
+        when: options.url === undefined && options.providerDir === undefined,
+      }
     ]);
 
-    finalCoreDir = finalCoreDir || answers.coreDir;
-    finalProviderDir = finalProviderDir || answers.providerDir;
-    finalIntegration = finalIntegration || answers.integration;
-    finalOpenapiUrl = finalOpenapiUrl !== undefined ? finalOpenapiUrl : answers.openapiUrl;
+    finalCoreDir = finalCoreDir || globalAnswers.coreDir;
+    finalIntegration = finalIntegration || globalAnswers.integration;
     
     if (options.interceptors) {
       if (options.interceptors.toLowerCase() === "none") {
@@ -115,8 +108,72 @@ export async function initCommand(options: InitOptions = {}) {
         selectedInterceptors = options.interceptors.split(",").map((s) => s.trim());
       }
     } else {
-      selectedInterceptors = answers.interceptors || [];
+      selectedInterceptors = globalAnswers.interceptors || [];
     }
+
+    if (globalAnswers.isMultiApi) {
+      let addMore = true;
+      let count = 1;
+      while (addMore) {
+        console.log(chalk.cyan(`\n--- Configure API #${count} ---`));
+        const apiAnswers = await inquirer.prompt([
+          {
+            type: "input",
+            name: "apiName",
+            message: "What is the name of this API? (e.g. 'auth', 'payment')",
+            validate: (input) => input ? true : "Name is required",
+          },
+          {
+            type: "input",
+            name: "openapiUrl",
+            message: "What is the OpenAPI JSON URL?",
+          },
+          {
+            type: "input",
+            name: "providerDir",
+            message: "Where would you like to install this Provider skeleton?",
+            default: (ans: any) => `src/lib/api/${ans.apiName}`,
+          },
+          {
+            type: "confirm",
+            name: "addMore",
+            message: "Do you want to configure another API?",
+            default: false,
+          }
+        ]);
+        
+        apisToGenerate.push({
+          name: apiAnswers.apiName,
+          url: apiAnswers.openapiUrl,
+          providerDir: apiAnswers.providerDir,
+        });
+        addMore = apiAnswers.addMore;
+        count++;
+      }
+    } else {
+      // Single API path
+      const singleAnswers = await inquirer.prompt([
+        {
+          type: "input",
+          name: "providerDir",
+          message: "Where would you like to install the Provider skeleton?",
+          default: options.providerDir || "src/lib/api/default",
+          when: options.providerDir === undefined,
+        },
+        {
+          type: "input",
+          name: "openapiUrl",
+          message:
+            "What is your OpenAPI JSON URL? (Leave blank to skip auto-generation)",
+          default: options.url || "http://localhost:8080/openapi.json",
+          when: options.url === undefined,
+        },
+      ]);
+      
+      finalProviderDir = finalProviderDir || singleAnswers.providerDir;
+      finalOpenapiUrl = finalOpenapiUrl !== undefined ? finalOpenapiUrl : singleAnswers.openapiUrl;
+    }
+
   } else {
     // Has Multi API, just fill missing globals without prompting
     finalCoreDir = finalCoreDir || "src/lib/api/core";
@@ -228,29 +285,45 @@ export async function initCommand(options: InitOptions = {}) {
       }
     };
 
-    if (!config || Object.keys(config).length === 0) {
+        if (!config || Object.keys(config).length === 0) {
+      let apisContent = "";
+      if (apisToGenerate.length > 0) {
+        apisContent = `  apis: {\n`;
+        apisToGenerate.forEach((api) => {
+          apisContent += `    ${JSON.stringify(api.name)}: {\n`;
+          apisContent += `      providerDir: ${JSON.stringify(api.providerDir)},\n`;
+          apisContent += `      openapiUrl: ${JSON.stringify(api.url)},\n`;
+          apisContent += `    },\n`;
+        });
+        apisContent += `  },\n`;
+      }
+      
       const configContent = `/** @type {import('specshot').SpecshotConfig} */
 export default {
   coreDir: ${JSON.stringify(finalCoreDir)},
-  providerDir: ${JSON.stringify(finalProviderDir)},
+${apisToGenerate.length === 0 ? `  providerDir: ${JSON.stringify(finalProviderDir)},\n  openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},\n` : ""}\
   integration: ${JSON.stringify(finalIntegration)},
   interceptors: ${JSON.stringify(selectedInterceptors)},
-${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : ""}  openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},
-  
+${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : ""}${apisContent}
   // Custom Plugins for Faker Mock Data
   plugins: [
     // {
     //   name: "example-plugin",
-    //   match: (ctx) => ctx.path === "root.phone",
-    //   generate: (faker) => faker.phone.number()
+    //   resolveFaker(context) {
+    //     // Custom logic to return a mock value
+    //   }
     // }
-  ]
+  ],
 };
 `;
       fs.writeFileSync(path.resolve(process.cwd(), DEFAULT_CONFIG_FILE), configContent);
     }
 
-    if (hasMultiApi && config.apis) {
+    if (apisToGenerate.length > 0) {
+      for (const api of apisToGenerate) {
+        await setupProvider(api.providerDir, api.url, selectedInterceptors, api.name);
+      }
+    } else if (hasMultiApi && config.apis) {
       for (const [apiName, apiConfig] of Object.entries(config.apis)) {
         const apiProviderDir = apiConfig.providerDir || config.providerDir;
         const apiOpenapiUrl = apiConfig.openapiUrl || config.openapiUrl;

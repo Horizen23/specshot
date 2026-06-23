@@ -18,7 +18,7 @@ describe("F1 Scaffolding (init command)", () => {
   it("should scaffold with default interactive prompts", async () => {
     const result = await runCli(["init"], {
       cwd: tmpDir,
-      stdinInputs: ["", "", "", "", ""],
+      stdinInputs: ["", "", "", "", "", ""],
     });
 
     expect(result.code).toBe(0);
