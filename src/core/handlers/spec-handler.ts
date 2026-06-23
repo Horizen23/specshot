@@ -5,6 +5,7 @@ import { loadSpec } from "../spec-loader";
 import { loadMockConfig } from "../../types/mock-config";
 import { flattenEndpoints, groupByTag } from "../../utils/openapi-utils";
 import { mockJsonFromSchema, getSchemaTypes } from "../../utils/msw-utils";
+import { loadUserConfig } from "../config-loader";
 
 export async function handleGetSpec(
   req: http.IncomingMessage,
@@ -21,6 +22,7 @@ export async function handleGetSpec(
   const spec = await loadSpec(specSource);
   const endpoints = flattenEndpoints(spec);
   const groupedByTag = groupByTag(endpoints);
+  const userConfig = await loadUserConfig(ctx.cwd);
   const tags = Array.from(groupedByTag.entries()).map(([tag, eps]) => ({
     tag,
     count: eps.length,
@@ -56,6 +58,7 @@ export async function handleGetSpec(
         existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {},
         "root",
         existingConfig.endpoints?.[ep.key]?.fakerFormats || {},
+        userConfig.plugins || [],
       ),
       schemaTypes: getSchemaTypes(
         ep.responseSchema,
@@ -83,6 +86,7 @@ export async function handleRegenerateFaker(
     const key = payload.key;
     const fakerArraySizes = payload.fakerArraySizes || {};
     const fakerFormats = payload.fakerFormats || {};
+    const userConfig = await loadUserConfig(ctx.cwd);
 
     const spec = await loadSpec(specSource);
     const endpoints = flattenEndpoints(spec);
@@ -103,6 +107,7 @@ export async function handleRegenerateFaker(
       fakerArraySizes,
       "root",
       fakerFormats,
+      userConfig.plugins || [],
     );
 
     jsonResponse(res, { mockExampleFaker });

@@ -36,6 +36,7 @@ import { formatGeneratedFiles } from "../utils/formatter";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { generateMswHandlers } from "./msw-generator";
 import { generateProviderIndex } from "./provider-index-generator";
+import { loadUserConfig } from "./config-loader";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +56,7 @@ export async function generateApi(
     interceptorsDir?: string;
   },
 ) {
+  const userConfig = await loadUserConfig(process.cwd());
   const spec = await loadSpec(specSource);
 
   if (!spec.paths || Object.keys(spec.paths).length === 0) {
@@ -339,6 +341,7 @@ export async function generateApi(
     generateMswHandlers(spec, services, schemas, mswDir, mswTemplatesDir, {
       mswEndpointFilter: opts.mswEndpointFilter,
       mswEndpointConfigs: opts.mswEndpointConfigs,
+      plugins: userConfig.plugins,
     });
   }
 
