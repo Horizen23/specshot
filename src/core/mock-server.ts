@@ -21,16 +21,22 @@ const __dirname = path.dirname(__filename);
 // ---------------------------------------------------------------------------
 // Encapsulated server state — replaces bare module-level mutable variables
 // ---------------------------------------------------------------------------
-const mockState = {
-  /** The web dashboard HTTP server. */
-  server: null as http.Server | null,
-  /** The mock API HTTP server. */
-  mockServer: null as http.Server | null,
-  /** Current port of the mock API server. */
-  mockServerPort: 3457,
-  /** Debounce timer for config-change restarts. */
-  restartTimer: null as ReturnType<typeof setTimeout> | null,
-};
+class MockServerState {
+  server: http.Server | null = null;
+  mockServer: http.Server | null = null;
+  mockServerPort = 3457;
+  restartTimer: ReturnType<typeof setTimeout> | null = null;
+
+  get isRunning(): boolean {
+    return this.mockServer !== null;
+  }
+
+  get isDashboardRunning(): boolean {
+    return this.server !== null;
+  }
+}
+
+const mockState = new MockServerState();
 
 const mimeTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -438,7 +444,7 @@ export async function startMockWebServer(options: {
         if (req.method === "GET" && pathname === "/api/config") {
           const config = loadMockConfig(cwd);
           config.mockServerPort = mockState.mockServerPort;
-          config.mockServerRunning = mockState.mockServer !== null;
+          config.mockServerRunning = mockState.isRunning;
           if (options.file || options.url) {
             config.specSource = options.file || options.url || config.specSource;
           }
@@ -524,7 +530,7 @@ export async function startMockWebServer(options: {
 
         if (req.method === "GET" && pathname === "/api/mock-server") {
           jsonResponse(res, {
-            running: mockState.mockServer !== null,
+            running: mockState.isRunning,
             port: mockState.mockServerPort,
           });
           return;
