@@ -32,12 +32,19 @@ export interface MockConfigFile {
   mockServerRunning?: boolean;
 }
 
-export const MOCK_CONFIG_FILE = "specshot.mocks.json";
+export const MOCK_CONFIG_FILE = ".specshot/mocks.json";
+export const LEGACY_MOCK_CONFIG_FILE = "specshot.mocks.json";
 
 export function loadMockConfig(cwd: string = process.cwd()): MockConfigFile {
-  const configPath = path.resolve(cwd, MOCK_CONFIG_FILE);
+  let configPath = path.resolve(cwd, MOCK_CONFIG_FILE);
   if (!fs.existsSync(configPath)) {
-    return { endpoints: {} };
+    // Fallback to legacy path
+    const legacyPath = path.resolve(cwd, LEGACY_MOCK_CONFIG_FILE);
+    if (fs.existsSync(legacyPath)) {
+      configPath = legacyPath;
+    } else {
+      return { endpoints: {} };
+    }
   }
   try {
     return JSON.parse(fs.readFileSync(configPath, "utf8"));
@@ -51,6 +58,10 @@ export function saveMockConfig(
   cwd: string = process.cwd(),
 ): void {
   const configPath = path.resolve(cwd, MOCK_CONFIG_FILE);
+  const dir = path.dirname(configPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 

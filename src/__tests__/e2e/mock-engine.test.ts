@@ -112,8 +112,8 @@ describe("F4 Mocking Engine (mock command server)", () => {
         },
       },
     };
-    fs.writeFileSync(
-      path.join(tmpDir, "specshot.mocks.json"),
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(
+      path.join(tmpDir, ".specshot/mocks.json"),
       JSON.stringify(mockConfig, null, 2),
     );
 
@@ -147,8 +147,8 @@ describe("F4 Mocking Engine (mock command server)", () => {
         },
       },
     };
-    fs.writeFileSync(
-      path.join(tmpDir, "specshot.mocks.json"),
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(
+      path.join(tmpDir, ".specshot/mocks.json"),
       JSON.stringify(mockConfig, null, 2),
     );
 
@@ -176,8 +176,8 @@ describe("F4 Mocking Engine (mock command server)", () => {
         },
       },
     };
-    fs.writeFileSync(
-      path.join(tmpDir, "specshot.mocks.json"),
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(
+      path.join(tmpDir, ".specshot/mocks.json"),
       JSON.stringify(mockConfig, null, 2),
     );
 
@@ -201,8 +201,8 @@ describe("F4 Mocking Engine (mock command server)", () => {
         },
       },
     };
-    fs.writeFileSync(
-      path.join(tmpDir, "specshot.mocks.json"),
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(
+      path.join(tmpDir, ".specshot/mocks.json"),
       JSON.stringify(mockConfig, null, 2),
     );
 
@@ -281,13 +281,13 @@ describe("F4 Mocking Engine (mock command server)", () => {
       outputDir: "src/prov/msw",
       specSource: fixturePath,
     };
-    fs.writeFileSync(
-      path.join(tmpDir, "specshot.mocks.json"),
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(
+      path.join(tmpDir, ".specshot/mocks.json"),
       JSON.stringify(mockConfig, null, 2),
     );
 
     const readConfig = JSON.parse(
-      fs.readFileSync(path.join(tmpDir, "specshot.mocks.json"), "utf-8"),
+      fs.readFileSync(path.join(tmpDir, ".specshot/mocks.json"), "utf-8"),
     );
     expect(readConfig.endpoints["pets-listPets"].enabled).toBe(true);
   });
@@ -332,8 +332,8 @@ describe("F4 Mocking Engine (mock command server)", () => {
         },
       },
     };
-    fs.writeFileSync(
-      path.join(tmpDir, "specshot.mocks.json"),
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(
+      path.join(tmpDir, ".specshot/mocks.json"),
       JSON.stringify(mockConfig, null, 2),
     );
 
@@ -397,7 +397,7 @@ describe("F4 Mocking Engine (mock command server)", () => {
     };
 
     const specPath = path.join(tmpDir, "deep.json");
-    fs.writeFileSync(specPath, JSON.stringify(deepSpec, null, 2));
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(specPath, JSON.stringify(deepSpec, null, 2));
 
     const genRes = await runCli(
       ["generate", "--file", specPath, "--output", "out"],
@@ -454,7 +454,7 @@ describe("F4 Mocking Engine (mock command server)", () => {
     };
 
     const specPath = path.join(tmpDir, "cyclic.json");
-    fs.writeFileSync(specPath, JSON.stringify(cyclicSpec, null, 2));
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(specPath, JSON.stringify(cyclicSpec, null, 2));
 
     const genRes = await runCli(
       ["generate", "--file", specPath, "--output", "out"],
@@ -504,7 +504,7 @@ describe("F4 Mocking Engine (mock command server)", () => {
     }
 
     const specPath = path.join(tmpDir, "heavy.json");
-    fs.writeFileSync(specPath, JSON.stringify(heavySpec, null, 2));
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(specPath, JSON.stringify(heavySpec, null, 2));
 
     const genRes = await runCli(
       ["generate", "--file", specPath, "--output", "out"],
@@ -536,8 +536,8 @@ describe("F4 Mocking Engine (mock command server)", () => {
         },
       },
     };
-    fs.writeFileSync(
-      path.join(tmpDir, "specshot.mocks.json"),
+    fs.mkdirSync(path.join(tmpDir, ".specshot"), { recursive: true }); fs.writeFileSync(
+      path.join(tmpDir, ".specshot/mocks.json"),
       JSON.stringify(mockConfig, null, 2),
     );
 

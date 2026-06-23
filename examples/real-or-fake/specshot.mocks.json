@@ -8,13 +8,15 @@
       "path": "/memes",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "[\n  {\n    \"id\": \"depulso\",\n    \"imageUrl\": \"https://loremflickr.com/2396/459/meme?lock=3920503028778433\",\n    \"caption\": \"tibi\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 300,\n    \"realVotes\": 581,\n    \"fakeVotes\": 847\n  }\n]",
+      "mockData": "[\n  {\n    \"id\": \"hic\",\n    \"imageUrl\": \"https://loremflickr.com/2312/3688/meme?lock=2175903791942421\",\n    \"caption\": \"coerceo\",\n    \"category\": \"news\",\n    \"isReal\": true,\n    \"totalVotes\": 262,\n    \"realVotes\": 26,\n    \"fakeVotes\": 831\n  }\n]",
       "mockMode": "faker",
       "fakerArraySize": 3,
       "fakerArraySizes": {
         "root": 1
       },
-      "fakerFormats": {}
+      "fakerFormats": {
+        "root[].id": ""
+      }
     }
   },
   "proxyTarget": "http://localhost:3000",

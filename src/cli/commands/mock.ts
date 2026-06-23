@@ -14,6 +14,7 @@ import {
   loadMockConfig,
   saveMockConfig,
   endpointKey,
+  MOCK_CONFIG_FILE,
   type MockConfigFile,
   type MockEndpointEntry,
 } from "../../types/mock-config";
@@ -316,7 +317,7 @@ export async function mockCommand(options: {
     );
     console.log(chalk.gray(`Output: ${resolvedOutputDir}`));
     console.log(
-      chalk.gray(`Config saved: ${path.resolve(cwd, "specshot.mocks.json")}`),
+      chalk.gray(`Config saved: ${path.resolve(cwd, MOCK_CONFIG_FILE)}`),
     );
 
     if (mode === "customize") {
