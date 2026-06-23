@@ -61,7 +61,8 @@ export function App() {
     <>
       <div id="topbar" class="topbar">
         <div class="logo">
-          ⚡ SpecShot <span>Mock</span>
+          <img src="/favicon.svg" alt="SpecShot Logo" class="logo-img" />
+          SpecShot <span>Mock</span>
         </div>
 
         <div class="nav-tabs tabs-margin-left">
