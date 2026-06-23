@@ -31,14 +31,14 @@ jobs:
 
 ## Inputs
 
-| Input               | Required | Default              | Description                                                            |
-| ------------------- | -------- | -------------------- | ---------------------------------------------------------------------- |
-| `openapi-url`       | \*       | —                    | Remote OpenAPI JSON URL (e.g., `https://api.example.com/openapi.json`) |
-| `openapi-file`      | \*       | —                    | Local path to OpenAPI JSON file                                        |
-| `output-dir`        | No       | From `specshot.json` | Where to write generated files                                         |
-| `config-path`       | No       | `./specshot.json`    | Path to project config                                                 |
-| `commit-message`    | No       | —                    | If set, auto-commits generated files with this message                 |
-| `working-directory` | No       | `.`                  | Monorepo subdirectory                                                  |
+| Input               | Required | Default                    | Description                                                            |
+| ------------------- | -------- | -------------------------- | ---------------------------------------------------------------------- |
+| `openapi-url`       | \*       | —                          | Remote OpenAPI JSON URL (e.g., `https://api.example.com/openapi.json`) |
+| `openapi-file`      | \*       | —                          | Local path to OpenAPI JSON file                                        |
+| `output-dir`        | No       | From `specshot.config.mjs` | Where to write generated files                                         |
+| `config-path`       | No       | `./specshot.config.mjs`    | Path to project config                                                 |
+| `commit-message`    | No       | —                          | If set, auto-commits generated files with this message                 |
+| `working-directory` | No       | `.`                        | Monorepo subdirectory                                                  |
 
 _\*Either `openapi-url` or `openapi-file` must be provided._
 
@@ -74,13 +74,13 @@ jobs:
         with:
           openapi-url: https://user-service.example.com/openapi.json
           output-dir: packages/user-api/src/services
-          config-path: packages/user-api/specshot.json
+          config-path: packages/user-api/specshot.config.mjs
 
       - uses: Horizen23/specshot/github-action@main
         with:
           openapi-url: https://order-service.example.com/openapi.json
           output-dir: packages/order-api/src/services
-          config-path: packages/order-api/specshot.json
+          config-path: packages/order-api/specshot.config.mjs
 ```
 
 ### Local spec file (bundled in repo)
@@ -102,7 +102,7 @@ jobs:
 ## Prerequisites
 
 1. Run `npx specshot init` locally first to scaffold the core/provider files.
-2. Your project needs a `specshot.json` (created by `init`) or pass `output-dir` explicitly.
+2. Your project needs a `specshot.config.mjs` (created by `init`) or pass `output-dir` explicitly.
 
 ## See Also
 

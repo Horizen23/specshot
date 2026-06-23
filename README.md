@@ -91,7 +91,7 @@ npx specshot init \
 Reads your OpenAPI spec to generate strictly-typed API services, Zod schemas, and models.
 _It also Auto-discovers any Interceptors in your folder and wires them up automatically!_
 
-If you already provided a `--url` during `init` (which saves it to `specshot.json`), you can simply run:
+If you already provided a `--url` during `init` (which saves it to `specshot.config.mjs`), you can simply run:
 
 ```bash
 npx specshot generate
