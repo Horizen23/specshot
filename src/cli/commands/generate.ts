@@ -26,6 +26,48 @@ export async function generateCommand(options: GenerateOptions) {
   let alias = options.alias;
 
   const config = await loadUserConfig(process.cwd(), options.config);
+  
+  if (!url && !file && config.apis && Object.keys(config.apis).length > 0) {
+    // Generate all APIs defined in config.apis
+    for (const [apiName, apiConfig] of Object.entries(config.apis)) {
+      console.log(chalk.cyan(`\n--- Generating API: ${apiName} ---`));
+      
+      const apiSpecUrl = apiConfig.openapiUrl || config.openapiUrl;
+      const apiOutputDir = apiConfig.providerDir 
+        ? path.join(apiConfig.providerDir, "services") 
+        : (config.providerDir ? path.join(config.providerDir, "services") : "");
+        
+      if (!apiSpecUrl || !apiOutputDir) {
+        console.warn(chalk.yellow(`Skipping ${apiName} due to missing openapiUrl or providerDir.`));
+        continue;
+      }
+
+      const mergedOptions = { ...options, url: apiSpecUrl, output: apiOutputDir };
+      // Note: In watch mode, we probably shouldn't loop easily without complex logic, 
+      // but for now we'll handle standard generation.
+      
+      const specSource = apiSpecUrl;
+      const targetDir = path.resolve(process.cwd(), apiOutputDir);
+      
+      try {
+        await generateApi(specSource, targetDir, alias || config.alias, options.templates || config.templates, {
+          configPath: options.config,
+          msw: options.msw,
+          interceptorsDir: apiConfig.interceptors ? path.join(apiConfig.providerDir || "", "interceptors") : options.interceptors,
+        });
+        console.log(chalk.green(`API ${apiName} generated successfully at ${apiOutputDir}!`));
+      } catch (err) {
+        console.error(chalk.red(`Failed to generate API ${apiName}`));
+        console.error(err);
+      }
+    }
+    
+    if (options.watch) {
+      console.warn(chalk.yellow("\nWarning: Watch mode is not fully supported for multi-API generation yet."));
+    }
+    return;
+  }
+
   if (!url && !file && config.openapiUrl) url = config.openapiUrl;
   if (!outputDir && config.providerDir)
     outputDir = path.join(config.providerDir, "services");

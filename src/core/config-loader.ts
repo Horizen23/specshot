@@ -24,6 +24,11 @@ export interface SpecshotUserConfig {
   alias?: string;
   templates?: string;
   plugins?: SpecshotPlugin[];
+  apis?: Record<string, {
+    openapiUrl?: string;
+    providerDir?: string;
+    interceptors?: string[];
+  }>;
 }
 
 export const DEFAULT_CONFIG_FILE = "specshot.config.mjs";
