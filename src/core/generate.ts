@@ -17,6 +17,7 @@ import {
   extractRefs,
   schemaToTsType,
   schemaToZod,
+  resolveSchemaOwnership,
 } from "./schema-parser";
 import {
   toClassName,
@@ -67,82 +68,9 @@ export async function generateApi(
 
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
+  // Resolve which schemas are shared (models.ts) vs tag-local
   const schemas = spec.components?.schemas || {};
-
-  const schemaUsage = new Map<string, Set<string>>();
-  for (const name of Object.keys(schemas)) {
-    schemaUsage.set(cleanRefName(name), new Set<string>());
-  }
-
-  const pathEntries = Object.entries(spec.paths ?? {}) as [
-    string,
-    Record<string, OpenApiOperation>,
-  ][];
-  for (const [, methods] of pathEntries) {
-    for (const operation of Object.values(methods)) {
-      if (!operation.tags || operation.tags.length === 0) continue;
-      const tag = operation.tags[0];
-
-      const refsInOp = new Set<string>();
-      if (operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema) {
-        extractRefs(
-          operation.requestBody.content[JSON_CONTENT_TYPE].schema,
-          refsInOp,
-        );
-      }
-      if (
-        operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema
-      ) {
-        extractRefs(
-          operation.responses[HTTP_OK].content[JSON_CONTENT_TYPE].schema,
-          refsInOp,
-        );
-      }
-
-      for (const ref of refsInOp) {
-        if (schemaUsage.has(ref)) schemaUsage.get(ref)!.add(tag);
-      }
-    }
-  }
-
-  // Propagate usage to nested schemas
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const [name, schema] of Object.entries(schemas)) {
-      const cleanName = cleanRefName(name);
-      if (cleanName === RESPONSE_BODY_STRUCT) continue;
-
-      const nestedRefs = extractRefs(schema);
-      const parentTags = schemaUsage.get(cleanName) || new Set();
-
-      for (const nestedRef of nestedRefs) {
-        const childTags = schemaUsage.get(nestedRef);
-        if (childTags) {
-          const sizeBefore = childTags.size;
-          for (const t of parentTags) childTags.add(t);
-          if (childTags.size > sizeBefore) changed = true;
-        }
-      }
-    }
-  }
-
-  // Decide where each schema goes
-  const sharedSchemas = new Set<string>();
-  const tagSchemas = new Map<string, Set<string>>();
-
-  for (const [name, tags] of schemaUsage.entries()) {
-    if (name === RESPONSE_BODY_STRUCT || name.startsWith(RESPONSE_BODY_PREFIX))
-      continue;
-
-    if (tags.size === 1) {
-      const tag = Array.from(tags)[0];
-      if (!tagSchemas.has(tag)) tagSchemas.set(tag, new Set<string>());
-      tagSchemas.get(tag)!.add(name);
-    } else {
-      sharedSchemas.add(name);
-    }
-  }
+  const { sharedSchemas, tagSchemas } = resolveSchemaOwnership(spec);
 
   let defaultTemplatesDir = path.join(__dirname, "../../templates/generator");
   if (

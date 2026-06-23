@@ -1,30 +1,36 @@
 import http from "http";
-import https from "https";
 import { exec } from "child_process";
 import path from "path";
 import fs from "fs";
 import { loadSpec } from "./spec-loader";
 import { generateApi } from "./generate";
+import { proxyRequest } from "./proxy-handler";
 import {
   loadMockConfig,
   saveMockConfig,
-  endpointKey,
   type MockConfigFile,
-  type MockEndpointEntry,
 } from "../types/mock-config";
 import { CONFIG_FILE } from "../types/constants";
 import { flattenEndpoints, groupByTag } from "../utils/openapi-utils";
 import { mockJsonFromSchema, getSchemaTypes } from "../utils/msw-utils";
-import type { OpenApiSpec } from "../types/types";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let server: http.Server | null = null;
-let mockServer: http.Server | null = null;
-let mockServerPort = 3457;
-let mockServerRestartTimer: ReturnType<typeof setTimeout> | null = null;
+// ---------------------------------------------------------------------------
+// Encapsulated server state — replaces bare module-level mutable variables
+// ---------------------------------------------------------------------------
+const mockState = {
+  /** The web dashboard HTTP server. */
+  server: null as http.Server | null,
+  /** The mock API HTTP server. */
+  mockServer: null as http.Server | null,
+  /** Current port of the mock API server. */
+  mockServerPort: 3457,
+  /** Debounce timer for config-change restarts. */
+  restartTimer: null as ReturnType<typeof setTimeout> | null,
+};
 
 const mimeTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -72,13 +78,13 @@ function serveUi(
 }
 
 export function stopMockWebServer(): void {
-  if (server) {
-    server.close();
-    server = null;
+  if (mockState.server) {
+    mockState.server.close();
+    mockState.server = null;
   }
-  if (mockServer) {
-    mockServer.close();
-    mockServer = null;
+  if (mockState.mockServer) {
+    mockState.mockServer.close();
+    mockState.mockServer = null;
   }
 }
 
@@ -167,40 +173,13 @@ function createMockRequestHandler(cwd: string): http.RequestListener {
       return;
     }
 
-    // No mock matched, try proxy
+    // No mock matched — try proxy, then 404
     const proxyTarget = config.proxyTarget;
     if (proxyTarget && config.proxyEnabled !== false) {
       console.log(
         `[MockServer] → proxy ${requestMethod} ${requestPath} → ${proxyTarget}`,
       );
-      const targetUrl = new URL(proxyTarget);
-      const isHttps = targetUrl.protocol === "https:";
-      const proxyModule = isHttps ? https : http;
-
-      const proxyReq = proxyModule.request(
-        {
-          hostname: targetUrl.hostname,
-          port: targetUrl.port || (isHttps ? 443 : 80),
-          path: req.url,
-          method: requestMethod,
-          headers: {
-            ...Object.fromEntries(
-              Object.entries(req.headers).filter(([k]) => k !== "host"),
-            ),
-          },
-        },
-        (proxyRes) => {
-          res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
-          proxyRes.pipe(res);
-        },
-      );
-
-      proxyReq.on("error", () => {
-        res.writeHead(502, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Proxy error" }));
-      });
-
-      req.pipe(proxyReq);
+      proxyRequest(req, res, proxyTarget);
       return;
     }
 
@@ -211,9 +190,9 @@ function createMockRequestHandler(cwd: string): http.RequestListener {
 }
 
 function stopMockServerInternal(): void {
-  if (mockServer) {
-    mockServer.close();
-    mockServer = null;
+  if (mockState.mockServer) {
+    mockState.mockServer.close();
+    mockState.mockServer = null;
     console.log("[MockServer] Stopped");
   }
 }
@@ -223,7 +202,7 @@ function startMockServerInternal(
   port: number,
 ): Promise<http.Server> {
   return new Promise((resolve, reject) => {
-    if (mockServer) {
+    if (mockState.mockServer) {
       stopMockServerInternal();
     }
 
@@ -242,21 +221,21 @@ function startMockServerInternal(
     instance.listen(port, () => {
       const addr = instance.address();
       const actualPort = typeof addr === "object" && addr ? addr.port : port;
-      mockServerPort = actualPort;
+      mockState.mockServerPort = actualPort;
       console.log(`[MockServer] Running on http://localhost:${actualPort}`);
-      mockServer = instance;
+      mockState.mockServer = instance;
       resolve(instance);
     });
   });
 }
 
 function restartMockServerOnConfigChange(cwd: string): void {
-  if (!mockServer) return;
-  if (mockServerRestartTimer) clearTimeout(mockServerRestartTimer);
-  mockServerRestartTimer = setTimeout(() => {
-    mockServerRestartTimer = null;
+  if (!mockState.mockServer) return;
+  if (mockState.restartTimer) clearTimeout(mockState.restartTimer);
+  mockState.restartTimer = setTimeout(() => {
+    mockState.restartTimer = null;
     stopMockServerInternal();
-    startMockServerInternal(cwd, mockServerPort).catch((err) => {
+    startMockServerInternal(cwd, mockState.mockServerPort).catch((err) => {
       console.error(`[MockServer] Restart error: ${(err as Error).message}`);
     });
   }, 1000);
@@ -313,8 +292,8 @@ export async function startMockWebServer(options: {
   const cwd = process.cwd();
   const port = options.port || 3456;
 
-  const existingConfig = loadMockConfig(cwd) as MockConfigFile & Record<string, unknown>;
-  mockServerPort = (existingConfig.mockServerPort as number | undefined) ?? 3457;
+  const existingConfig = loadMockConfig(cwd);
+  mockState.mockServerPort = existingConfig.mockServerPort ?? 3457;
 
   if (options.proxy) {
     existingConfig.proxyTarget = options.proxy;
@@ -456,13 +435,11 @@ export async function startMockWebServer(options: {
         }
 
         if (req.method === "GET" && pathname === "/api/config") {
-          const config = loadMockConfig(cwd) as MockConfigFile &
-            Record<string, unknown>;
-          config.mockServerPort = mockServerPort;
-          config.mockServerRunning = mockServer !== null;
+          const config = loadMockConfig(cwd);
+          config.mockServerPort = mockState.mockServerPort;
+          config.mockServerRunning = mockState.mockServer !== null;
           if (options.file || options.url) {
-            config.specSource =
-              options.file || options.url || config.specSource;
+            config.specSource = options.file || options.url || config.specSource;
           }
           if (options.output) {
             config.outputDir = options.output;
@@ -476,14 +453,13 @@ export async function startMockWebServer(options: {
           const incomingConfig: MockConfigFile = JSON.parse(body);
           const existingConfig = loadMockConfig(cwd);
 
-          const newConfig = {
+          const newConfig: MockConfigFile = {
             ...existingConfig,
             ...incomingConfig,
-            endpoints:
-              incomingConfig.endpoints || existingConfig.endpoints || {},
-          } as MockConfigFile & Record<string, unknown>;
+            endpoints: incomingConfig.endpoints || existingConfig.endpoints || {},
+            mockServerPort: mockState.mockServerPort,
+          };
 
-          newConfig.mockServerPort = mockServerPort;
           saveMockConfig(newConfig, cwd);
           restartMockServerOnConfigChange(cwd);
           jsonResponse(res, { ok: true });
@@ -547,8 +523,8 @@ export async function startMockWebServer(options: {
 
         if (req.method === "GET" && pathname === "/api/mock-server") {
           jsonResponse(res, {
-            running: mockServer !== null,
-            port: mockServerPort,
+            running: mockState.mockServer !== null,
+            port: mockState.mockServerPort,
           });
           return;
         }
@@ -558,24 +534,23 @@ export async function startMockWebServer(options: {
           const { action, port } = JSON.parse(body);
 
           if (action === "start") {
-            if (mockServer) {
+            if (mockState.mockServer) {
               jsonResponse(res, {
                 ok: true,
-                port: mockServerPort,
+                port: mockState.mockServerPort,
                 running: true,
               });
               return;
             }
-            const targetPort = port || mockServerPort;
+            const targetPort = port || mockState.mockServerPort;
             try {
               await startMockServerInternal(cwd, targetPort);
-              const cfg = loadMockConfig(cwd) as MockConfigFile &
-                Record<string, unknown>;
-              cfg.mockServerPort = mockServerPort;
+              const cfg = loadMockConfig(cwd);
+              cfg.mockServerPort = mockState.mockServerPort;
               saveMockConfig(cfg, cwd);
               jsonResponse(res, {
                 ok: true,
-                port: mockServerPort,
+                port: mockState.mockServerPort,
                 running: true,
               });
             } catch (err) {
@@ -629,7 +604,7 @@ export async function startMockWebServer(options: {
     },
   );
 
-  server = serverInstance;
+  mockState.server = serverInstance;
 
   return new Promise<http.Server>((resolve, reject) => {
     serverInstance.on("error", (err: NodeJS.ErrnoException) => {

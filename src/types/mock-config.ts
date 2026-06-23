@@ -26,6 +26,10 @@ export interface MockConfigFile {
   lastGenerated?: string;
   proxyTarget?: string;
   proxyEnabled?: boolean;
+  /** Runtime-only: persisted port of the mock API server. */
+  mockServerPort?: number;
+  /** Runtime-only: whether the mock API server is currently running. */
+  mockServerRunning?: boolean;
 }
 
 export const MOCK_CONFIG_FILE = "specshot.mocks.json";

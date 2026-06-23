@@ -1,5 +1,90 @@
-import { RESPONSE_BODY_STRUCT } from "../types/constants";
-import type { OpenApiSchema, PropEntry } from "../types/types";
+import { RESPONSE_BODY_STRUCT, RESPONSE_BODY_PREFIX, JSON_CONTENT_TYPE, HTTP_OK } from "../types/constants";
+import type { OpenApiSchema, PropEntry, OpenApiSpec } from "../types/types";
+
+/**
+ * Analyse which tags reference which component schemas across all operations,
+ * then decide whether each schema belongs to a single tag (tag-local) or
+ * multiple tags (shared / global models).
+ *
+ * @returns
+ *   - `sharedSchemas` — schema names that appear in ≥2 tags → go in `models.ts`
+ *   - `tagSchemas`    — map of tag → set of schema names owned exclusively by it
+ */
+export function resolveSchemaOwnership(
+  spec: OpenApiSpec,
+): {
+  sharedSchemas: Set<string>;
+  tagSchemas: Map<string, Set<string>>;
+} {
+  const schemas = spec.components?.schemas || {};
+
+  // Seed usage map
+  const schemaUsage = new Map<string, Set<string>>();
+  for (const name of Object.keys(schemas)) {
+    schemaUsage.set(cleanRefName(name), new Set<string>());
+  }
+
+  // Walk every operation, collect which tags reference which schema refs
+  const pathEntries = Object.entries(spec.paths ?? {}) as [
+    string,
+    Record<string, { tags?: string[]; requestBody?: any; responses?: any; parameters?: any[] }>,
+  ][];
+  for (const [, methods] of pathEntries) {
+    for (const operation of Object.values(methods)) {
+      if (!operation.tags || operation.tags.length === 0) continue;
+      const tag = operation.tags[0];
+
+      const refsInOp = new Set<string>();
+      if (operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema) {
+        extractRefs(operation.requestBody.content[JSON_CONTENT_TYPE].schema, refsInOp);
+      }
+      if (operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema) {
+        extractRefs(operation.responses[HTTP_OK].content[JSON_CONTENT_TYPE].schema, refsInOp);
+      }
+      for (const ref of refsInOp) {
+        if (schemaUsage.has(ref)) schemaUsage.get(ref)!.add(tag);
+      }
+    }
+  }
+
+  // Propagate usage to nested schemas (BFS-style fixed-point)
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [name, schema] of Object.entries(schemas)) {
+      const cleanName = cleanRefName(name);
+      if (cleanName === RESPONSE_BODY_STRUCT) continue;
+      const nestedRefs = extractRefs(schema);
+      const parentTags = schemaUsage.get(cleanName) || new Set<string>();
+      for (const nestedRef of nestedRefs) {
+        const childTags = schemaUsage.get(nestedRef);
+        if (childTags) {
+          const sizeBefore = childTags.size;
+          for (const t of parentTags) childTags.add(t);
+          if (childTags.size > sizeBefore) changed = true;
+        }
+      }
+    }
+  }
+
+  // Partition into shared vs. tag-local
+  const sharedSchemas = new Set<string>();
+  const tagSchemas = new Map<string, Set<string>>();
+
+  for (const [name, tags] of schemaUsage.entries()) {
+    if (name === RESPONSE_BODY_STRUCT || name.startsWith(RESPONSE_BODY_PREFIX)) continue;
+    if (tags.size === 1) {
+      const tag = Array.from(tags)[0];
+      if (!tagSchemas.has(tag)) tagSchemas.set(tag, new Set<string>());
+      tagSchemas.get(tag)!.add(name);
+    } else {
+      sharedSchemas.add(name);
+    }
+  }
+
+  return { sharedSchemas, tagSchemas };
+}
+
 
 export function cleanRefName(ref: string | undefined): string {
   if (!ref) return "";
