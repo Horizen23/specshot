@@ -12,12 +12,34 @@ Demonstrates SpecShot generated API client with **TanStack Query (React Query)**
 
 ## How it was generated
 
+Install dependencies and run the initialization script to generate the API core and provider code based on `specshot.config.mjs`:
+
 ```bash
-npx specshot generate \
-  --file ./openapi.json \
-  --integration react-query \
-  --plugins bearer \
-  --output src/lib/api/default
+npm install
+npm run specshot:init
+```
+
+If the API spec changes later, you can update just the services by running:
+```bash
+npm run specshot:generate
+```
+
+You can also test the built-in mock server:
+```bash
+npm run specshot:mock
+```
+
+## Configuration
+
+This project is configured using `specshot.config.mjs`:
+```javascript
+export default {
+  coreDir: "src/lib/api/core",
+  providerDir: "src/lib/api/default",
+  openapiUrl: "http://localhost:8080/openapi.json",
+  integration: "react-query",
+  interceptors: ["bearer", "logger"],
+};
 ```
 
 ## Usage

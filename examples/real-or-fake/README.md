@@ -12,11 +12,18 @@ examples/real-or-fake/
 ├── client/            → React (Vite) frontend
 │   └── src/
 │       ├── App.jsx
+│       ├── lib/api/   → Generated API client
 │       └── index.css
 ├── server/
 │   ├── server.js      → Real API (port 3000)
 │   └── fake-server.js → Fake API (port 3457)
 └── package.json
+```
+
+## How to setup
+```bash
+npm install
+npm run specshot:init
 ```
 
 ## Run
