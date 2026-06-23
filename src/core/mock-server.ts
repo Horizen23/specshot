@@ -152,7 +152,9 @@ function createMockRequestHandler(cwd: string): http.RequestListener {
     // Serve dashboard at root
     if (
       requestMethod === "GET" &&
-      (requestPath === "/" || requestPath.startsWith("/assets/") || requestPath === "/favicon.svg")
+      (requestPath === "/" ||
+        requestPath.startsWith("/assets/") ||
+        requestPath === "/favicon.svg")
     ) {
       serveUi(req, res, requestPath);
       return;
@@ -303,7 +305,9 @@ export async function startMockWebServer(options: {
 
         if (
           req.method === "GET" &&
-          (pathname === "/" || pathname.startsWith("/assets/") || pathname === "/favicon.svg")
+          (pathname === "/" ||
+            pathname.startsWith("/assets/") ||
+            pathname === "/favicon.svg")
         ) {
           serveUi(req, res, pathname);
           return;
