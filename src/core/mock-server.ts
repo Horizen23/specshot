@@ -268,7 +268,7 @@ export async function startMockWebServer(options: {
   noOpen?: boolean;
 }): Promise<http.Server> {
   const cwd = process.cwd();
-  const port = options.port || 3456;
+  let port = options.port || 3456;
 
   const existingConfig = loadMockConfig(cwd);
   mockState.mockServerPort = existingConfig.mockServerPort ?? 3457;
@@ -382,7 +382,8 @@ export async function startMockWebServer(options: {
     serverInstance.on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
         console.log(`Port ${port} is in use, trying ${port + 1}...`);
-        serverInstance.listen(port + 1);
+        port++;
+        serverInstance.listen(port);
       } else {
         reject(err);
       }

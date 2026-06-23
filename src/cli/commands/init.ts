@@ -222,21 +222,7 @@ export async function initCommand(options: InitOptions = {}) {
       }
     };
 
-    if (hasMultiApi && config.apis) {
-      for (const [apiName, apiConfig] of Object.entries(config.apis)) {
-        const apiProviderDir = apiConfig.providerDir || config.providerDir;
-        const apiOpenapiUrl = apiConfig.openapiUrl || config.openapiUrl;
-        const apiInterceptors = apiConfig.interceptors || selectedInterceptors;
-        
-        if (apiProviderDir) {
-          await setupProvider(apiProviderDir, apiOpenapiUrl, apiInterceptors, apiName);
-        }
-      }
-    } else {
-      await setupProvider(finalProviderDir!, finalOpenapiUrl, selectedInterceptors);
-    }
-
-    if (!config) {
+    if (!config || Object.keys(config).length === 0) {
       const configContent = `/** @type {import('specshot').SpecshotConfig} */
 export default {
   coreDir: ${JSON.stringify(finalCoreDir)},
@@ -256,6 +242,20 @@ ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : "
 };
 `;
       fs.writeFileSync(path.resolve(process.cwd(), DEFAULT_CONFIG_FILE), configContent);
+    }
+
+    if (hasMultiApi && config.apis) {
+      for (const [apiName, apiConfig] of Object.entries(config.apis)) {
+        const apiProviderDir = apiConfig.providerDir || config.providerDir;
+        const apiOpenapiUrl = apiConfig.openapiUrl || config.openapiUrl;
+        const apiInterceptors = apiConfig.interceptors || selectedInterceptors;
+        
+        if (apiProviderDir) {
+          await setupProvider(apiProviderDir, apiOpenapiUrl, apiInterceptors, apiName);
+        }
+      }
+    } else {
+      await setupProvider(finalProviderDir!, finalOpenapiUrl, selectedInterceptors);
     }
 
     if (finalIntegration === "swr") {
