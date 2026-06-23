@@ -84,16 +84,14 @@ describe("F3 Dashboard API (mock --web command)", () => {
   });
 
   // Test 1
-  it("should start dashboard server on default port (3456)", async () => {
-    // We use a custom test directory and a different port to verify default is tried or we can just verify it spawns
-    // But since default is 3456, we can test spawning it (we might specify it or let it default).
-    // Let's spawn it on default port (we can use 3456, but let's kill it immediately to prevent port leaks)
-    const port = 3456;
+  it("should start dashboard server and fallback to next available dashboard port", async () => {
+    const mockApiPort = 18100;
     let serverProc: ChildProcess | null = null;
     try {
-      const res = await startDashboard(port, fixturePath, tmpDir);
+      const res = await startDashboard(mockApiPort, fixturePath, tmpDir);
       serverProc = res.process;
-      expect(res.url).toContain(`:${port}`);
+      // Dashboard port should start with 345
+      expect(res.url).toMatch(/http:\/\/localhost:345\d/);
     } finally {
       if (serverProc) {
         serverProc.kill("SIGKILL");
@@ -102,13 +100,17 @@ describe("F3 Dashboard API (mock --web command)", () => {
   });
 
   // Test 2
-  it("should start dashboard server on custom port", async () => {
-    const port = 18100;
+  it("should start mock server on custom port specified by --port", async () => {
+    const mockApiPort = 18101;
     let serverProc: ChildProcess | null = null;
     try {
-      const res = await startDashboard(port, fixturePath, tmpDir);
+      const res = await startDashboard(mockApiPort, fixturePath, tmpDir);
       serverProc = res.process;
-      expect(res.url).toContain(`:${port}`);
+      
+      const configRes = await fetch(`${res.url}/api/mock-server`);
+      expect(configRes.status).toBe(200);
+      const data = await configRes.json() as any;
+      expect(data.port).toBe(mockApiPort);
     } finally {
       if (serverProc) {
         serverProc.kill("SIGKILL");
@@ -117,15 +119,15 @@ describe("F3 Dashboard API (mock --web command)", () => {
   });
 
   // Test 3
-  it("should handle port collision gracefully by attempting fallback port", async () => {
-    const port = 18200;
+  it("should handle dashboard port collision gracefully by attempting fallback port", async () => {
+    const mockApiPort = 18200;
     let server1: ChildProcess | null = null;
     let server2: ChildProcess | null = null;
     try {
-      const res1 = await startDashboard(port, fixturePath, tmpDir);
+      const res1 = await startDashboard(mockApiPort, fixturePath, tmpDir);
       server1 = res1.process;
 
-      // Start second server on same port, it should log collision and fallback to port+1
+      // Start second server, its dashboard port will collide with server1's dashboard port
       server2 = spawn(
         "node",
         [
@@ -133,7 +135,7 @@ describe("F3 Dashboard API (mock --web command)", () => {
           "mock",
           "--web",
           "--port",
-          port.toString(),
+          (mockApiPort + 1).toString(),
           "--file",
           fixturePath,
         ],
@@ -149,7 +151,7 @@ describe("F3 Dashboard API (mock --web command)", () => {
         });
       });
 
-      expect(stdoutText).toContain(`Port ${port} is in use, trying`);
+      expect(stdoutText).toMatch(/Port 345\d is in use, trying/);
     } finally {
       if (server1) server1.kill("SIGKILL");
       if (server2) server2.kill("SIGKILL");

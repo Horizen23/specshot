@@ -269,10 +269,10 @@ export async function startMockWebServer(options: {
   noOpen?: boolean;
 }): Promise<http.Server> {
   const cwd = process.cwd();
-  let port = options.port || 3456;
+  let dashboardPort = 3456;
 
   const existingConfig = loadMockConfig(cwd);
-  mockState.mockServerPort = existingConfig.mockServerPort ?? 3457;
+  mockState.mockServerPort = options.port ?? existingConfig.mockServerPort ?? 3457;
 
   if (options.proxy) {
     existingConfig.proxyTarget = options.proxy;
@@ -382,17 +382,17 @@ export async function startMockWebServer(options: {
   return new Promise<http.Server>((resolve, reject) => {
     serverInstance.on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
-        console.log(`Port ${port} is in use, trying ${port + 1}...`);
-        port++;
-        serverInstance.listen(port);
+        console.log(`Port ${dashboardPort} is in use, trying ${dashboardPort + 1}...`);
+        dashboardPort++;
+        serverInstance.listen(dashboardPort);
       } else {
         reject(err);
       }
     });
 
-    serverInstance.listen(port, () => {
+    serverInstance.listen(dashboardPort, () => {
       const addr = serverInstance.address();
-      const actualPort = typeof addr === "object" && addr ? addr.port : port;
+      const actualPort = typeof addr === "object" && addr ? addr.port : dashboardPort;
       console.log(
         `\nSpecShot Mock Dashboard running at http://localhost:${actualPort}\n`,
       );
