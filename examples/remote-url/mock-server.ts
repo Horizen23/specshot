@@ -5,7 +5,10 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const spec = fs.readFileSync(path.join(__dirname, "../local-file/openapi.json"), "utf8");
+const spec = fs.readFileSync(
+  path.join(__dirname, "../local-file/openapi.json"),
+  "utf8",
+);
 
 const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", "application/json");

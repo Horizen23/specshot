@@ -1,4 +1,8 @@
-import type { OpenApiSpec, OpenApiOperation, OpenApiSchema } from "../types/types";
+import type {
+  OpenApiSpec,
+  OpenApiOperation,
+  OpenApiSchema,
+} from "../types/types";
 import { endpointKey } from "../types/mock-config";
 import { HTTP_OK, JSON_CONTENT_TYPE } from "../types/constants";
 

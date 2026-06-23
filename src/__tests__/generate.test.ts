@@ -938,4 +938,67 @@ import { BaseService } from "{{corePath}}/base-service";
     );
     expect(typesContent).toContain("ResponseBodyFoo");
   });
+
+  it("generates valid MSW handlers", async () => {
+    globalThis.fetch = (async () =>
+      ({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({
+          openapi: "3.0.0",
+          paths: {
+            "/users": {
+              get: {
+                tags: ["users"],
+                operationId: "getUsers",
+                responses: {
+                  "200": {
+                    description: "OK",
+                    content: {
+                      "application/json": {
+                        schema: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              id: { type: "string" },
+                              name: { type: "string" },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
+      }) as Response) as typeof fetch;
+
+    const mswOut = path.join(tmpDir, "msw-output");
+    await generateApi(
+      "https://example.com/msw-test.json",
+      mswOut,
+      undefined,
+      undefined,
+      {
+        msw: true,
+        mswOutputDir: path.join(mswOut, "msw"),
+      },
+    );
+
+    const handlerFile = path.join(mswOut, "msw", "users.handlers.ts");
+    expect(fs.existsSync(handlerFile)).toBe(true);
+
+    const handlerContent = fs.readFileSync(handlerFile, "utf8");
+    expect(handlerContent).toContain(
+      'export const getUsersHandler = http.get<PathParams<"/users">>(',
+    );
+    expect(handlerContent).toContain(");");
+    // Verify there is no duplicate closing brace
+    expect(handlerContent).not.toContain("}\n  }\n);");
+    expect(handlerContent).toContain("  },\n);");
+  });
 });

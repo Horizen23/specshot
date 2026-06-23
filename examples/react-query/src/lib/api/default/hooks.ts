@@ -81,48 +81,65 @@ export function createApiHooks<TApi>(apiInstance: TApi) {
 
   return new Proxy({} as ApiHooksProxy<TApi>, {
     get: (_, serviceName: string) => {
-      return new Proxy({}, {
-        get: (_, methodName: string) => {
-          const hookFn = (...args: any[]) => {
-            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
-            const method = service[methodName] as Function;
+      return new Proxy(
+        {},
+        {
+          get: (_, methodName: string) => {
+            const hookFn = (...args: any[]) => {
+              const service = (
+                apiInstance as Record<string, Record<string, unknown>>
+              )[serviceName];
+              const method = service[methodName] as Function;
 
-            const resourceName = service.resourceName ?? serviceName;
-            const cacheKeyArgs = extractCacheKeyArgs(args);
-            const queryKey = [resourceName, methodName, ...cacheKeyArgs] as const;
+              const resourceName = service.resourceName ?? serviceName;
+              const cacheKeyArgs = extractCacheKeyArgs(args);
+              const queryKey = [
+                resourceName,
+                methodName,
+                ...cacheKeyArgs,
+              ] as const;
 
-            const queryFn = async () => {
-              const result = await method.apply(service, args);
-              if (!result.ok) {
-                throw result.error;
-              }
-              return result.data;
+              const queryFn = async () => {
+                const result = await method.apply(service, args);
+                if (!result.ok) {
+                  throw result.error;
+                }
+                return result.data;
+              };
+
+              return useQuery({ queryKey, queryFn });
             };
 
-            return useQuery({ queryKey, queryFn });
-          };
+            hookFn.queryKey = (...args: any[]) => {
+              const service = (
+                apiInstance as Record<string, Record<string, unknown>>
+              )[serviceName];
+              const resourceName = service.resourceName ?? serviceName;
+              const cacheKeyArgs = extractCacheKeyArgs(args);
+              return [resourceName, methodName, ...cacheKeyArgs] as const;
+            };
 
-          hookFn.queryKey = (...args: any[]) => {
-            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
-            const resourceName = service.resourceName ?? serviceName;
-            const cacheKeyArgs = extractCacheKeyArgs(args);
-            return [resourceName, methodName, ...cacheKeyArgs] as const;
-          };
+            hookFn.invalidate = () => {
+              const service = (
+                apiInstance as Record<string, Record<string, unknown>>
+              )[serviceName];
+              const resourceName = service.resourceName ?? serviceName;
+              return queryClient.invalidateQueries({
+                predicate: (query) => {
+                  const key = query.queryKey;
+                  return (
+                    Array.isArray(key) &&
+                    key[0] === resourceName &&
+                    key[1] === methodName
+                  );
+                },
+              });
+            };
 
-          hookFn.invalidate = () => {
-            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
-            const resourceName = service.resourceName ?? serviceName;
-            return queryClient.invalidateQueries({
-              predicate: (query) => {
-                const key = query.queryKey;
-                return Array.isArray(key) && key[0] === resourceName && key[1] === methodName;
-              },
-            });
-          };
-
-          return hookFn;
-        }
-      });
-    }
+            return hookFn;
+          },
+        },
+      );
+    },
   });
 }

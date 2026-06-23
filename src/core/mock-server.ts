@@ -27,43 +27,47 @@ let mockServerPort = 3457;
 let mockServerRestartTimer: ReturnType<typeof setTimeout> | null = null;
 
 const mimeTypes: Record<string, string> = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.png': 'image/png',
-  '.jpg': 'image/jpg',
-  '.svg': 'image/svg+xml',
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".png": "image/png",
+  ".jpg": "image/jpg",
+  ".svg": "image/svg+xml",
 };
 
-function serveUi(req: http.IncomingMessage, res: http.ServerResponse, requestPath: string) {
-  let uiDist = path.resolve(__dirname, '../../ui/mock-ui/dist'); // from src/core/ (dev mode)
+function serveUi(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  requestPath: string,
+) {
+  let uiDist = path.resolve(__dirname, "../../ui/mock-ui/dist"); // from src/core/ (dev mode)
   if (!fs.existsSync(uiDist)) {
-    uiDist = path.resolve(__dirname, '../ui/mock-ui/dist'); // from dist/ (prod bundle)
+    uiDist = path.resolve(__dirname, "../ui/mock-ui/dist"); // from dist/ (prod bundle)
   }
-  
-  if (requestPath === '/') {
-    requestPath = '/index.html';
+
+  if (requestPath === "/") {
+    requestPath = "/index.html";
   }
 
   const filePath = path.join(uiDist, requestPath);
-  
+
   try {
     if (!fs.existsSync(filePath)) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('Not found');
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not found");
       return;
     }
-    
+
     const ext = path.extname(filePath);
-    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    const contentType = mimeTypes[ext] || "application/octet-stream";
     const content = fs.readFileSync(filePath);
-    
-    res.writeHead(200, { 'Content-Type': contentType });
+
+    res.writeHead(200, { "Content-Type": contentType });
     res.end(content);
   } catch (err) {
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Server error');
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end("Server error");
   }
 }
 
@@ -99,10 +103,7 @@ function matchPath(
   return params;
 }
 
-
-function createMockRequestHandler(
-  cwd: string,
-): http.RequestListener {
+function createMockRequestHandler(cwd: string): http.RequestListener {
   return (req: http.IncomingMessage, res: http.ServerResponse) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader(
@@ -125,14 +126,15 @@ function createMockRequestHandler(
     const requestMethod = (req.method || "GET").toUpperCase();
 
     // Serve dashboard at root
-    if (requestMethod === "GET" && (requestPath === "/" || requestPath.startsWith("/assets/"))) {
+    if (
+      requestMethod === "GET" &&
+      (requestPath === "/" || requestPath.startsWith("/assets/"))
+    ) {
       serveUi(req, res, requestPath);
       return;
     }
 
-    console.log(
-      `[MockServer] ${requestMethod} ${requestPath}`,
-    );
+    console.log(`[MockServer] ${requestMethod} ${requestPath}`);
 
     const config = loadMockConfig(cwd);
     const endpoints = config.endpoints || {};
@@ -183,39 +185,28 @@ function createMockRequestHandler(
           method: requestMethod,
           headers: {
             ...Object.fromEntries(
-              Object.entries(req.headers).filter(
-                ([k]) => k !== "host",
-              ),
+              Object.entries(req.headers).filter(([k]) => k !== "host"),
             ),
           },
         },
         (proxyRes) => {
-          res.writeHead(
-            proxyRes.statusCode || 502,
-            proxyRes.headers,
-          );
+          res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
           proxyRes.pipe(res);
         },
       );
 
       proxyReq.on("error", () => {
         res.writeHead(502, { "Content-Type": "application/json" });
-        res.end(
-          JSON.stringify({ error: "Proxy error" }),
-        );
+        res.end(JSON.stringify({ error: "Proxy error" }));
       });
 
       req.pipe(proxyReq);
       return;
     }
 
-    console.log(
-      `[MockServer] 404 ${requestMethod} ${requestPath}`,
-    );
+    console.log(`[MockServer] 404 ${requestMethod} ${requestPath}`);
     res.writeHead(404, { "Content-Type": "application/json" });
-    res.end(
-      JSON.stringify({ error: "No matching mock endpoint" }),
-    );
+    res.end(JSON.stringify({ error: "No matching mock endpoint" }));
   };
 }
 
@@ -241,9 +232,7 @@ function startMockServerInternal(
 
     instance.on("error", (err: NodeJS.ErrnoException) => {
       if (err.code === "EADDRINUSE") {
-        console.log(
-          `[MockServer] Port ${port} in use, trying ${port + 1}...`,
-        );
+        console.log(`[MockServer] Port ${port} in use, trying ${port + 1}...`);
         instance.listen(port + 1);
       } else {
         reject(err);
@@ -252,12 +241,9 @@ function startMockServerInternal(
 
     instance.listen(port, () => {
       const addr = instance.address();
-      const actualPort =
-        typeof addr === "object" && addr ? addr.port : port;
+      const actualPort = typeof addr === "object" && addr ? addr.port : port;
       mockServerPort = actualPort;
-      console.log(
-        `[MockServer] Running on http://localhost:${actualPort}`,
-      );
+      console.log(`[MockServer] Running on http://localhost:${actualPort}`);
       mockServer = instance;
       resolve(instance);
     });
@@ -266,18 +252,13 @@ function startMockServerInternal(
 
 function restartMockServerOnConfigChange(cwd: string): void {
   if (!mockServer) return;
-  if (mockServerRestartTimer)
-    clearTimeout(mockServerRestartTimer);
+  if (mockServerRestartTimer) clearTimeout(mockServerRestartTimer);
   mockServerRestartTimer = setTimeout(() => {
     mockServerRestartTimer = null;
     stopMockServerInternal();
-    startMockServerInternal(cwd, mockServerPort).catch(
-      (err) => {
-        console.error(
-          `[MockServer] Restart error: ${(err as Error).message}`,
-        );
-      },
-    );
+    startMockServerInternal(cwd, mockServerPort).catch((err) => {
+      console.error(`[MockServer] Restart error: ${(err as Error).message}`);
+    });
   }, 1000);
 }
 
@@ -332,9 +313,8 @@ export async function startMockWebServer(options: {
   const cwd = process.cwd();
   const port = options.port || 3456;
 
-  const existingConfig = loadMockConfig(cwd);
-  mockServerPort =
-    (existingConfig as any).mockServerPort || 3457;
+  const existingConfig = loadMockConfig(cwd) as MockConfigFile & Record<string, unknown>;
+  mockServerPort = (existingConfig.mockServerPort as number | undefined) ?? 3457;
 
   if (options.proxy) {
     existingConfig.proxyTarget = options.proxy;
@@ -342,7 +322,8 @@ export async function startMockWebServer(options: {
     saveMockConfig(existingConfig, cwd);
   }
 
-  const initialSpecSource = options.file || options.url || existingConfig.specSource || "";
+  const initialSpecSource =
+    options.file || options.url || existingConfig.specSource || "";
   const initialOutputDir = options.output || existingConfig.outputDir || "";
   const initialProxyTarget = existingConfig.proxyTarget || "";
 
@@ -352,9 +333,7 @@ export async function startMockWebServer(options: {
       initialSpecSource.startsWith("https://")
         ? initialSpecSource
         : path.resolve(cwd, initialSpecSource);
-    console.log(
-      `Pre-loaded spec source: ${resolvedSource}`,
-    );
+    console.log(`Pre-loaded spec source: ${resolvedSource}`);
   }
 
   const serverInstance = http.createServer(
@@ -363,7 +342,10 @@ export async function startMockWebServer(options: {
         const url = new URL(req.url || "/", "http://localhost");
         const pathname = url.pathname;
 
-        if (req.method === "GET" && (pathname === "/" || pathname.startsWith("/assets/"))) {
+        if (
+          req.method === "GET" &&
+          (pathname === "/" || pathname.startsWith("/assets/"))
+        ) {
           serveUi(req, res, pathname);
           return;
         }
@@ -401,9 +383,27 @@ export async function startMockWebServer(options: {
               ...ep,
               enabled: enabledKeys.has(ep.key),
               config: existingConfig.endpoints?.[ep.key] || null,
-              mockExample: mockJsonFromSchema(ep.responseSchema, spec.components?.schemas || {}, new Set(), "auto", 1),
-              mockExampleFaker: mockJsonFromSchema(ep.responseSchema, spec.components?.schemas || {}, new Set(), "faker", existingConfig.endpoints?.[ep.key]?.fakerArraySize || 3, existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {}, 'root', existingConfig.endpoints?.[ep.key]?.fakerFormats || {}),
-              schemaTypes: getSchemaTypes(ep.responseSchema, spec.components?.schemas || {})
+              mockExample: mockJsonFromSchema(
+                ep.responseSchema,
+                spec.components?.schemas || {},
+                new Set(),
+                "auto",
+                1,
+              ),
+              mockExampleFaker: mockJsonFromSchema(
+                ep.responseSchema,
+                spec.components?.schemas || {},
+                new Set(),
+                "faker",
+                existingConfig.endpoints?.[ep.key]?.fakerArraySize || 3,
+                existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {},
+                "root",
+                existingConfig.endpoints?.[ep.key]?.fakerFormats || {},
+              ),
+              schemaTypes: getSchemaTypes(
+                ep.responseSchema,
+                spec.components?.schemas || {},
+              ),
             })),
           }));
 
@@ -428,8 +428,8 @@ export async function startMockWebServer(options: {
 
               const spec = await loadSpec(specSource);
               const endpoints = flattenEndpoints(spec);
-              const ep = endpoints.find(e => e.key === key);
-              
+              const ep = endpoints.find((e) => e.key === key);
+
               if (!ep) {
                 res.writeHead(404, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ error: "Endpoint not found" }));
@@ -437,16 +437,16 @@ export async function startMockWebServer(options: {
               }
 
               const mockExampleFaker = mockJsonFromSchema(
-                ep.responseSchema, 
-                spec.components?.schemas || {}, 
-                new Set(), 
-                "faker", 
-                fakerArraySizes['root'] || 3, 
+                ep.responseSchema,
+                spec.components?.schemas || {},
+                new Set(),
+                "faker",
+                fakerArraySizes["root"] || 3,
                 fakerArraySizes,
-                'root',
-                fakerFormats
+                "root",
+                fakerFormats,
               );
-              
+
               jsonResponse(res, { mockExampleFaker });
             } catch (err: any) {
               jsonResponse(res, { error: err.message }, 500);
@@ -456,11 +456,13 @@ export async function startMockWebServer(options: {
         }
 
         if (req.method === "GET" && pathname === "/api/config") {
-          const config = loadMockConfig(cwd) as MockConfigFile & Record<string, unknown>;
+          const config = loadMockConfig(cwd) as MockConfigFile &
+            Record<string, unknown>;
           config.mockServerPort = mockServerPort;
           config.mockServerRunning = mockServer !== null;
           if (options.file || options.url) {
-            config.specSource = options.file || options.url || config.specSource;
+            config.specSource =
+              options.file || options.url || config.specSource;
           }
           if (options.output) {
             config.outputDir = options.output;
@@ -473,13 +475,14 @@ export async function startMockWebServer(options: {
           const body = await parseBody(req);
           const incomingConfig: MockConfigFile = JSON.parse(body);
           const existingConfig = loadMockConfig(cwd);
-          
+
           const newConfig = {
             ...existingConfig,
             ...incomingConfig,
-            endpoints: incomingConfig.endpoints || existingConfig.endpoints || {}
+            endpoints:
+              incomingConfig.endpoints || existingConfig.endpoints || {},
           } as MockConfigFile & Record<string, unknown>;
-          
+
           newConfig.mockServerPort = mockServerPort;
           saveMockConfig(newConfig, cwd);
           restartMockServerOnConfigChange(cwd);
@@ -518,7 +521,9 @@ export async function startMockWebServer(options: {
           };
 
           const selectedSet = new Set(
-            Object.entries((configEndpoints || {}) as Record<string, { enabled?: boolean }>)
+            Object.entries(
+              (configEndpoints || {}) as Record<string, { enabled?: boolean }>,
+            )
               .filter(([, v]) => v.enabled)
               .map(([k]) => k),
           );
@@ -564,7 +569,8 @@ export async function startMockWebServer(options: {
             const targetPort = port || mockServerPort;
             try {
               await startMockServerInternal(cwd, targetPort);
-              const cfg = loadMockConfig(cwd) as MockConfigFile & Record<string, unknown>;
+              const cfg = loadMockConfig(cwd) as MockConfigFile &
+                Record<string, unknown>;
               cfg.mockServerPort = mockServerPort;
               saveMockConfig(cfg, cwd);
               jsonResponse(res, {
@@ -573,11 +579,7 @@ export async function startMockWebServer(options: {
                 running: true,
               });
             } catch (err) {
-              jsonResponse(
-                res,
-                { error: (err as Error).message },
-                500,
-              );
+              jsonResponse(res, { error: (err as Error).message }, 500);
             }
             return;
           }
@@ -646,22 +648,23 @@ export async function startMockWebServer(options: {
         `\nSpecShot Mock Dashboard running at http://localhost:${actualPort}\n`,
       );
 
-      const platform = process.platform;
-      const openCmd =
-        platform === "darwin"
-          ? `open http://localhost:${actualPort}`
-          : platform === "win32"
-            ? `start http://localhost:${actualPort}`
-            : `xdg-open http://localhost:${actualPort}`;
+      if (!process.env.SPECSHOT_NO_BROWSER && !process.env.CI) {
+        const platform = process.platform;
+        const openCmd =
+          platform === "darwin"
+            ? `open http://localhost:${actualPort}`
+            : platform === "win32"
+              ? `start http://localhost:${actualPort}`
+              : `xdg-open http://localhost:${actualPort}`;
 
-      exec(openCmd, (err) => {
-        if (err) {
-          console.log(`Open http://localhost:${actualPort} in your browser`);
-        }
-      });
+        exec(openCmd, (err) => {
+          if (err) {
+            console.log(`Open http://localhost:${actualPort} in your browser`);
+          }
+        });
+      }
 
       resolve(serverInstance);
     });
   });
 }
-

@@ -107,7 +107,9 @@ export function CreatePetForm() {
         type="number"
         placeholder="Age"
         value={age ?? ""}
-        onChange={(e) => setAge(e.target.value ? Number(e.target.value) : undefined)}
+        onChange={(e) =>
+          setAge(e.target.value ? Number(e.target.value) : undefined)
+        }
       />
       <button type="submit">Create</button>
     </form>

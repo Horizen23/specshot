@@ -7,7 +7,11 @@ import {
   RESPONSE_BODY_STRUCT,
   RESPONSE_BODY_PREFIX,
 } from "../types/constants";
-import type { OpenApiSpec, OpenApiOperation, ServiceGroup } from "../types/types";
+import type {
+  OpenApiSpec,
+  OpenApiOperation,
+  ServiceGroup,
+} from "../types/types";
 import {
   cleanRefName,
   extractRefs,
@@ -28,6 +32,7 @@ import {
 import { loadSpec } from "./spec-loader";
 import { resolveConfig } from "../utils/config-resolver";
 import { mockValueFromSchema } from "../utils/msw-utils";
+import { formatGeneratedFiles } from "../utils/formatter";
 import { endpointKey, type MockEndpointEntry } from "../types/mock-config";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -139,9 +144,17 @@ export async function generateApi(
     }
   }
 
+  let defaultTemplatesDir = path.join(__dirname, "../../templates/generator");
+  if (
+    !fs.existsSync(defaultTemplatesDir) ||
+    !fs.existsSync(path.join(defaultTemplatesDir, "models.hbs"))
+  ) {
+    defaultTemplatesDir = path.join(__dirname, "../templates/generator");
+  }
+
   const templatesDir = templatesDirOverride
     ? path.resolve(process.cwd(), templatesDirOverride)
-    : path.join(__dirname, "../../templates/generator");
+    : defaultTemplatesDir;
 
   // GENERATE SHARED MODELS (models.ts)
   const modelsPath = path.join(outputDir, "models.ts");
@@ -387,7 +400,13 @@ export async function generateApi(
       opts.mswOutputDir || path.join(providerDir, "msw", "handlers");
     if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
 
-    const mswTemplatesDir = path.join(__dirname, "../templates/msw");
+    let mswTemplatesDir = path.join(__dirname, "../../templates/msw");
+    if (
+      !fs.existsSync(mswTemplatesDir) ||
+      !fs.existsSync(path.join(mswTemplatesDir, "handlers.hbs"))
+    ) {
+      mswTemplatesDir = path.join(__dirname, "../templates/msw");
+    }
     const servicesForIndex: { tag: string; tagLowerCase: string }[] = [];
 
     const filter = opts.mswEndpointFilter;
@@ -450,13 +469,26 @@ export async function generateApi(
             const mockMode = epCfg?.mockMode || "auto";
             if (mockMode === "faker") {
               usesFaker = true;
-              mockResponse = mockValueFromSchema(op.responseSchema, mockMode, schemas, new Set(), epCfg?.fakerArraySize || 3, epCfg?.fakerArraySizes || {}, 'root', epCfg?.fakerFormats || {});
+              mockResponse = mockValueFromSchema(
+                op.responseSchema,
+                mockMode,
+                schemas,
+                new Set(),
+                epCfg?.fakerArraySize || 3,
+                epCfg?.fakerArraySizes || {},
+                "root",
+                epCfg?.fakerFormats || {},
+              );
               mockComment = false;
             } else if (epCfg?.mockData) {
               mockResponse = epCfg.mockData;
               mockComment = false;
             } else {
-              mockResponse = mockValueFromSchema(op.responseSchema, mockMode === "manual" ? "auto" : mockMode, schemas);
+              mockResponse = mockValueFromSchema(
+                op.responseSchema,
+                mockMode === "manual" ? "auto" : mockMode,
+                schemas,
+              );
             }
           }
         } else {
@@ -548,10 +580,7 @@ export async function generateApi(
   }
 
   // Auto-generate interceptors index
-  const interceptorsIndexPath = path.join(
-    interceptorsDir,
-    "index.ts",
-  );
+  const interceptorsIndexPath = path.join(interceptorsDir, "index.ts");
   const interceptorsIndexTemplate = compileTemplate(
     path.join(templatesDir, "interceptors-index.hbs"),
   );
@@ -568,8 +597,11 @@ export async function generateApi(
   const indexPath = path.join(providerDir, "index.ts");
   const indexCustomCode = extractCustomCode(indexPath);
 
-  let relInterceptorsPath = path.relative(providerDir, interceptorsDir).replace(/\\/g, "/");
-  if (!relInterceptorsPath.startsWith(".")) relInterceptorsPath = "./" + relInterceptorsPath;
+  let relInterceptorsPath = path
+    .relative(providerDir, interceptorsDir)
+    .replace(/\\/g, "/");
+  if (!relInterceptorsPath.startsWith("."))
+    relInterceptorsPath = "./" + relInterceptorsPath;
 
   const indexData = {
     hasHooks: fs.existsSync(path.join(providerDir, "hooks.ts")),
@@ -587,16 +619,7 @@ export async function generateApi(
   writeGenerated(indexPath, indexTemplate(indexData));
   console.log(`Generated provider index.ts`);
 
-  // Try to format files if prettier is available
-  try {
-    const { execSync } = await import("child_process");
-    console.log(`\nFormatting generated files...`);
-    execSync(`npx prettier --write "${providerDir}/**/*.{ts,tsx}"`, {
-      stdio: "ignore",
-    });
-  } catch (_e) {
-    // Ignore if prettier fails or is missing
-  }
+  await formatGeneratedFiles(providerDir);
 
   console.log(`\nSmart generation complete!`);
 }

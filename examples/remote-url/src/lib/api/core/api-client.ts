@@ -11,8 +11,12 @@ export class ApiClient {
     method: string,
     path: string,
     body?: any,
-    config?: RequestConfig
-  ): Promise<{ data: T | null; error: { message: string; status?: number } | null; ok: boolean }> {
+    config?: RequestConfig,
+  ): Promise<{
+    data: T | null;
+    error: { message: string; status?: number } | null;
+    ok: boolean;
+  }> {
     try {
       const url = `${this.baseUrl}${path}`;
       const res = await fetch(url, {

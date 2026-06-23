@@ -22,8 +22,6 @@ import { startMockWebServer } from "../../core/mock-server";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
-
 export async function mockCommand(options: {
   url?: string;
   file?: string;
@@ -240,7 +238,11 @@ export async function mockCommand(options: {
   // 7. Output directory
   const defaultOutput =
     existingMockConfig.outputDir ||
-    path.join((config.providerDir as string) || "src/lib/api/default", "msw", "handlers");
+    path.join(
+      (config.providerDir as string) || "src/lib/api/default",
+      "msw",
+      "handlers",
+    );
 
   const { outputDir } = await inquirer.prompt([
     {
