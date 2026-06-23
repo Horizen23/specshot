@@ -4,8 +4,10 @@ import { {{this.fn}} } from "./{{this.file}}";
 {{/each}}
 
 {{/if}}
+{{#if hasAuthManager}}
 // Re-export for direct access
 export { AuthManager } from "./bearer-auth-manager";
+{{/if}}
 
 // ==========================================
 // Plugin Registry

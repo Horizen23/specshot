@@ -2,6 +2,8 @@
 import { ApiClient } from "../core/api-client";
 export * from "./types";
 export * from "./client";
+export * from "./hooks";
+import { createApiHooks } from "./hooks";
 export * from "./interceptors";
 
 export * from "./services/memes.service";
@@ -25,6 +27,8 @@ export const browserClient = createApiClient();
 useAllPlugins(browserClient);
 
 export const browserApi = createApi(browserClient);
+
+export const useApi = createApiHooks(browserApi);
 
 // --- CUSTOM CODE START ---
 // Add your custom exports here. Do not remove these comments.

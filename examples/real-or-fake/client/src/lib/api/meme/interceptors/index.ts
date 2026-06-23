@@ -1,8 +1,5 @@
 import { installLogger } from "./logger";
 
-// Re-export for direct access
-export { AuthManager } from "./bearer-auth-manager";
-
 // ==========================================
 // Plugin Registry
 // ==========================================

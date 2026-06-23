@@ -48,7 +48,10 @@ export function generateProviderIndex(params: {
   }
   writeGenerated(
     interceptorsIndexPath,
-    interceptorsIndexTemplate({ interceptors: interceptorImports }),
+    interceptorsIndexTemplate({ 
+      interceptors: interceptorImports,
+      hasAuthManager: fs.existsSync(path.join(interceptorsDir, "bearer-auth-manager.ts"))
+    }),
   );
   console.log(`Generated interceptors/index.ts`);
 

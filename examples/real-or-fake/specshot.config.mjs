@@ -1,7 +1,7 @@
 /** @type {import('specshot').SpecshotConfig} */
 export default {
   coreDir: "client/src/lib/api/core",
-  integration: "none",
+  integration: "swr",
   interceptors: ["logger"],
   apis: {
     meme: {
