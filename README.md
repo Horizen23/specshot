@@ -135,23 +135,27 @@ npx specshot mock --web --proxy http://localhost:3000
 export default {
   // Global defaults
   coreDir: "src/lib/api/core",
-  integration: "swr",
+  integration: "swr", // swr, react-query, or none
   interceptors: ["bearer", "logger"],
   templates: "src/lib/api/templates",
   
-  // Single API setup
-  providerDir: "src/lib/api/default",
-  
-  // `openapiUrl` supports two formats:
-  // 1. Backend URL (e.g., "http://localhost:8080/openapi.json") to fetch spec from a server
-  // 2. Local File (e.g., "./openapi.json") to read spec from the project filesystem
-  openapiUrl: "http://localhost:8080/openapi.json",
-  
-  // Or Multi-API setup
+  // Custom Faker.js plugins for mock generation
+  fakerPlugins: [
+    {
+      name: "custom-image",
+      match: (ctx) => ctx.path.endsWith("imageUrl"),
+      generate: (faker) => faker.image.url()
+    }
+  ],
+
+  // Define your APIs
   apis: {
-    auth: {
-      providerDir: "src/lib/api/auth",
-      openapiUrl: "./specs/auth-service.json"
+    default: {
+      providerDir: "src/lib/api/default",
+      // openapiUrl supports:
+      // 1. Backend URL (e.g., "http://localhost:8080/openapi.json")
+      // 2. Local File (e.g., "./openapi.json")
+      openapiUrl: "http://localhost:8080/openapi.json"
     },
     payment: {
       providerDir: "src/lib/api/payment",

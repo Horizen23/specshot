@@ -22,6 +22,17 @@ npx specshot generate
 
 Reads `openapiUrl` (`http://localhost:8080/openapi.json`) from `specshot.config.mjs` and fetches the spec live.
 
+```javascript
+export default {
+  coreDir: "src/lib/api/core",
+  apis: {
+    petstore: {
+      providerDir: "src/lib/api/petstore",
+      openapiUrl: "http://localhost:8080/openapi.json",
+    }
+  }
+};
+```
 **3. Run the example:**
 ```bash
 npx tsx src/app.ts

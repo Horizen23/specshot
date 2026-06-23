@@ -34,10 +34,14 @@ This project is configured using `specshot.config.mjs`:
 ```javascript
 export default {
   coreDir: "src/lib/api/core",
-  providerDir: "src/lib/api/petstore",
-  
   integration: "swr",
   interceptors: ["bearer", "logger"],
+  apis: {
+    petstore: {
+      providerDir: "src/lib/api/petstore",
+      openapiUrl: "./openapi.json",
+    }
+  }
 };
 ```
 

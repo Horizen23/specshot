@@ -8,7 +8,7 @@ Guess whether each meme caption is real or fake. Toggle between real & fake API 
 examples/real-or-fake/
 ├── meme.json          → OpenAPI spec
 ├── specshot.config.mjs→ Project settings & Faker plugins
-├── specshot.mocks.json→ Saved mock toggle state
+├── .specshot/         → Saved mock toggle state (mocks.json)
 ├── client/            → React (Vite) frontend
 │   └── src/
 │       ├── App.jsx
@@ -30,16 +30,16 @@ npm run specshot:init
 
 ```bash
 # Terminal 1 — Real API
-node server/server.js
+npm run dev:server
 
-# Terminal 2 — Fake API  
-node server/fake-server.js
+# Terminal 2 — Fake API + Dashboard
+npm run specshot:mock
 
 # Terminal 3 — Frontend
-cd client && npm install && npm run dev
+cd client && npm run dev
 ```
 
-Open `http://localhost:5173`
+Open `http://localhost:5173` for the app, and `http://localhost:3456` for the Mock Dashboard.
 
 ## Endpoints
 
