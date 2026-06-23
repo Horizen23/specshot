@@ -12,7 +12,7 @@ export default {
   plugins: [
     {
       name: "meme-faker",
-      match: (ctx) => ctx.schema.description?.includes("Meme image"),
+      match: (ctx) => ctx.propName === "imageUrl",
       generate: (faker) => faker.image.urlLoremFlickr({ category: 'meme' })
     }
   ]
