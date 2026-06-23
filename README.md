@@ -111,10 +111,9 @@ npx specshot generate --url http://localhost:8080/openapi.json
 | `--interceptors, -i <dir>` | Custom interceptors directory (Auto-discovery) |
 | `--dry-run` | Preview without writing files |
 
-### `mock` options (Zero-config API Mocking)
+### `mock` (Zero-config API Mocking)
 
-SpecShot includes a powerful built-in mock server and Web Dashboard. 
-No MSW or complex setup required. Just point it to your OpenAPI spec.
+SpecShot includes a powerful built-in mock server and **Web Dashboard**. No MSW or complex setup required.
 
 ```bash
 npx specshot mock --web --proxy http://localhost:3000
@@ -122,11 +121,19 @@ npx specshot mock --web --proxy http://localhost:3000
 
 | Flag | Description |
 |---|---|
-| `--web` | Launch the beautiful Web Dashboard (SPA) |
+| `--web` | Launch the interactive Web Dashboard (SPA) |
 | `--proxy, -p <url>` | Proxy un-mocked requests to a real backend |
-| `--url, -u <url>` | Remote OpenAPI spec URL |
-| `--file, -f <path>` | Local OpenAPI JSON file |
-| `--port <number>` | Port for the mock API server |
+| `--port <number>` | Port for the mock API server (default: 3457) |
+| `--no-open` | Prevent opening the browser automatically |
+
+#### 🎛️ Mock Dashboard Features
+When you run with `--web`, SpecShot opens a beautiful dashboard where you can:
+- **Toggle Endpoints**: Turn mock responses on/off per endpoint.
+- **Set Latency & Errors**: Simulate slow networks or 500/400 error states instantly.
+- **Customize Data (Faker.js)**: Use the searchable dropdown to map specific JSON fields to Faker.js functions (e.g., `internet.email`, `image.url`).
+- **Manual Overrides**: Write custom JSON payloads directly in the browser.
+
+*(Mock configurations and overrides are automatically saved to `.specshot/mocks.json` so your team can share the same mock state!)*
 
 ### `specshot.config.mjs`
 
