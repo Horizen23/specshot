@@ -292,6 +292,9 @@ export async function initCommand(options: InitOptions = {}) {
         apisToGenerate.forEach((api) => {
           apisContent += `    ${JSON.stringify(api.name)}: {\n`;
           apisContent += `      providerDir: ${JSON.stringify(api.providerDir)},\n`;
+          apisContent += `      // \`openapiUrl\` รองรับ 2 รูปแบบ:\n`;
+          apisContent += `      // 1. URL ของ Backend (เช่น "http://localhost:3000/openapi.json") เพื่อให้ระบบดูด Spec มา Gen โค้ดได้\n`;
+          apisContent += `      // 2. ไฟล์ในเครื่อง (เช่น "./openapi.json") หากโหลด Spec เก็บไว้ในโปรเจกต์\n`;
           apisContent += `      openapiUrl: ${JSON.stringify(api.url)},\n`;
           apisContent += `    },\n`;
         });
@@ -301,7 +304,7 @@ export async function initCommand(options: InitOptions = {}) {
       const configContent = `/** @type {import('specshot').SpecshotConfig} */
 export default {
   coreDir: ${JSON.stringify(finalCoreDir)},
-${apisToGenerate.length === 0 ? `  providerDir: ${JSON.stringify(finalProviderDir)},\n  openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},\n` : ""}\
+${apisToGenerate.length === 0 ? `  providerDir: ${JSON.stringify(finalProviderDir)},\n  // \`openapiUrl\` รองรับ 2 รูปแบบ:\n  // 1. URL ของ Backend (เช่น "http://localhost:3000/openapi.json") เพื่อให้ระบบดูด Spec มา Gen โค้ดได้\n  // 2. ไฟล์ในเครื่อง (เช่น "./openapi.json") หากโหลด Spec เก็บไว้ในโปรเจกต์\n  openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},\n` : ""}\
   integration: ${JSON.stringify(finalIntegration)},
   interceptors: ${JSON.stringify(selectedInterceptors)},
 ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : ""}${apisContent}

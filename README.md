@@ -128,16 +128,36 @@ npx specshot mock --web --proxy http://localhost:3000
 | `--file, -f <path>` | Local OpenAPI JSON file |
 | `--port <number>` | Port for the mock API server |
 
-### `specshot.json`
+### `specshot.config.mjs`
 
-```json
-{
-  "coreDir": "src/lib/api/core",
-  "providerDir": "src/lib/api/default",
-  "integration": "swr",
-  "interceptors": ["bearer", "logger"],
-  "templates": "src/lib/api/templates",
-  "openapiUrl": "http://localhost:8080/openapi.json"
+```javascript
+/** @type {import('specshot').SpecshotConfig} */
+export default {
+  // Global defaults
+  coreDir: "src/lib/api/core",
+  integration: "swr",
+  interceptors: ["bearer", "logger"],
+  templates: "src/lib/api/templates",
+  
+  // Single API setup
+  providerDir: "src/lib/api/default",
+  
+  // `openapiUrl` supports two formats:
+  // 1. Backend URL (e.g., "http://localhost:8080/openapi.json") to fetch spec from a server
+  // 2. Local File (e.g., "./openapi.json") to read spec from the project filesystem
+  openapiUrl: "http://localhost:8080/openapi.json",
+  
+  // Or Multi-API setup
+  apis: {
+    auth: {
+      providerDir: "src/lib/api/auth",
+      openapiUrl: "./specs/auth-service.json"
+    },
+    payment: {
+      providerDir: "src/lib/api/payment",
+      openapiUrl: "http://api.staging.com/payment/openapi.json"
+    }
+  }
 }
 ```
 
