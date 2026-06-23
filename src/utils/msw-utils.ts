@@ -214,9 +214,9 @@ export function mockJsonFromSchema(
                 fakerNs &&
                 typeof fakerNs === "object" &&
                 fn in fakerNs &&
-                typeof (fakerNs as Record<string, unknown>)[fn] === "function"
+                typeof (fakerNs as unknown as Record<string, unknown>)[fn] === "function"
               ) {
-                const val = (fakerNs as Record<string, () => unknown>)[fn]();
+                const val = (fakerNs as unknown as Record<string, () => unknown>)[fn]();
                 if (typeof val === "string") return `"${val}"`;
                 if (val instanceof Date) return `"${val.toISOString()}"`;
                 return String(val);

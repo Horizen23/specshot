@@ -14,7 +14,7 @@ function makeSpec(
     openapi: "3.0.0",
     info: { title: "Test", version: "1.0.0" },
     paths,
-    components: { schemas: schemas as OpenApiSpec["components"]["schemas"] },
+    components: { schemas: schemas as any },
   } as OpenApiSpec;
 }
 
