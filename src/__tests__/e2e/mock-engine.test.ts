@@ -68,7 +68,8 @@ describe("F4 Mocking Engine (mock command server)", () => {
       rl.on("line", async (line) => {
         if (line.includes("SpecShot Mock Dashboard running at")) {
           clearTimeout(timeout);
-          const dashboardUrl = `http://localhost:${webPort}`;
+          const match = line.match(/http:\/\/localhost:\d+/);
+          const dashboardUrl = match ? match[0] : `http://localhost:3456`;
 
           try {
             const res = await fetch(`${dashboardUrl}/api/mock-server`, {
