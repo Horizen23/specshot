@@ -236,14 +236,18 @@
 
 /* Faker dropdown formatting */
 .faker-format-select {
-  width: 130px;
-  padding: 2px 4px;
-  font-size: 10px;
+  width: 150px;
+  padding: 2px 6px;
+  font-size: 11px;
   background: rgba(255, 255, 255, 0.1);
   color: var(--text);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  cursor: pointer;
+  cursor: text;
+}
+.faker-format-select:focus {
+  outline: 1px solid var(--primary);
+  background: rgba(255, 255, 255, 0.15);
 }
 .faker-format-option {
   background: #1e1e1e;

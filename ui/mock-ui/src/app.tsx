@@ -3,6 +3,7 @@ import { useMockConfig } from "./hooks/useMockConfig";
 import { useTestApi } from "./hooks/useTestApi";
 import { EndpointCard } from "./components/EndpointCard";
 import { JsonEditor } from "./components/JsonEditor";
+import { FAKER_FORMATS } from "./utils";
 import "./index.css";
 import "./app.css";
 
@@ -334,6 +335,14 @@ export function App() {
           </div>
         </div>
       )}
+
+      <datalist id="faker-formats-list">
+        {FAKER_FORMATS.filter(f => f.value && !f.value.startsWith("---")).map((f) => (
+          <option key={f.value} value={f.value}>
+            {f.label}
+          </option>
+        ))}
+      </datalist>
 
       {toastMsg && <div class={`toast ${toastMsg.type}`}>{toastMsg.msg}</div>}
     </>

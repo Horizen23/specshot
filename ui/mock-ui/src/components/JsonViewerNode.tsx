@@ -1,5 +1,4 @@
 import { useState } from "preact/hooks";
-import { FAKER_FORMATS } from "../utils";
 
 interface JsonViewerNodeProps {
   name?: string;
@@ -171,20 +170,17 @@ export function JsonViewerNode({
 
       <div class="json-viewer-node-right-col">
         {onFormatChange && (
-          <select
+          <input
+            type="text"
+            list="faker-formats-list"
             value={fakerFormats[path] || ""}
-            onChange={(e) =>
-              onFormatChange(path, (e.target as HTMLSelectElement).value)
+            onInput={(e) =>
+              onFormatChange(path, (e.target as HTMLInputElement).value)
             }
             class="faker-format-select"
-            title="Faker format"
-          >
-            {FAKER_FORMATS.map((f) => (
-              <option key={f.value} value={f.value} class="faker-format-option">
-                {f.label}
-              </option>
-            ))}
-          </select>
+            title="Search or select Faker format"
+            placeholder="Auto"
+          />
         )}
         <div
           class={`json-viewer-node-type-label ${isMismatch ? "mismatch" : ""}`}
