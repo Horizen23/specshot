@@ -1,7 +1,11 @@
 import http from "http";
 import { HandlerContext } from "./types";
 import { jsonResponse, parseBody } from "./utils";
-import { loadMockConfig, saveMockConfig, type MockConfigFile } from "../../types/mock-config";
+import {
+  loadMockConfig,
+  saveMockConfig,
+  type MockConfigFile,
+} from "../../types/mock-config";
 
 export function handleGetConfig(
   req: http.IncomingMessage,
@@ -12,7 +16,8 @@ export function handleGetConfig(
   config.mockServerPort = ctx.state.mockServerPort;
   config.mockServerRunning = ctx.state.isRunning;
   if (ctx.options.file || ctx.options.url) {
-    config.specSource = ctx.options.file || ctx.options.url || config.specSource;
+    config.specSource =
+      ctx.options.file || ctx.options.url || config.specSource;
   }
   if (ctx.options.output) {
     config.outputDir = ctx.options.output;

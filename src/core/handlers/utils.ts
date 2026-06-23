@@ -21,7 +21,10 @@ export function parseBody(req: http.IncomingMessage): Promise<string> {
   });
 }
 
-export function resolveSpecSource(query: URLSearchParams, cwd: string): string | null {
+export function resolveSpecSource(
+  query: URLSearchParams,
+  cwd: string,
+): string | null {
   const source = query.get("source");
   if (!source) return null;
 

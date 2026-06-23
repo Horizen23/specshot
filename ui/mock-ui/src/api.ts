@@ -50,7 +50,11 @@ export async function toggleMockServer(
 // Load specifications via specSource URL or path
 export async function loadSpec(
   source: string,
-): Promise<{ tags: TagGroup[]; totalEndpoints: number; availablePlugins?: string[] }> {
+): Promise<{
+  tags: TagGroup[];
+  totalEndpoints: number;
+  availablePlugins?: string[];
+}> {
   const res = await fetch("/api/spec?source=" + encodeURIComponent(source));
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to load spec");

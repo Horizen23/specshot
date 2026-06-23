@@ -3,7 +3,7 @@ name: Bug report
 about: Report a bug to help us improve SpecShot
 title: "[BUG] "
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
 ## Description

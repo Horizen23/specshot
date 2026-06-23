@@ -171,7 +171,7 @@
         "required": ["id", "imageUrl", "isReal"],
         "properties": {
           "id": { "type": "string" },
-          "imageUrl": { 
+          "imageUrl": {
             "type": "string",
             "description": "Meme image"
           },

@@ -66,10 +66,7 @@ program
   .option("-i, --interceptors <dir>", "Custom interceptors directory")
   .option("-w, --watch", "Watch for changes and auto-regenerate")
   .option("--dry-run", "Run without writing any files")
-  .option(
-    "--msw",
-    "Generate MSW mock handlers",
-  )
+  .option("--msw", "Generate MSW mock handlers")
   .action(generateCommand);
 
 program

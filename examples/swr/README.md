@@ -19,11 +19,13 @@ npm run specshot:init
 ```
 
 If the API spec changes later, you can update just the services by running:
+
 ```bash
 npm run specshot:generate
 ```
 
 You can also test the built-in mock server:
+
 ```bash
 npm run specshot:mock
 ```
@@ -31,6 +33,7 @@ npm run specshot:mock
 ## Configuration
 
 This project is configured using `specshot.config.mjs`:
+
 ```javascript
 export default {
   coreDir: "src/lib/api/core",
@@ -40,8 +43,8 @@ export default {
     petstore: {
       providerDir: "src/lib/api/petstore",
       openapiUrl: "./openapi.json",
-    }
-  }
+    },
+  },
 };
 ```
 
@@ -85,12 +88,12 @@ useApi.pets.listPets.mutate();
 
 ### Key features of SWR integration
 
-| Feature | Description |
-|--------|------------|
-| `useApi.pets.listPets()` | Auto-generated cache key: `["pets", "listPets"]` |
+| Feature                  | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `useApi.pets.listPets()` | Auto-generated cache key: `["pets", "listPets"]`  |
 | `useApi.pets.getPet(id)` | Cache key includes args: `["pets", "getPet", id]` |
-| `.key(...)` | Access the cache key directly |
-| `.mutate(...)` | Optimistically update or revalidate the cache |
+| `.key(...)`              | Access the cache key directly                     |
+| `.mutate(...)`           | Optimistically update or revalidate the cache     |
 
 ## Project structure
 

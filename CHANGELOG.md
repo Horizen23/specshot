@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > **Note:** This project is pre-v1.0. Breaking changes may occur in minor releases as the API stabilizes.
 
 ### Added
+
 - Initial `init` command to scaffold the agnostic API client core into a project.
 - Initial `generate` command to generate strictly-typed TypeScript services from OpenAPI/Swagger specs.
 - Template system using Handlebars for code generation.

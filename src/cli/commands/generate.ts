@@ -30,44 +30,68 @@ export async function generateCommand(options: GenerateOptions) {
   let alias = options.alias;
 
   const config = await loadUserConfig(process.cwd(), options.config);
-  
+
   if (!url && !file && config.apis && Object.keys(config.apis).length > 0) {
     // Generate all APIs defined in config.apis
     for (const [apiName, apiConfig] of Object.entries(config.apis)) {
       console.log(chalk.cyan(`\n--- Generating API: ${apiName} ---`));
-      
+
       const apiSpecUrl = apiConfig.openapiUrl;
-      const apiOutputDir = apiConfig.providerDir 
-        ? path.join(apiConfig.providerDir, "services") 
+      const apiOutputDir = apiConfig.providerDir
+        ? path.join(apiConfig.providerDir, "services")
         : "";
-        
+
       if (!apiSpecUrl || !apiOutputDir) {
-        console.warn(chalk.yellow(`Skipping ${apiName} due to missing openapiUrl or providerDir.`));
+        console.warn(
+          chalk.yellow(
+            `Skipping ${apiName} due to missing openapiUrl or providerDir.`,
+          ),
+        );
         continue;
       }
 
-      const mergedOptions = { ...options, url: apiSpecUrl, output: apiOutputDir };
-      // Note: In watch mode, we probably shouldn't loop easily without complex logic, 
+      const mergedOptions = {
+        ...options,
+        url: apiSpecUrl,
+        output: apiOutputDir,
+      };
+      // Note: In watch mode, we probably shouldn't loop easily without complex logic,
       // but for now we'll handle standard generation.
-      
+
       const specSource = apiSpecUrl;
       const targetDir = path.resolve(process.cwd(), apiOutputDir);
-      
+
       try {
-        await generateApi(specSource, targetDir, alias || config.alias, options.templates || config.templates, {
-          configPath: options.config,
-          msw: options.msw,
-          interceptorsDir: apiConfig.interceptors ? path.join(apiConfig.providerDir || "", "interceptors") : options.interceptors,
-        });
-        console.log(chalk.green(`API ${apiName} generated successfully at ${apiOutputDir}!`));
+        await generateApi(
+          specSource,
+          targetDir,
+          alias || config.alias,
+          options.templates || config.templates,
+          {
+            configPath: options.config,
+            msw: options.msw,
+            interceptorsDir: apiConfig.interceptors
+              ? path.join(apiConfig.providerDir || "", "interceptors")
+              : options.interceptors,
+          },
+        );
+        console.log(
+          chalk.green(
+            `API ${apiName} generated successfully at ${apiOutputDir}!`,
+          ),
+        );
       } catch (err) {
         console.error(chalk.red(`Failed to generate API ${apiName}`));
         console.error(err);
       }
     }
-    
+
     if (options.watch) {
-      console.warn(chalk.yellow("\nWarning: Watch mode is not fully supported for multi-API generation yet."));
+      console.warn(
+        chalk.yellow(
+          "\nWarning: Watch mode is not fully supported for multi-API generation yet.",
+        ),
+      );
     }
     return;
   }
@@ -150,13 +174,15 @@ export async function generateCommand(options: GenerateOptions) {
           msw: options.msw,
           interceptorsDir: options.interceptors,
         });
-        
+
         console.log(
           chalk.green(`\nAPI services generated successfully at ${outputDir}!`),
         );
-        
+
         if (options.watch) {
-          console.log(chalk.cyan(`\nWatching for changes in ${sourceLabel}...`));
+          console.log(
+            chalk.cyan(`\nWatching for changes in ${sourceLabel}...`),
+          );
         }
       } catch (err) {
         console.error(chalk.red("Failed to generate API services"));
@@ -167,15 +193,24 @@ export async function generateCommand(options: GenerateOptions) {
     await runGenerate();
 
     if (options.watch) {
-      if (sourceLabel.startsWith("http://") || sourceLabel.startsWith("https://")) {
-        console.warn(chalk.yellow("\nWarning: Watch mode is currently only supported for local files, not URLs. Polling is not implemented."));
+      if (
+        sourceLabel.startsWith("http://") ||
+        sourceLabel.startsWith("https://")
+      ) {
+        console.warn(
+          chalk.yellow(
+            "\nWarning: Watch mode is currently only supported for local files, not URLs. Polling is not implemented.",
+          ),
+        );
       } else {
         let timeout: NodeJS.Timeout | null = null;
         fs.watch(sourceLabel, (eventType) => {
           if (eventType === "change") {
             if (timeout) clearTimeout(timeout);
             timeout = setTimeout(async () => {
-              console.log(chalk.yellow(`\nFile ${sourceLabel} changed. Regenerating...`));
+              console.log(
+                chalk.yellow(`\nFile ${sourceLabel} changed. Regenerating...`),
+              );
               await runGenerate();
             }, 300); // Debounce to prevent double generation on save
           }

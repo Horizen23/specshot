@@ -11,11 +11,13 @@ npm install
 ## Try it out
 
 **1. Start the mock server:**
+
 ```bash
 npx tsx mock-server.ts
 ```
 
 **2. In another terminal, generate services:**
+
 ```bash
 npx specshot generate
 ```
@@ -29,11 +31,13 @@ export default {
     petstore: {
       providerDir: "src/lib/api/petstore",
       openapiUrl: "http://localhost:8080/openapi.json",
-    }
-  }
+    },
+  },
 };
 ```
+
 **3. Run the example:**
+
 ```bash
 npx tsx src/app.ts
 ```
@@ -41,11 +45,13 @@ npx tsx src/app.ts
 ## Manual generation
 
 Use a local spec file instead:
+
 ```bash
 npx specshot generate --file ../local-file/openapi.json --output src/lib/api/petstore/services
 ```
 
 ## Generated API
+
 - `api.pets.listPets()` → `{ data: Pet[], error, ok }`
 - `api.pets.createPet(payload)` → `{ data: Pet, error, ok }`
 - `api.pets.getPet(petId)` → `{ data: Pet, error, ok }`

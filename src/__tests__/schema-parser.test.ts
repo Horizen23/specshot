@@ -55,7 +55,10 @@ describe("resolveSchemaOwnership", () => {
   it("schema used by multiple tags → goes to sharedSchemas", () => {
     const spec = makeSpec(
       {
-        ErrorBody: { type: "object", properties: { message: { type: "string" } } },
+        ErrorBody: {
+          type: "object",
+          properties: { message: { type: "string" } },
+        },
       },
       {
         "/pets": {

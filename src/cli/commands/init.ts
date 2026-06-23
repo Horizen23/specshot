@@ -27,17 +27,31 @@ export async function initCommand(options: InitOptions = {}) {
 
   const cwd = process.cwd();
   const config = await loadUserConfig(cwd);
-  
-  const hasMultiApi = config && config.apis && Object.keys(config.apis).length > 0;
+
+  const hasMultiApi =
+    config && config.apis && Object.keys(config.apis).length > 0;
 
   if (config) {
     const firstApi = config.apis && Object.values(config.apis)[0];
-    options.coreDir = options.coreDir !== undefined ? options.coreDir : config.coreDir;
-    options.providerDir = options.providerDir !== undefined ? options.providerDir : firstApi?.providerDir;
-    options.integration = options.integration !== undefined ? options.integration : config.integration;
-    options.url = options.url !== undefined ? options.url : firstApi?.openapiUrl;
-    options.templates = options.templates !== undefined ? options.templates : config.templates;
-    if (config.interceptors && config.interceptors.length > 0 && options.interceptors === undefined) {
+    options.coreDir =
+      options.coreDir !== undefined ? options.coreDir : config.coreDir;
+    options.providerDir =
+      options.providerDir !== undefined
+        ? options.providerDir
+        : firstApi?.providerDir;
+    options.integration =
+      options.integration !== undefined
+        ? options.integration
+        : config.integration;
+    options.url =
+      options.url !== undefined ? options.url : firstApi?.openapiUrl;
+    options.templates =
+      options.templates !== undefined ? options.templates : config.templates;
+    if (
+      config.interceptors &&
+      config.interceptors.length > 0 &&
+      options.interceptors === undefined
+    ) {
       options.interceptors = config.interceptors.join(",");
     }
   }
@@ -93,20 +107,23 @@ export async function initCommand(options: InitOptions = {}) {
       {
         type: "confirm",
         name: "isMultiApi",
-        message: "Do you want to configure multiple APIs? (e.g. Auth API, Product API)",
+        message:
+          "Do you want to configure multiple APIs? (e.g. Auth API, Product API)",
         default: false,
         when: options.url === undefined && options.providerDir === undefined,
-      }
+      },
     ]);
 
     finalCoreDir = finalCoreDir || globalAnswers.coreDir;
     finalIntegration = finalIntegration || globalAnswers.integration;
-    
+
     if (options.interceptors) {
       if (options.interceptors.toLowerCase() === "none") {
         selectedInterceptors = [];
       } else {
-        selectedInterceptors = options.interceptors.split(",").map((s) => s.trim());
+        selectedInterceptors = options.interceptors
+          .split(",")
+          .map((s) => s.trim());
       }
     } else {
       selectedInterceptors = globalAnswers.interceptors || [];
@@ -122,7 +139,7 @@ export async function initCommand(options: InitOptions = {}) {
             type: "input",
             name: "apiName",
             message: "What is the name of this API? (e.g. 'auth', 'payment')",
-            validate: (input) => input ? true : "Name is required",
+            validate: (input) => (input ? true : "Name is required"),
           },
           {
             type: "input",
@@ -140,9 +157,9 @@ export async function initCommand(options: InitOptions = {}) {
             name: "addMore",
             message: "Do you want to configure another API?",
             default: false,
-          }
+          },
         ]);
-        
+
         apisToGenerate.push({
           name: apiAnswers.apiName,
           url: apiAnswers.openapiUrl,
@@ -170,17 +187,22 @@ export async function initCommand(options: InitOptions = {}) {
           when: options.url === undefined,
         },
       ]);
-      
-      finalProviderDir = finalProviderDir || singleAnswers.providerDir;
-      finalOpenapiUrl = finalOpenapiUrl !== undefined ? finalOpenapiUrl : singleAnswers.openapiUrl;
-    }
 
+      finalProviderDir = finalProviderDir || singleAnswers.providerDir;
+      finalOpenapiUrl =
+        finalOpenapiUrl !== undefined
+          ? finalOpenapiUrl
+          : singleAnswers.openapiUrl;
+    }
   } else {
     // Has Multi API, just fill missing globals without prompting
     finalCoreDir = finalCoreDir || "src/lib/api/core";
     finalIntegration = finalIntegration || "swr";
     if (options.interceptors) {
-      selectedInterceptors = options.interceptors.toLowerCase() === "none" ? [] : options.interceptors.split(",").map(s => s.trim());
+      selectedInterceptors =
+        options.interceptors.toLowerCase() === "none"
+          ? []
+          : options.interceptors.split(",").map((s) => s.trim());
     } else if (config.interceptors) {
       selectedInterceptors = config.interceptors;
     }
@@ -189,21 +211,33 @@ export async function initCommand(options: InitOptions = {}) {
   const targetCoreDir = path.resolve(process.cwd(), finalCoreDir!);
 
   let templatesBaseDir = path.join(__dirname, "../../../templates");
-  if (!fs.existsSync(templatesBaseDir) || !fs.existsSync(path.join(templatesBaseDir, "core"))) {
+  if (
+    !fs.existsSync(templatesBaseDir) ||
+    !fs.existsSync(path.join(templatesBaseDir, "core"))
+  ) {
     templatesBaseDir = path.join(__dirname, "../templates");
   }
 
   const templateCoreDir = path.join(templatesBaseDir, "core");
   const templateProviderDir = path.join(templatesBaseDir, "provider");
   const templateSWRDir = path.join(templatesBaseDir, "integrations/swr");
-  const templateReactQueryDir = path.join(templatesBaseDir, "integrations/react-query");
+  const templateReactQueryDir = path.join(
+    templatesBaseDir,
+    "integrations/react-query",
+  );
 
   const spinner = ora("Installing API files...").start();
 
   try {
-    if (!fs.existsSync(targetCoreDir)) fs.mkdirSync(targetCoreDir, { recursive: true });
+    if (!fs.existsSync(targetCoreDir))
+      fs.mkdirSync(targetCoreDir, { recursive: true });
 
-    const compileAndWrite = (sourceDir: string, targetDir: string, data: Record<string, unknown>, filter?: (file: string) => boolean) => {
+    const compileAndWrite = (
+      sourceDir: string,
+      targetDir: string,
+      data: Record<string, unknown>,
+      filter?: (file: string) => boolean,
+    ) => {
       const walk = (src: string, dest: string) => {
         if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
         const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -226,15 +260,27 @@ export async function initCommand(options: InitOptions = {}) {
 
     // Install Core Files
     let coreRelativePathForCore = "."; // Core templates don't usually reference themselves
-    compileAndWrite(templateCoreDir, targetCoreDir, { corePath: coreRelativePathForCore, serverUrl: "" });
+    compileAndWrite(templateCoreDir, targetCoreDir, {
+      corePath: coreRelativePathForCore,
+      serverUrl: "",
+    });
     spinner.succeed(chalk.green(`API Core installed at ${finalCoreDir}`));
 
-    const setupProvider = async (providerDir: string, openapiUrl: string | undefined, interceptors: string[], apiName?: string) => {
+    const setupProvider = async (
+      providerDir: string,
+      openapiUrl: string | undefined,
+      interceptors: string[],
+      apiName?: string,
+    ) => {
       const targetProviderDir = path.resolve(process.cwd(), providerDir);
-      if (!fs.existsSync(targetProviderDir)) fs.mkdirSync(targetProviderDir, { recursive: true });
+      if (!fs.existsSync(targetProviderDir))
+        fs.mkdirSync(targetProviderDir, { recursive: true });
 
-      let coreRelativePath = path.relative(targetProviderDir, targetCoreDir).replace(/\\/g, "/");
-      if (!coreRelativePath.startsWith(".")) coreRelativePath = "./" + coreRelativePath;
+      let coreRelativePath = path
+        .relative(targetProviderDir, targetCoreDir)
+        .replace(/\\/g, "/");
+      if (!coreRelativePath.startsWith("."))
+        coreRelativePath = "./" + coreRelativePath;
 
       let serverUrl = "";
       if (openapiUrl) {
@@ -252,31 +298,51 @@ export async function initCommand(options: InitOptions = {}) {
         logger: "logger",
       };
 
-      compileAndWrite(templateProviderDir, targetProviderDir, templateData, (file: string) => {
-        if (file.includes("/interceptors/")) {
-          const base = path.basename(file, ".hbs");
-          const required = interceptorMap[base];
-          if (required && !interceptors.includes(required)) return false;
-        }
-        return true;
-      });
+      compileAndWrite(
+        templateProviderDir,
+        targetProviderDir,
+        templateData,
+        (file: string) => {
+          if (file.includes("/interceptors/")) {
+            const base = path.basename(file, ".hbs");
+            const required = interceptorMap[base];
+            if (required && !interceptors.includes(required)) return false;
+          }
+          return true;
+        },
+      );
 
-      if (finalIntegration === "swr") compileAndWrite(templateSWRDir, targetProviderDir, templateData);
-      if (finalIntegration === "react-query") compileAndWrite(templateReactQueryDir, targetProviderDir, templateData);
+      if (finalIntegration === "swr")
+        compileAndWrite(templateSWRDir, targetProviderDir, templateData);
+      if (finalIntegration === "react-query")
+        compileAndWrite(templateReactQueryDir, targetProviderDir, templateData);
 
       if (finalIntegration === "swr" || finalIntegration === "react-query") {
-        const sharedHbs = path.join(templatesBaseDir, "integrations", "hooks-shared.hbs");
+        const sharedHbs = path.join(
+          templatesBaseDir,
+          "integrations",
+          "hooks-shared.hbs",
+        );
         if (fs.existsSync(sharedHbs)) {
           const templateStr = fs.readFileSync(sharedHbs, "utf8");
           const compiled = Handlebars.compile(templateStr);
-          fs.writeFileSync(path.join(targetProviderDir, "hooks-shared.ts"), compiled(templateData));
+          fs.writeFileSync(
+            path.join(targetProviderDir, "hooks-shared.ts"),
+            compiled(templateData),
+          );
         }
       }
 
-      console.log(chalk.green(`API Provider skeleton${apiName ? ` (${apiName})` : ""} installed at ${providerDir}`));
+      console.log(
+        chalk.green(
+          `API Provider skeleton${apiName ? ` (${apiName})` : ""} installed at ${providerDir}`,
+        ),
+      );
 
       if (openapiUrl && openapiUrl.trim() !== "") {
-        console.log(chalk.cyan(`\nAuto-generating services from ${openapiUrl}...`));
+        console.log(
+          chalk.cyan(`\nAuto-generating services from ${openapiUrl}...`),
+        );
         const outputDir = path.join(targetProviderDir, "services");
         try {
           await generateApi(openapiUrl, outputDir);
@@ -286,7 +352,7 @@ export async function initCommand(options: InitOptions = {}) {
       }
     };
 
-        if (!config || Object.keys(config).length === 0) {
+    if (!config || Object.keys(config).length === 0) {
       let apisContent = "";
       if (apisToGenerate.length > 0) {
         apisContent = `  apis: {\n`;
@@ -311,7 +377,7 @@ export async function initCommand(options: InitOptions = {}) {
         apisContent += `    }\n`;
         apisContent += `  },\n`;
       }
-      
+
       const configContent = `/** @type {import('specshot').SpecshotConfig} */
 export default {
   coreDir: ${JSON.stringify(finalCoreDir)},
@@ -329,38 +395,64 @@ ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : "
   ],
 };
 `;
-      fs.writeFileSync(path.resolve(process.cwd(), DEFAULT_CONFIG_FILE), configContent);
+      fs.writeFileSync(
+        path.resolve(process.cwd(), DEFAULT_CONFIG_FILE),
+        configContent,
+      );
     }
 
     if (apisToGenerate.length > 0) {
       for (const api of apisToGenerate) {
-        await setupProvider(api.providerDir, api.url, selectedInterceptors, api.name);
+        await setupProvider(
+          api.providerDir,
+          api.url,
+          selectedInterceptors,
+          api.name,
+        );
       }
     } else if (hasMultiApi && config.apis) {
       for (const [apiName, apiConfig] of Object.entries(config.apis)) {
         const apiProviderDir = apiConfig.providerDir;
         const apiOpenapiUrl = apiConfig.openapiUrl;
         const apiInterceptors = apiConfig.interceptors || selectedInterceptors;
-        
+
         if (apiProviderDir) {
-          await setupProvider(apiProviderDir, apiOpenapiUrl, apiInterceptors, apiName);
+          await setupProvider(
+            apiProviderDir,
+            apiOpenapiUrl,
+            apiInterceptors,
+            apiName,
+          );
         }
       }
     } else {
-      await setupProvider(finalProviderDir!, finalOpenapiUrl, selectedInterceptors);
+      await setupProvider(
+        finalProviderDir!,
+        finalOpenapiUrl,
+        selectedInterceptors,
+      );
     }
 
     if (finalIntegration === "swr") {
-      console.log(chalk.blue(`Note: React SWR Hooks included! Make sure you have 'swr' installed: npm install swr`));
+      console.log(
+        chalk.blue(
+          `Note: React SWR Hooks included! Make sure you have 'swr' installed: npm install swr`,
+        ),
+      );
     } else if (finalIntegration === "react-query") {
-      console.log(chalk.blue(`Note: React Query Hooks included! Make sure you have '@tanstack/react-query' installed: npm install @tanstack/react-query`));
+      console.log(
+        chalk.blue(
+          `Note: React Query Hooks included! Make sure you have '@tanstack/react-query' installed: npm install @tanstack/react-query`,
+        ),
+      );
     }
 
     if (!hasMultiApi && (!finalOpenapiUrl || finalOpenapiUrl.trim() === "")) {
       console.log(chalk.yellow("\nNext steps:"));
-      console.log(`Run ${chalk.cyan("npx specshot generate")} to generate your services from OpenAPI!\n`);
+      console.log(
+        `Run ${chalk.cyan("npx specshot generate")} to generate your services from OpenAPI!\n`,
+      );
     }
-
   } catch (err) {
     spinner.fail(chalk.red("Failed to install core files"));
     console.error(err);

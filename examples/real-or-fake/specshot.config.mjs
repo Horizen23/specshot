@@ -7,13 +7,15 @@ export default {
     meme: {
       providerDir: "client/src/lib/api/meme",
       openapiUrl: "./meme.json",
-    }
+    },
   },
   fakerPlugins: [
     {
       name: "meme-faker",
-      match: (ctx) => ctx.path.endsWith("imageUrl") || ctx.schema.description?.includes("Meme image"),
-      generate: (faker) => faker.image.urlLoremFlickr({ category: 'meme' })
-    }
-  ]
+      match: (ctx) =>
+        ctx.path.endsWith("imageUrl") ||
+        ctx.schema.description?.includes("Meme image"),
+      generate: (faker) => faker.image.urlLoremFlickr({ category: "meme" }),
+    },
+  ],
 };

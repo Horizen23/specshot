@@ -31,16 +31,16 @@ jobs:
 
 ## Inputs
 
-| Input | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `openapi-url` | * | — | Remote OpenAPI JSON URL (e.g., `https://api.example.com/openapi.json`) |
-| `openapi-file` | * | — | Local path to OpenAPI JSON file |
-| `output-dir` | No | From `specshot.json` | Where to write generated files |
-| `config-path` | No | `./specshot.json` | Path to project config |
-| `commit-message` | No | — | If set, auto-commits generated files with this message |
-| `working-directory` | No | `.` | Monorepo subdirectory |
+| Input               | Required | Default              | Description                                                            |
+| ------------------- | -------- | -------------------- | ---------------------------------------------------------------------- |
+| `openapi-url`       | \*       | —                    | Remote OpenAPI JSON URL (e.g., `https://api.example.com/openapi.json`) |
+| `openapi-file`      | \*       | —                    | Local path to OpenAPI JSON file                                        |
+| `output-dir`        | No       | From `specshot.json` | Where to write generated files                                         |
+| `config-path`       | No       | `./specshot.json`    | Path to project config                                                 |
+| `commit-message`    | No       | —                    | If set, auto-commits generated files with this message                 |
+| `working-directory` | No       | `.`                  | Monorepo subdirectory                                                  |
 
-*\*Either `openapi-url` or `openapi-file` must be provided.*
+_\*Either `openapi-url` or `openapi-file` must be provided._
 
 ## Recipes
 

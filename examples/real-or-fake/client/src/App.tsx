@@ -48,7 +48,9 @@ export default function App() {
       </div>
 
       {isLoading && <p className="status">Loading...</p>}
-      {error && <p className="status error">{error.message || "An error occurred"}</p>}
+      {error && (
+        <p className="status error">{error.message || "An error occurred"}</p>
+      )}
 
       <div className="meme-list">
         {memes?.map((meme: Meme) => (
@@ -87,17 +89,26 @@ function MemeCard({ meme }: { meme: Meme }) {
 
       {!voted ? (
         <div className="actions">
-          <button className="btn btn-real" onClick={() => handleVote("real")} disabled={isMutating}>
+          <button
+            className="btn btn-real"
+            onClick={() => handleVote("real")}
+            disabled={isMutating}
+          >
             Real
           </button>
-          <button className="btn btn-fake" onClick={() => handleVote("fake")} disabled={isMutating}>
+          <button
+            className="btn btn-fake"
+            onClick={() => handleVote("fake")}
+            disabled={isMutating}
+          >
             Fake
           </button>
         </div>
       ) : (
         <div className="result">
           <span className={voted.correct ? "green" : "red"}>
-            {voted.correct ? "Correct" : "Wrong"} — it's {voted.isReal ? "REAL" : "FAKE"}
+            {voted.correct ? "Correct" : "Wrong"} — it's{" "}
+            {voted.isReal ? "REAL" : "FAKE"}
           </span>
           <span className="vote-stats">
             R: {voted.realVotes} / F: {voted.fakeVotes}

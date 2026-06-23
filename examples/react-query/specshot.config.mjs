@@ -7,6 +7,6 @@ export default {
     petstore: {
       providerDir: "src/lib/api/petstore",
       openapiUrl: "./openapi.json",
-    }
-  }
+    },
+  },
 };

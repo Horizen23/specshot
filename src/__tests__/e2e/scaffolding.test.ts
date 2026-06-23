@@ -152,9 +152,9 @@ describe("F1 Scaffolding (init command)", () => {
     expect(fs.existsSync(configPath)).toBe(true);
 
     const configContent = fs.readFileSync(configPath, "utf-8");
-    expect(configContent).toContain("coreDir: \"libs/core\"");
-    expect(configContent).toContain("providerDir: \"libs/prov\"");
-    expect(configContent).toContain("integration: \"swr\"");
+    expect(configContent).toContain('coreDir: "libs/core"');
+    expect(configContent).toContain('providerDir: "libs/prov"');
+    expect(configContent).toContain('integration: "swr"');
     expect(configContent).toContain("bearer");
     expect(configContent).toContain("logger");
     expect(configContent).toContain("http://api.example.com/swagger.json");
@@ -261,7 +261,7 @@ describe("F1 Scaffolding (init command)", () => {
     const configPath = path.join(tmpDir, "specshot.config.mjs");
     expect(fs.existsSync(configPath)).toBe(true);
     const configContent = fs.readFileSync(configPath, "utf-8");
-    expect(configContent).toContain("templates: \"my-custom-templates\"");
+    expect(configContent).toContain('templates: "my-custom-templates"');
   });
 
   // Test 12

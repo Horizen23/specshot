@@ -23,8 +23,12 @@ export async function loadSpec(specSource: string): Promise<OpenApiSpec> {
     try {
       const headRes = await fetch(specSource, { method: "HEAD" });
       const etag =
-        (headRes.headers && typeof headRes.headers.get === 'function' && headRes.headers.get("etag")) ||
-        (headRes.headers && typeof headRes.headers.get === 'function' && headRes.headers.get("last-modified")) ||
+        (headRes.headers &&
+          typeof headRes.headers.get === "function" &&
+          headRes.headers.get("etag")) ||
+        (headRes.headers &&
+          typeof headRes.headers.get === "function" &&
+          headRes.headers.get("last-modified")) ||
         "";
       const cached = specCache.get(specSource);
       if (cached && etag && cached.etag === etag) {
@@ -48,8 +52,12 @@ export async function loadSpec(specSource: string): Promise<OpenApiSpec> {
     }
     const spec = (await res.json()) as OpenApiSpec;
     const etag =
-      (res.headers && typeof res.headers.get === 'function' && res.headers.get("etag")) ||
-      (res.headers && typeof res.headers.get === 'function' && res.headers.get("last-modified")) ||
+      (res.headers &&
+        typeof res.headers.get === "function" &&
+        res.headers.get("etag")) ||
+      (res.headers &&
+        typeof res.headers.get === "function" &&
+        res.headers.get("last-modified")) ||
       Date.now().toString();
     specCache.set(specSource, { spec, etag });
     return spec;

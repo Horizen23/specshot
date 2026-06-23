@@ -46,8 +46,14 @@ body {
   margin-bottom: 20px;
 }
 
-.api-bar .real { color: #16a34a; font-weight: 600; }
-.api-bar .fake { color: #dc2626; font-weight: 600; }
+.api-bar .real {
+  color: #16a34a;
+  font-weight: 600;
+}
+.api-bar .fake {
+  color: #dc2626;
+  font-weight: 600;
+}
 
 .status {
   text-align: center;
@@ -129,8 +135,14 @@ body {
   font-size: 0.85rem;
 }
 
-.result .green { color: #16a34a; font-weight: 600; }
-.result .red { color: #dc2626; font-weight: 600; }
+.result .green {
+  color: #16a34a;
+  font-weight: 600;
+}
+.result .red {
+  color: #dc2626;
+  font-weight: 600;
+}
 
 .vote-stats {
   color: #999;

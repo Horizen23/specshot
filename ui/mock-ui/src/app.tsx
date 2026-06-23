@@ -337,11 +337,13 @@ export function App() {
       )}
 
       <datalist id="faker-formats-list">
-        {FAKER_FORMATS.filter(f => f.value && !f.value.startsWith("---")).map((f) => (
-          <option key={f.value} value={f.value}>
-            {f.label}
-          </option>
-        ))}
+        {FAKER_FORMATS.filter((f) => f.value && !f.value.startsWith("---")).map(
+          (f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ),
+        )}
       </datalist>
 
       {toastMsg && <div class={`toast ${toastMsg.type}`}>{toastMsg.msg}</div>}

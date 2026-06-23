@@ -20,11 +20,13 @@ npm run specshot:init
 ```
 
 If the API spec changes later, you can update just the services by running:
+
 ```bash
 npm run specshot:generate
 ```
 
 You can also test the built-in mock server:
+
 ```bash
 npm run specshot:mock
 ```
@@ -32,11 +34,12 @@ npm run specshot:mock
 ## Configuration
 
 This project is configured using `specshot.config.mjs`:
+
 ```javascript
 export default {
   coreDir: "src/lib/api/core",
   providerDir: "src/lib/api/petstore",
-  
+
   integration: "react-query",
   interceptors: ["bearer", "logger"],
 };
@@ -110,13 +113,13 @@ import { queryKeys } from "./lib/api/petstore/hooks";
 
 ### Key features of React Query integration
 
-| Feature | Description |
-|--------|------------|
-| `useApi.pets.listPets()` | Auto-generated query key: `["pets", "listPets"]` |
+| Feature                  | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `useApi.pets.listPets()` | Auto-generated query key: `["pets", "listPets"]`  |
 | `useApi.pets.getPet(id)` | Query key includes args: `["pets", "getPet", id]` |
-| `.queryKey(...)` | Access the query key directly |
-| `.invalidate()` | Invalidate all queries for this method |
-| `queryKeys` | Query key factory for manual cache operations |
+| `.queryKey(...)`         | Access the query key directly                     |
+| `.invalidate()`          | Invalidate all queries for this method            |
+| `queryKeys`              | Query key factory for manual cache operations     |
 
 ## Project structure
 

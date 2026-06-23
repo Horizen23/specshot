@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+ui/mock-ui/dist/
+templates/**/*.hbs
+.specshot/
+*.mocks.json

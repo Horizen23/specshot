@@ -21,6 +21,7 @@ examples/real-or-fake/
 ```
 
 ## How to setup
+
 ```bash
 npm install
 npm run specshot:init
@@ -43,8 +44,8 @@ Open `http://localhost:5173` for the app, and `http://localhost:3456` for the Mo
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/memes` | List all memes |
-| GET | `/memes/:id` | Get single meme |
-| POST | `/memes/:id/vote` | Vote `real` or `fake` |
+| Method | Path              | Description           |
+| ------ | ----------------- | --------------------- |
+| GET    | `/memes`          | List all memes        |
+| GET    | `/memes/:id`      | Get single meme       |
+| POST   | `/memes/:id/vote` | Vote `real` or `fake` |

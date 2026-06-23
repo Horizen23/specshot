@@ -91,11 +91,41 @@ const memes = [
 ];
 
 const leaderboard = [
-  { rank: 1, username: "MemeLord420", score: 42, totalVotes: 50, accuracy: 0.84 },
-  { rank: 2, username: "FactChecker99", score: 38, totalVotes: 45, accuracy: 0.84 },
-  { rank: 3, username: "RealOrNah", score: 35, totalVotes: 40, accuracy: 0.875 },
-  { rank: 4, username: "CaptainTruth", score: 30, totalVotes: 38, accuracy: 0.79 },
-  { rank: 5, username: "SkepticalSam", score: 28, totalVotes: 35, accuracy: 0.8 },
+  {
+    rank: 1,
+    username: "MemeLord420",
+    score: 42,
+    totalVotes: 50,
+    accuracy: 0.84,
+  },
+  {
+    rank: 2,
+    username: "FactChecker99",
+    score: 38,
+    totalVotes: 45,
+    accuracy: 0.84,
+  },
+  {
+    rank: 3,
+    username: "RealOrNah",
+    score: 35,
+    totalVotes: 40,
+    accuracy: 0.875,
+  },
+  {
+    rank: 4,
+    username: "CaptainTruth",
+    score: 30,
+    totalVotes: 38,
+    accuracy: 0.79,
+  },
+  {
+    rank: 5,
+    username: "SkepticalSam",
+    score: 28,
+    totalVotes: 35,
+    accuracy: 0.8,
+  },
 ];
 
 app.get("/memes", (req, res) => {

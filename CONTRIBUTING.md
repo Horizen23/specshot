@@ -10,13 +10,13 @@ npm install
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `npm run build` | Build the CLI (tsup) |
-| `npm run dev` | Watch mode for development |
-| `npm test` | Run tests (vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run lint` | Type check (tsc --noEmit) |
+| Command              | Description                |
+| -------------------- | -------------------------- |
+| `npm run build`      | Build the CLI (tsup)       |
+| `npm run dev`        | Watch mode for development |
+| `npm test`           | Run tests (vitest)         |
+| `npm run test:watch` | Run tests in watch mode    |
+| `npm run lint`       | Type check (tsc --noEmit)  |
 
 ## Project Structure
 

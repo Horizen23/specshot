@@ -140,7 +140,7 @@ export function LoginButton() {
       params: {
         username: "demo",
         password: "demo123",
-      }
+      },
     });
 
     if (!result.ok) {

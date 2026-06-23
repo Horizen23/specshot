@@ -3,7 +3,7 @@ name: Feature request
 about: Suggest a new feature or enhancement for SpecShot
 title: "[FEATURE] "
 labels: enhancement
-assignees: ''
+assignees: ""
 ---
 
 ## Is your feature request related to a problem?

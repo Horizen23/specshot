@@ -10,7 +10,8 @@ import { ApiClient } from "../core/api-client";
  */
 const API_BASE_URL: string =
   // @ts-ignore - VITE_API_BASE_URL is injected by the build tool when defined
-  (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) ||
+  (typeof import.meta !== "undefined" &&
+    (import.meta as any).env?.VITE_API_BASE_URL) ||
   "";
 
 export function createApiClient() {

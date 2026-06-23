@@ -38,10 +38,13 @@ export async function mockCommand(options: {
   showBanner("SpecShot", "Mock Server");
   const cwd = process.cwd();
   const config = await loadUserConfig(cwd, options.configPath);
-  
+
   const firstApi = config.apis && Object.values(config.apis)[0];
   if (!options.url && !options.file && firstApi?.openapiUrl) {
-    if (firstApi.openapiUrl.startsWith("http://") || firstApi.openapiUrl.startsWith("https://")) {
+    if (
+      firstApi.openapiUrl.startsWith("http://") ||
+      firstApi.openapiUrl.startsWith("https://")
+    ) {
       options.url = firstApi.openapiUrl;
     } else {
       options.file = firstApi.openapiUrl;
@@ -247,7 +250,8 @@ export async function mockCommand(options: {
   const defaultOutput =
     existingMockConfig.outputDir ||
     path.join(
-      (config.apis && Object.values(config.apis)[0]?.providerDir) || "src/lib/api/default",
+      (config.apis && Object.values(config.apis)[0]?.providerDir) ||
+        "src/lib/api/default",
       "msw",
       "handlers",
     );

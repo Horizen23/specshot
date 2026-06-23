@@ -21,7 +21,10 @@ import { jsonResponse, parseBody } from "./handlers/utils";
 import { handleGetSpec, handleRegenerateFaker } from "./handlers/spec-handler";
 import { handleGetConfig, handlePostConfig } from "./handlers/config-handler";
 import { handleGenerate } from "./handlers/generate-handler";
-import { handleGetMockServer, handlePostMockServer } from "./handlers/mock-server-handler";
+import {
+  handleGetMockServer,
+  handlePostMockServer,
+} from "./handlers/mock-server-handler";
 import { handleProxy } from "./handlers/proxy-config-handler";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -256,8 +259,6 @@ function restartMockServerOnConfigChange(cwd: string): void {
   }, 1000);
 }
 
-
-
 export async function startMockWebServer(options: {
   url?: string;
   file?: string;
@@ -396,7 +397,11 @@ export async function startMockWebServer(options: {
         `\nSpecShot Mock Dashboard running at http://localhost:${actualPort}\n`,
       );
 
-      if (!options.noOpen && !process.env.SPECSHOT_NO_BROWSER && !process.env.CI) {
+      if (
+        !options.noOpen &&
+        !process.env.SPECSHOT_NO_BROWSER &&
+        !process.env.CI
+      ) {
         const platform = process.platform;
         const openCmd =
           platform === "darwin"

@@ -117,7 +117,7 @@
 
 /* JSON Tree Visualizer (JsonViewerNode) Classes */
 .json-viewer-node {
-  font-family: 'SF Mono', monospace;
+  font-family: "SF Mono", monospace;
   font-size: 12px;
   line-height: 1.6;
 }

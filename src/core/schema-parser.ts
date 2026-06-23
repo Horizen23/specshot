@@ -1,4 +1,9 @@
-import { RESPONSE_BODY_STRUCT, RESPONSE_BODY_PREFIX, JSON_CONTENT_TYPE, HTTP_OK } from "../types/constants";
+import {
+  RESPONSE_BODY_STRUCT,
+  RESPONSE_BODY_PREFIX,
+  JSON_CONTENT_TYPE,
+  HTTP_OK,
+} from "../types/constants";
 import type { OpenApiSchema, PropEntry, OpenApiSpec } from "../types/types";
 
 /**
@@ -10,9 +15,7 @@ import type { OpenApiSchema, PropEntry, OpenApiSpec } from "../types/types";
  *   - `sharedSchemas` — schema names that appear in ≥2 tags → go in `models.ts`
  *   - `tagSchemas`    — map of tag → set of schema names owned exclusively by it
  */
-export function resolveSchemaOwnership(
-  spec: OpenApiSpec,
-): {
+export function resolveSchemaOwnership(spec: OpenApiSpec): {
   sharedSchemas: Set<string>;
   tagSchemas: Map<string, Set<string>>;
 } {
@@ -27,12 +30,18 @@ export function resolveSchemaOwnership(
   // Walk every operation, collect which tags reference which schema refs
   const pathEntries = Object.entries(spec.paths ?? {}) as [
     string,
-    Record<string, {
-      tags?: string[];
-      requestBody?: { content?: Record<string, { schema?: OpenApiSchema }> };
-      responses?: Record<string, { content?: Record<string, { schema?: OpenApiSchema }> }>;
-      parameters?: any[];
-    }>,
+    Record<
+      string,
+      {
+        tags?: string[];
+        requestBody?: { content?: Record<string, { schema?: OpenApiSchema }> };
+        responses?: Record<
+          string,
+          { content?: Record<string, { schema?: OpenApiSchema }> }
+        >;
+        parameters?: any[];
+      }
+    >,
   ][];
   for (const [, methods] of pathEntries) {
     for (const operation of Object.values(methods)) {
@@ -41,10 +50,18 @@ export function resolveSchemaOwnership(
 
       const refsInOp = new Set<string>();
       if (operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema) {
-        extractRefs(operation.requestBody.content[JSON_CONTENT_TYPE].schema, refsInOp);
+        extractRefs(
+          operation.requestBody.content[JSON_CONTENT_TYPE].schema,
+          refsInOp,
+        );
       }
-      if (operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema) {
-        extractRefs(operation.responses[HTTP_OK].content[JSON_CONTENT_TYPE].schema, refsInOp);
+      if (
+        operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema
+      ) {
+        extractRefs(
+          operation.responses[HTTP_OK].content[JSON_CONTENT_TYPE].schema,
+          refsInOp,
+        );
       }
       for (const ref of refsInOp) {
         if (schemaUsage.has(ref)) schemaUsage.get(ref)!.add(tag);
@@ -77,7 +94,8 @@ export function resolveSchemaOwnership(
   const tagSchemas = new Map<string, Set<string>>();
 
   for (const [name, tags] of schemaUsage.entries()) {
-    if (name === RESPONSE_BODY_STRUCT || name.startsWith(RESPONSE_BODY_PREFIX)) continue;
+    if (name === RESPONSE_BODY_STRUCT || name.startsWith(RESPONSE_BODY_PREFIX))
+      continue;
     if (tags.size === 1) {
       const tag = Array.from(tags)[0];
       if (!tagSchemas.has(tag)) tagSchemas.set(tag, new Set<string>());
@@ -89,7 +107,6 @@ export function resolveSchemaOwnership(
 
   return { sharedSchemas, tagSchemas };
 }
-
 
 export function cleanRefName(ref: string | undefined): string {
   if (!ref) return "";
