@@ -1,11 +1,40 @@
-# specshot Local File Example
+# SpecShot Local File & Multi-API Example
 
-Quick demo of specshot code generation.
+Quick demo of SpecShot code generation using a local `openapi.json` file along with the **Multi-API** configuration pattern.
 
 ## Setup
+Install dependencies and run the initialization script to generate the API core and provider code based on `specshot.config.mjs`:
+
 ```bash
 npm install
-npx specshot generate --file ./openapi.json --output src/lib/api/default/services
+npm run specshot:init
+```
+
+If the API spec changes later, you can update just the services by running:
+```bash
+npm run specshot:generate
+```
+
+You can also test the built-in mock server:
+```bash
+npm run specshot:mock
+```
+
+## Configuration
+
+This project is configured using `specshot.config.mjs`:
+```javascript
+export default {
+  coreDir: "src/lib/api/core",
+  integration: "none",
+  interceptors: ["bearer", "logger"],
+  apis: {
+    petstore: {
+      providerDir: "src/lib/api/petstore",
+      openapiUrl: "./openapi.json" // Uses local file
+    }
+  }
+};
 ```
 
 ## Usage
