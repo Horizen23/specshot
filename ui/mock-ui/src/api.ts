@@ -48,9 +48,7 @@ export async function toggleMockServer(
 }
 
 // Load specifications via specSource URL or path
-export async function loadSpec(
-  source: string,
-): Promise<{
+export async function loadSpec(source: string): Promise<{
   tags: TagGroup[];
   totalEndpoints: number;
   availablePlugins?: string[];
