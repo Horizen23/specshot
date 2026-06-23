@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { browserClient, browserApi, useApi, Meme } from "./api/meme";
+import { browserClient, browserApi, useApi, Meme } from "./lib/api/meme";
 
 const ENDPOINTS = {
   real: "http://localhost:3000",
