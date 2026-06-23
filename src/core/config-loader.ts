@@ -25,8 +25,8 @@ export interface SpecshotUserConfig {
   templates?: string;
   plugins?: SpecshotPlugin[];
   apis?: Record<string, {
-    openapiUrl?: string;
-    providerDir?: string;
+    openapiUrl: string;
+    providerDir: string;
     interceptors?: string[];
   }>;
 }
