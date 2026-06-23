@@ -58,7 +58,7 @@ export async function handleGetSpec(
         existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {},
         "root",
         existingConfig.endpoints?.[ep.key]?.fakerFormats || {},
-        userConfig.plugins || [],
+        userConfig.fakerPlugins || [],
       ),
       schemaTypes: getSchemaTypes(
         ep.responseSchema,
@@ -71,6 +71,7 @@ export async function handleGetSpec(
     specSource,
     tags: tagsWithPreSelected,
     totalEndpoints: endpoints.length,
+    availablePlugins: (userConfig.fakerPlugins || []).map((p) => p.name),
   });
 }
 
@@ -107,7 +108,7 @@ export async function handleRegenerateFaker(
       fakerArraySizes,
       "root",
       fakerFormats,
-      userConfig.plugins || [],
+      userConfig.fakerPlugins || [],
     );
 
     jsonResponse(res, { mockExampleFaker });

@@ -9,7 +9,7 @@ export interface FakerPluginContext {
   schema: OpenApiSchema;
 }
 
-export interface SpecshotPlugin {
+export interface FakerPlugin {
   name: string;
   match: (context: FakerPluginContext) => boolean;
   generate: (faker: Faker, context: FakerPluginContext) => unknown;
@@ -21,7 +21,7 @@ export interface SpecshotUserConfig {
   interceptors?: string[];
   alias?: string;
   templates?: string;
-  plugins?: SpecshotPlugin[];
+  fakerPlugins?: FakerPlugin[];
   apis?: Record<string, {
     openapiUrl: string;
     providerDir: string;

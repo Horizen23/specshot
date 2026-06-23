@@ -9,7 +9,7 @@ import { mockCommand } from "./commands/mock";
 
 // Export types for JS/TS config autocomplete
 export type { SpecshotUserConfig as SpecshotConfig } from "../core/config-loader";
-export type { SpecshotPlugin, FakerPluginContext } from "../core/config-loader";
+export type { FakerPlugin, FakerPluginContext } from "../core/config-loader";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

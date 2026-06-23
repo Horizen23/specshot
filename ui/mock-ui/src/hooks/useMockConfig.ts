@@ -8,6 +8,8 @@ import type {
 import * as api from "../api";
 import { applyFakerSizes } from "../utils";
 
+import { registerPlugins } from "../utils";
+
 export function useMockConfig() {
   const [specSource, setSpecSource] = useState("");
   const [outputDir, setOutputDir] = useState("");
@@ -93,6 +95,9 @@ export function useMockConfig() {
     setLoading(true);
     try {
       const data = await api.loadSpec(source);
+      if (data.availablePlugins) {
+        registerPlugins(data.availablePlugins);
+      }
       const formattedTags = data.tags.map((tg: TagGroup) => ({
         ...tg,
         endpoints: tg.endpoints.map((ep: Endpoint) => {

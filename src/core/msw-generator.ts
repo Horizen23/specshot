@@ -7,7 +7,7 @@ import { endpointKey } from "../types/mock-config";
 import { toMethodName, capitalize } from "../utils/naming-utils";
 import { compileTemplate, writeGenerated } from "../utils/file-writer";
 import { mockValueFromSchema } from "../utils/msw-utils";
-import type { SpecshotPlugin } from "./config-loader";
+import type { FakerPlugin } from "./config-loader";
 
 export function generateMswHandlers(
   spec: OpenApiSpec,
@@ -18,7 +18,7 @@ export function generateMswHandlers(
   opts: {
     mswEndpointFilter?: Set<string>;
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
-    plugins?: SpecshotPlugin[];
+    fakerPlugins?: FakerPlugin[];
   },
 ): void {
   if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
@@ -93,7 +93,7 @@ export function generateMswHandlers(
               epCfg?.fakerArraySizes || {},
               "root",
               epCfg?.fakerFormats || {},
-              opts.plugins || [],
+              opts.fakerPlugins || [],
             );
             mockComment = false;
           } else if (epCfg?.mockData) {

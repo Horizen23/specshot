@@ -6,7 +6,7 @@ import {
   type TraverseSchemaOptions,
   type TraverseSchemaCallbacks,
 } from "./schema-traversal";
-import type { SpecshotPlugin } from "../core/config-loader";
+import type { FakerPlugin } from "../core/config-loader";
 
 export type {
   TraversalContext,
@@ -24,7 +24,7 @@ export function mockValueFromSchema(
   fakerArraySizes: Record<string, number> = {},
   path: string = "root",
   fakerFormats: Record<string, string> = {},
-  plugins: SpecshotPlugin[] = [],
+  fakerPlugins: FakerPlugin[] = [],
 ): string {
   const options: TraverseSchemaOptions = {
     schemas,
@@ -72,10 +72,15 @@ export function mockValueFromSchema(
       const currentPath = context.path;
 
       if (mockMode === "faker") {
-        for (const plugin of plugins) {
-          try {
-            const pluginContext = { path: currentPath, schema };
-            if (plugin.match(pluginContext)) {
+        const customFormat = fakerFormats[currentPath];
+        const pluginContext = { path: currentPath, schema };
+
+        // 1. Explicit plugin selected in UI
+        if (customFormat && customFormat.startsWith("plugin:")) {
+          const pluginName = customFormat.replace("plugin:", "");
+          const plugin = fakerPlugins.find((p) => p.name === pluginName);
+          if (plugin) {
+            try {
               const val = plugin.generate(faker, pluginContext);
               if (typeof val === "string") {
                 if (val.startsWith("faker.")) return val;
@@ -83,15 +88,32 @@ export function mockValueFromSchema(
               }
               if (val instanceof Date) return `"${val.toISOString()}"`;
               return String(val);
+            } catch (err) {
+              console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
             }
-          } catch (err) {
-            console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
           }
-        }
-
-        const customFormat = fakerFormats[currentPath];
-        if (customFormat) {
+        } 
+        // 2. Explicit faker format selected in UI
+        else if (customFormat) {
           return `faker.${customFormat}()`;
+        }
+        // 3. Auto plugin match
+        else {
+          for (const plugin of fakerPlugins) {
+            try {
+              if (plugin.match(pluginContext)) {
+                const val = plugin.generate(faker, pluginContext);
+                if (typeof val === "string") {
+                  if (val.startsWith("faker.")) return val;
+                  return `"${val}"`;
+                }
+                if (val instanceof Date) return `"${val.toISOString()}"`;
+                return String(val);
+              }
+            } catch (err) {
+              console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
+            }
+          }
         }
 
         if (schema.type === "integer" || schema.type === "number") {
@@ -138,7 +160,7 @@ export function mockJsonFromSchema(
   fakerArraySizes: Record<string, number> = {},
   path: string = "root",
   fakerFormats: Record<string, string> = {},
-  plugins: SpecshotPlugin[] = [],
+  fakerPlugins: FakerPlugin[] = [],
 ): string {
   const options: TraverseSchemaOptions = {
     schemas,
@@ -186,24 +208,26 @@ export function mockJsonFromSchema(
       const currentPath = context.path;
 
       if (mockMode === "faker") {
-        // 1. Run plugins first
-        for (const plugin of plugins) {
-          try {
-            const pluginContext = { path: currentPath, schema };
-            if (plugin.match(pluginContext)) {
+        const customFormat = fakerFormats[currentPath];
+        const pluginContext = { path: currentPath, schema };
+
+        // 1. Explicit plugin selected in UI
+        if (customFormat && customFormat.startsWith("plugin:")) {
+          const pluginName = customFormat.replace("plugin:", "");
+          const plugin = fakerPlugins.find((p) => p.name === pluginName);
+          if (plugin) {
+            try {
               const val = plugin.generate(faker, pluginContext);
               if (typeof val === "string") return `"${val}"`;
               if (val instanceof Date) return `"${val.toISOString()}"`;
               return String(val);
+            } catch (err) {
+              console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
             }
-          } catch (err) {
-            console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
           }
         }
-
         // 2. Custom format from UI config
-        const customFormat = fakerFormats[currentPath];
-        if (customFormat) {
+        else if (customFormat) {
           try {
             const parts = customFormat.split(".");
             if (parts.length === 2) {
@@ -223,6 +247,21 @@ export function mockJsonFromSchema(
               }
             }
           } catch (_e) {}
+        }
+        // 3. Auto plugin match
+        else {
+          for (const plugin of fakerPlugins) {
+            try {
+              if (plugin.match(pluginContext)) {
+                const val = plugin.generate(faker, pluginContext);
+                if (typeof val === "string") return `"${val}"`;
+                if (val instanceof Date) return `"${val.toISOString()}"`;
+                return String(val);
+              }
+            } catch (err) {
+              console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
+            }
+          }
         }
 
         if (schema.type === "integer" || schema.type === "number") {

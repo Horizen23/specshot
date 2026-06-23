@@ -77,6 +77,24 @@ export const FAKER_FORMATS = [
   { value: "color.human", label: "color.human" },
 ];
 
+export function registerPlugins(plugins: string[]) {
+  // Remove existing plugin entries
+  const existingLength = FAKER_FORMATS.length;
+  for (let i = existingLength - 1; i >= 0; i--) {
+    if (FAKER_FORMATS[i].value.startsWith("plugin:")) {
+      FAKER_FORMATS.splice(i, 1);
+    }
+  }
+
+  // Add new plugins
+  if (plugins && plugins.length > 0) {
+    FAKER_FORMATS.push({ value: "---", label: "--- Plugins ---" });
+    for (const plugin of plugins) {
+      FAKER_FORMATS.push({ value: `plugin:${plugin}`, label: `Plugin: ${plugin}` });
+    }
+  }
+}
+
 // Highlight JSON syntax via regex replacing to CSS classes
 export function highlightJson(json: string): string {
   if (!json) return "";

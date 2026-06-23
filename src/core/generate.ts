@@ -341,7 +341,7 @@ export async function generateApi(
     generateMswHandlers(spec, services, schemas, mswDir, mswTemplatesDir, {
       mswEndpointFilter: opts.mswEndpointFilter,
       mswEndpointConfigs: opts.mswEndpointConfigs,
-      plugins: userConfig.plugins,
+      fakerPlugins: userConfig.fakerPlugins,
     });
   }
 

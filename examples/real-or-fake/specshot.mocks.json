@@ -1,0 +1,23 @@
+{
+  "endpoints": {
+    "memes-listMemes": {
+      "enabled": false,
+      "tag": "memes",
+      "operationId": "listMemes",
+      "method": "GET",
+      "path": "/memes",
+      "statusCode": 200,
+      "delay": 0,
+      "mockData": "[\n  {\n    \"id\": \"depulso\",\n    \"imageUrl\": \"https://loremflickr.com/2396/459/meme?lock=3920503028778433\",\n    \"caption\": \"tibi\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 300,\n    \"realVotes\": 581,\n    \"fakeVotes\": 847\n  }\n]",
+      "mockMode": "faker",
+      "fakerArraySize": 3,
+      "fakerArraySizes": {
+        "root": 1
+      },
+      "fakerFormats": {}
+    }
+  },
+  "proxyTarget": "http://localhost:3000",
+  "proxyEnabled": true,
+  "mockServerPort": 3457
+}
