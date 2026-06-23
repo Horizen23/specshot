@@ -79,6 +79,7 @@ program
   .option("-w, --web", "Launch web-based mock dashboard instead of CLI flow")
   .option("-p, --port <number>", "Port for web dashboard (default: 3456)")
   .option("-x, --proxy <url>", "Proxy unmatched requests to target URL")
+  .option("--no-open", "Do not open browser automatically")
   .action(async (options) => {
     try {
       await mockCommand({
@@ -89,6 +90,7 @@ program
         web: options.web,
         port: options.port ? parseInt(options.port, 10) : undefined,
         proxy: options.proxy,
+        noOpen: options.open === false,
       });
     } catch (err) {
       const chalk = (await import("chalk")).default;

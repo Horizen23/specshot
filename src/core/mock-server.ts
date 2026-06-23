@@ -288,6 +288,7 @@ export async function startMockWebServer(options: {
   configPath?: string;
   port?: number;
   proxy?: string;
+  noOpen?: boolean;
 }): Promise<http.Server> {
   const cwd = process.cwd();
   const port = options.port || 3456;
@@ -623,7 +624,7 @@ export async function startMockWebServer(options: {
         `\nSpecShot Mock Dashboard running at http://localhost:${actualPort}\n`,
       );
 
-      if (!process.env.SPECSHOT_NO_BROWSER && !process.env.CI) {
+      if (!options.noOpen && !process.env.SPECSHOT_NO_BROWSER && !process.env.CI) {
         const platform = process.platform;
         const openCmd =
           platform === "darwin"

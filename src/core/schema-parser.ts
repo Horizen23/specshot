@@ -27,7 +27,12 @@ export function resolveSchemaOwnership(
   // Walk every operation, collect which tags reference which schema refs
   const pathEntries = Object.entries(spec.paths ?? {}) as [
     string,
-    Record<string, { tags?: string[]; requestBody?: any; responses?: any; parameters?: any[] }>,
+    Record<string, {
+      tags?: string[];
+      requestBody?: { content?: Record<string, { schema?: OpenApiSchema }> };
+      responses?: Record<string, { content?: Record<string, { schema?: OpenApiSchema }> }>;
+      parameters?: any[];
+    }>,
   ][];
   for (const [, methods] of pathEntries) {
     for (const operation of Object.values(methods)) {
