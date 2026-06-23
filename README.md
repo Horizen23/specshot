@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.jpg" alt="SpecShot Logo" width="300" />
+</p>
+
 # SpecShot
 
 **One command. Zero dependencies. 100% type-safe API client.**
