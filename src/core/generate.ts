@@ -456,7 +456,7 @@ export async function generateApi(
               mockResponse = epCfg.mockData;
               mockComment = false;
             } else {
-              mockResponse = mockValueFromSchema(op.responseSchema, mockMode, schemas);
+              mockResponse = mockValueFromSchema(op.responseSchema, mockMode === "manual" ? "auto" : mockMode, schemas);
             }
           }
         } else {

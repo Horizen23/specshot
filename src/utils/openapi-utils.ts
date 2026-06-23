@@ -1,4 +1,4 @@
-import type { OpenApiSpec, OpenApiOperation } from "../types/types";
+import type { OpenApiSpec, OpenApiOperation, OpenApiSchema } from "../types/types";
 import { endpointKey } from "../types/mock-config";
 import { HTTP_OK, JSON_CONTENT_TYPE } from "../types/constants";
 
@@ -9,7 +9,7 @@ export interface FlatEndpoint {
   path: string;
   summary: string;
   key: string;
-  responseSchema: unknown;
+  responseSchema: OpenApiSchema | undefined;
 }
 
 export function flattenEndpoints(spec: OpenApiSpec): FlatEndpoint[] {

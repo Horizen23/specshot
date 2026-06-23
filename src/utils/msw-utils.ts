@@ -118,7 +118,7 @@ export function mockJsonFromSchema(
   if (schema.type === "array") {
     if (schema.items) {
       const items = [];
-      const size = mockMode === "faker" ? (fakerArraySizes[path] ?? fakerArraySizes['root'] ?? arraySize) : 1;
+      const size = mockMode === "faker" ? (fakerArraySizes[path] ?? (path === 'root' ? (fakerArraySizes['root'] ?? arraySize) : arraySize)) : 1;
       for (let i = 0; i < size; i++) {
         const itemMock = mockJsonFromSchema(schema.items, schemas, new Set(seen), mockMode, arraySize, fakerArraySizes, `${path}[]`);
         const indented = itemMock.split('\n').map(l => `  ${l}`).join('\n');

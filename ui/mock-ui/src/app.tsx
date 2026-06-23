@@ -76,15 +76,25 @@ function JsonEditor({ value, onChange, readOnly }: { value: string, onChange: (v
     }
   };
 
+  const handleScroll = (e: any) => {
+    const textarea = e.target as HTMLTextAreaElement;
+    const pre = textarea.previousElementSibling as HTMLElement;
+    if (pre) {
+      pre.scrollTop = textarea.scrollTop;
+      pre.scrollLeft = textarea.scrollLeft;
+    }
+  };
+
   return (
     <div class={`code-editor ${isValid ? 'valid' : 'invalid'}`}>
       <div class="code-body-wrap">
         <div class="code-body">
-          <pre><code dangerouslySetInnerHTML={{ __html: highlightJson(value) }} /></pre>
+          <pre aria-hidden="true" style={{ userSelect: 'none' }}><code dangerouslySetInnerHTML={{ __html: highlightJson(value) }} /></pre>
           <textarea 
             value={value} 
             onInput={(e) => onChange((e.target as HTMLTextAreaElement).value)}
             onKeyDown={handleKeyDown}
+            onScroll={handleScroll}
             spellcheck={false}
             readOnly={readOnly}
           />
@@ -144,7 +154,7 @@ function JsonViewerNode({
                 <input 
                   type="number" 
                   min="1" max="100" 
-                  value={fakerArraySizes[path] ?? fakerArraySizes['root'] ?? 3}
+                  value={fakerArraySizes[path] ?? (path === 'root' ? (fakerArraySizes['root'] ?? 3) : 3)}
                   onChange={(e) => onSizeChange(path, parseInt((e.target as HTMLInputElement).value) || 1)}
                   style={{ width: '40px', padding: '2px 4px', fontSize: '10px', background: 'rgba(255,255,255,0.1)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px' }}
                 />
@@ -325,6 +335,7 @@ export function App() {
               mockData: ep.config?.mockData !== undefined ? ep.config.mockData : (ep.mockExample || ''),
               mockMode: ep.config?.mockMode || 'auto',
               fakerArraySize: ep.config?.fakerArraySize || 3,
+              fakerArraySizes: ep.config?.fakerArraySizes || {},
               errorEnabled: ep.config?.errorEnabled,
               errorStatus: ep.config?.errorStatus,
               errorBody: ep.config?.errorBody
@@ -418,7 +429,7 @@ export function App() {
   const applyFakerSizes = (data: any, sizes: Record<string, number>, path: string = 'root'): any => {
     if (Array.isArray(data)) {
       if (data.length === 0) return [];
-      const size = sizes[path] ?? sizes['root'] ?? 3;
+      const size = sizes[path] ?? (path === 'root' ? (sizes['root'] ?? 3) : 3);
       const template = applyFakerSizes(data[0], sizes, `${path}[]`);
       return Array.from({ length: size }, (_, i) => {
         const item = JSON.parse(JSON.stringify(template));
@@ -664,7 +675,16 @@ export function App() {
                                    >Auto / Manual</button>
                                    <button 
                                      class={ep.config?.mockMode === 'faker' ? 'active' : ''}
-                                     onClick={() => updateEndpointConfig(ep.key, { config: { ...ep.config, mockMode: 'faker', mockData: ep.mockExampleFaker || '' } })}
+                                     onClick={() => {
+                                       let fakerData = ep.mockExampleFaker || '';
+                                       try {
+                                         const parsed = JSON.parse(fakerData);
+                                         if (parsed !== null) {
+                                           fakerData = JSON.stringify(applyFakerSizes(parsed, ep.config?.fakerArraySizes || {}), null, 2);
+                                         }
+                                       } catch (e) {}
+                                       updateEndpointConfig(ep.key, { config: { ...ep.config, mockMode: 'faker', mockData: fakerData } });
+                                     }}
                                    >Faker.js</button>
                                  </div>
                                </div>
@@ -673,14 +693,24 @@ export function App() {
                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                        <div>
-                                         <h4 style={{ color: 'var(--text)', marginBottom: '4px', fontSize: '13px' }}>Faker.js Preview</h4>
-                                         <p style={{ color: 'var(--text-muted)', fontSize: '11px', margin: 0 }}>Faker generates random data on every request. Adjust array sizes directly inside the tree below.</p>
+                                         <h4 style={{ color: 'var(--text)', marginBottom: '4px', fontSize: '13px' }}>Faker.js Data</h4>
+                                         <p style={{ color: 'var(--text-muted)', fontSize: '11px', margin: 0 }}>Faker provides an initial random seed. You can edit it manually or regenerate it.</p>
                                        </div>
                                      </div>
                                      <CompassJsonViewer 
                                        jsonString={getPreviewValue(ep)} 
                                        fakerArraySizes={ep.config?.fakerArraySizes || {}}
-                                       onSizeChange={(path, size) => updateEndpointConfig(ep.key, { config: { ...ep.config, fakerArraySizes: { ...(ep.config?.fakerArraySizes || {}), [path]: size } } })}
+                                       onSizeChange={(path, size) => {
+                                         const newSizes = { ...(ep.config?.fakerArraySizes || {}), [path]: size };
+                                         let newMockData = ep.config?.mockData || '';
+                                         try {
+                                           const parsedFaker = JSON.parse(ep.mockExampleFaker || 'null');
+                                           if (parsedFaker !== null) {
+                                             newMockData = JSON.stringify(applyFakerSizes(parsedFaker, newSizes), null, 2);
+                                           }
+                                         } catch (e) {}
+                                         updateEndpointConfig(ep.key, { config: { ...ep.config, fakerArraySizes: newSizes, mockData: newMockData } });
+                                       }}
                                      />
                                    </div>
                                  ) : (

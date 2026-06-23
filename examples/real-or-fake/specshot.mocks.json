@@ -8,9 +8,12 @@
       "path": "/memes",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "[\n  {\n    \"id\": \"omnis\",\n    \"imageUrl\": \"acsi\",\n    \"caption\": \"cumque\",\n    \"category\": \"news\",\n    \"isReal\": true,\n    \"totalVotes\": 4,\n    \"realVotes\": 739,\n    \"fakeVotes\": 834\n  }\n]",
+      "mockData": "[\n  {\n    \"id\": \"tibi\",\n    \"imageUrl\": \"verumtamen\",\n    \"caption\": \"vilitas\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 261,\n    \"realVotes\": 40,\n    \"fakeVotes\": 969\n  }\n]",
       "mockMode": "faker",
-      "fakerArraySize": 1
+      "fakerArraySize": 1,
+      "fakerArraySizes": {
+        "root": 1
+      }
     },
     "memes-createMeme": {
       "enabled": false,
@@ -21,8 +24,9 @@
       "statusCode": 200,
       "delay": 0,
       "mockData": "null",
-      "mockMode": "manual",
-      "fakerArraySize": 3
+      "mockMode": "faker",
+      "fakerArraySize": 3,
+      "fakerArraySizes": {}
     },
     "memes-getMeme": {
       "enabled": false,
@@ -34,7 +38,8 @@
       "delay": 0,
       "mockData": "{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}",
       "mockMode": "auto",
-      "fakerArraySize": 3
+      "fakerArraySize": 3,
+      "fakerArraySizes": {}
     },
     "memes-voteMeme": {
       "enabled": true,
@@ -46,7 +51,8 @@
       "delay": 0,
       "mockData": "{\n  \"correct\": true,\n  \"isReal\": true,\n  \"score\": 838,\n  \"totalVotes\": 854,\n  \"realVotes\": 205,\n  \"fakeVotes\": 316\n}",
       "mockMode": "faker",
-      "fakerArraySize": 3
+      "fakerArraySize": 3,
+      "fakerArraySizes": {}
     },
     "leaderboard-getLeaderboard": {
       "enabled": false,
@@ -58,7 +64,8 @@
       "delay": 0,
       "mockData": "[\n  {\n    \"rank\": 0,\n    \"username\": \"string\",\n    \"score\": 0,\n    \"totalVotes\": 0,\n    \"accuracy\": 0\n  }\n]",
       "mockMode": "auto",
-      "fakerArraySize": 3
+      "fakerArraySize": 3,
+      "fakerArraySizes": {}
     }
   },
   "mockServerPort": 3457,
