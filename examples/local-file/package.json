@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "specshot:mock": "specshot mock --web",
+    "specshot:generate": "specshot generate",
+    "specshot:init": "specshot init"
+  },
   "dependencies": {
     "specshot": "file:../..",
     "zod": "^3.23.0"

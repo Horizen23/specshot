@@ -2,9 +2,9 @@
   "name": "specshot-petstore",
   "private": true,
   "scripts": {
-    "mock": "specshot mock --proxy http://localhost:3000 --web",
-    "generate": "specshot generate",
-    "init": "specshot init"
+    "specshot:mock": "specshot mock --proxy http://localhost:3000 --web",
+    "specshot:generate": "specshot generate",
+    "specshot:init": "specshot init"
   },
   "dependencies": {
     "specshot": "file:../.."
