@@ -1,6 +1,6 @@
 {
   "name": "specshot",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Fire an OpenAPI spec, get strictly-typed TypeScript code — zero-dependency, Zod-validated, shadcn-style injection",
   "type": "module",
   "main": "dist/cli.js",
