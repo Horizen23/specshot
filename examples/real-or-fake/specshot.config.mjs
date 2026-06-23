@@ -1,10 +1,14 @@
 /** @type {import('specshot').SpecshotConfig} */
 export default {
   coreDir: "client/src/lib/api/core",
-  providerDir: "client/src/lib/api/default",
-  openapiUrl: "./meme.json",
   integration: "none",
   interceptors: ["logger"],
+  apis: {
+    meme: {
+      providerDir: "client/src/lib/api/meme",
+      openapiUrl: "./meme.json",
+    }
+  },
   plugins: [
     {
       name: "meme-faker",

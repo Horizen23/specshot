@@ -34,8 +34,8 @@ This project is configured using `specshot.config.mjs`:
 ```javascript
 export default {
   coreDir: "src/lib/api/core",
-  providerDir: "src/lib/api/default",
-  openapiUrl: "./openapi.json",
+  providerDir: "src/lib/api/petstore",
+  
   integration: "swr",
   interceptors: ["bearer", "logger"],
 };
@@ -44,7 +44,7 @@ export default {
 ## Usage
 
 ```tsx
-import { useApi } from "./lib/api/default/index";
+import { useApi } from "./lib/api/petstore/index";
 
 export function PetList() {
   // Auto-magical SWR hook — fully typed!
@@ -72,7 +72,7 @@ const { data: pet } = useApi.pets.getPet("pet-123");
 ### Mutations (manual)
 
 ```tsx
-import { browserApi } from "./lib/api/default/index";
+import { browserApi } from "./lib/api/petstore/index";
 
 await browserApi.pets.createPet({ name: "Buddy", tag: "dog" });
 // Then revalidate:

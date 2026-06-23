@@ -35,8 +35,8 @@ This project is configured using `specshot.config.mjs`:
 ```javascript
 export default {
   coreDir: "src/lib/api/core",
-  providerDir: "src/lib/api/default",
-  openapiUrl: "http://localhost:8080/openapi.json",
+  providerDir: "src/lib/api/petstore",
+  
   integration: "react-query",
   interceptors: ["bearer", "logger"],
 };
@@ -47,7 +47,7 @@ export default {
 ### Queries (useQuery)
 
 ```tsx
-import { useApi } from "./lib/api/default/index";
+import { useApi } from "./lib/api/petstore/index";
 
 export function PetList() {
   // Auto-magical React Query hook — fully typed!
@@ -76,7 +76,7 @@ const { data: pet } = useApi.pets.getPet("pet-123");
 
 ```tsx
 import { useMutation } from "@tanstack/react-query";
-import { useApi, browserApi } from "./lib/api/default/index";
+import { useApi, browserApi } from "./lib/api/petstore/index";
 
 export function CreatePetForm() {
   const mutation = useMutation({
@@ -102,7 +102,7 @@ export function CreatePetForm() {
 ### Query Key Factory
 
 ```tsx
-import { queryKeys } from "./lib/api/default/hooks";
+import { queryKeys } from "./lib/api/petstore/hooks";
 
 // queryKeys.method("pets", "listPets") → ["api", "pets", "listPets"]
 // queryKeys.service("pets")          → ["api", "pets"]

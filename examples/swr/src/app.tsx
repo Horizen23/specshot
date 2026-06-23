@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useApi, browserApi } from "./lib/api/default/index";
+import { useApi, browserApi } from "./lib/api/petstore/index";
 
 export function PetList() {
   // useApi gives you auto-magical SWR hooks for every API method

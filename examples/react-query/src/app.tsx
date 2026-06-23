@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useApi, browserApi } from "./lib/api/default/index";
+import { useApi, browserApi } from "./lib/api/petstore/index";
 
 export function PetList() {
   // useApi gives you auto-magical React Query hooks for every API method

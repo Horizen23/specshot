@@ -31,7 +31,7 @@ npx tsx src/app.ts
 
 Use a local spec file instead:
 ```bash
-npx specshot generate --file ../local-file/openapi.json --output src/lib/api/default/services
+npx specshot generate --file ../local-file/openapi.json --output src/lib/api/petstore/services
 ```
 
 ## Generated API

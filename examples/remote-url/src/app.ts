@@ -1,5 +1,5 @@
-import { createApiClient } from "./lib/api/default/client";
-import { createApi } from "./lib/api/default/index";
+import { createApiClient } from "./lib/api/petstore/client";
+import { createApi } from "./lib/api/petstore/index";
 
 async function main() {
   const client = createApiClient();
