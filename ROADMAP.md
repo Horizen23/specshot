@@ -26,7 +26,7 @@ This document outlines the planned features and improvements for future releases
   - Run tests or dev environments completely offline using the recorded "cassettes".
   - One-click record/replay toggle from the Web Dashboard.
 
-**4. Interactive CLI (TUI) 💻**
+**4. Interactive CLI (TUI) 💻** ✅
 
 - **Goal:** Make the developer experience frictionless for those who don't want to memorize flags.
 - **Features:**

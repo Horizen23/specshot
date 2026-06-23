@@ -104,5 +104,14 @@ program
 export { program };
 
 if (!process.env.VITEST) {
-  program.parse(process.argv);
+  if (process.argv.length <= 2) {
+    import("./ui/tui").then(({ startTui }) => {
+      startTui().catch((err) => {
+        console.error(err);
+        process.exit(1);
+      });
+    });
+  } else {
+    program.parse(process.argv);
+  }
 }
