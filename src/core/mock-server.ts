@@ -14,7 +14,7 @@ import {
 } from "../types/mock-config";
 import { CONFIG_FILE } from "../types/constants";
 import { flattenEndpoints, groupByTag } from "../utils/openapi-utils";
-import { mockJsonFromSchema } from "../utils/msw-utils";
+import { mockJsonFromSchema, getSchemaTypes } from "../utils/msw-utils";
 import type { OpenApiSpec } from "../types/types";
 import { fileURLToPath } from "url";
 
@@ -402,7 +402,8 @@ export async function startMockWebServer(options: {
               enabled: enabledKeys.has(ep.key),
               config: existingConfig.endpoints?.[ep.key] || null,
               mockExample: mockJsonFromSchema(ep.responseSchema, spec.components?.schemas || {}, new Set(), "auto", 1),
-              mockExampleFaker: mockJsonFromSchema(ep.responseSchema, spec.components?.schemas || {}, new Set(), "faker", existingConfig.endpoints?.[ep.key]?.fakerArraySize || 3, existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {})
+              mockExampleFaker: mockJsonFromSchema(ep.responseSchema, spec.components?.schemas || {}, new Set(), "faker", existingConfig.endpoints?.[ep.key]?.fakerArraySize || 3, existingConfig.endpoints?.[ep.key]?.fakerArraySizes || {}, 'root', existingConfig.endpoints?.[ep.key]?.fakerFormats || {}),
+              schemaTypes: getSchemaTypes(ep.responseSchema, spec.components?.schemas || {})
             })),
           }));
 
@@ -410,6 +411,46 @@ export async function startMockWebServer(options: {
             specSource,
             tags: tagsWithPreSelected,
             totalEndpoints: endpoints.length,
+          });
+          return;
+        }
+
+        if (req.method === "POST" && pathname === "/api/regenerate-faker") {
+          let body = "";
+          req.on("data", (chunk) => (body += chunk));
+          req.on("end", async () => {
+            try {
+              const payload = JSON.parse(body);
+              const specSource = payload.specSource;
+              const key = payload.key;
+              const fakerArraySizes = payload.fakerArraySizes || {};
+              const fakerFormats = payload.fakerFormats || {};
+
+              const spec = await loadSpec(specSource);
+              const endpoints = flattenEndpoints(spec);
+              const ep = endpoints.find(e => e.key === key);
+              
+              if (!ep) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "Endpoint not found" }));
+                return;
+              }
+
+              const mockExampleFaker = mockJsonFromSchema(
+                ep.responseSchema, 
+                spec.components?.schemas || {}, 
+                new Set(), 
+                "faker", 
+                fakerArraySizes['root'] || 3, 
+                fakerArraySizes,
+                'root',
+                fakerFormats
+              );
+              
+              jsonResponse(res, { mockExampleFaker });
+            } catch (err: any) {
+              jsonResponse(res, { error: err.message }, 500);
+            }
           });
           return;
         }

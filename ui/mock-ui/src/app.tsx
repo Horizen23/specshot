@@ -13,6 +13,7 @@ interface EndpointConfig {
   mockMode?: 'auto' | 'faker' | 'manual';
   fakerArraySize?: number;
   fakerArraySizes?: Record<string, number>;
+  fakerFormats?: Record<string, string>;
   errorEnabled?: boolean;
   errorStatus?: number;
   errorBody?: string;
@@ -29,6 +30,8 @@ interface Endpoint {
   config: Partial<EndpointConfig> | null;
   mockExample?: string;
   mockExampleFaker?: string;
+  responseSchema?: any;
+  schemaTypes?: Record<string, string>;
 }
 
 interface TagGroup {
@@ -50,17 +53,46 @@ function highlightJson(json: string): string {
   });
 }
 
-function JsonEditor({ value, onChange, readOnly }: { value: string, onChange: (v: string) => void, readOnly?: boolean }) {
+function JsonEditor({ value, onChange, readOnly, schemaTypes }: { value: string, onChange: (v: string) => void, readOnly?: boolean, schemaTypes?: Record<string, string> }) {
   const [isValid, setIsValid] = useState(true);
+  const [warnings, setWarnings] = useState<string[]>([]);
   
   useEffect(() => {
     try {
-      JSON.parse(value || '{}');
+      const parsed = JSON.parse(value || '{}');
       setIsValid(true);
+      
+      if (schemaTypes) {
+        const newWarnings: string[] = [];
+        const checkTypes = (data: any, path: string) => {
+          if (Array.isArray(data)) {
+            data.forEach((item) => checkTypes(item, `${path}[]`));
+          } else if (data !== null && typeof data === 'object') {
+            for (const key of Object.keys(data)) {
+              checkTypes(data[key], path === 'root' ? key : `${path}.${key}`);
+            }
+          } else {
+            const expectedType = schemaTypes[path];
+            if (expectedType && data !== null) {
+              const actualType = typeof data;
+              let mismatch = false;
+              if (expectedType === 'string' && actualType !== 'string') mismatch = true;
+              if ((expectedType === 'number' || expectedType === 'integer') && actualType !== 'number') mismatch = true;
+              if (expectedType === 'boolean' && actualType !== 'boolean') mismatch = true;
+              if (mismatch) {
+                newWarnings.push(`Type mismatch at "${path}": expected ${expectedType}, got ${actualType}`);
+              }
+            }
+          }
+        };
+        checkTypes(parsed, 'root');
+        setWarnings(newWarnings.slice(0, 5)); // show max 5 warnings to avoid clutter
+      }
     } catch {
       setIsValid(false);
+      setWarnings([]);
     }
-  }, [value]);
+  }, [value, schemaTypes]);
 
   const handleKeyDown = (e: any) => {
     if (e.key === 'Tab') {
@@ -100,9 +132,39 @@ function JsonEditor({ value, onChange, readOnly }: { value: string, onChange: (v
           />
         </div>
       </div>
+      {warnings.length > 0 && (
+        <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(229, 192, 123, 0.1)', border: '1px solid rgba(229, 192, 123, 0.3)', borderRadius: '6px' }}>
+          <div style={{ color: '#e5c07b', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>⚠️ Schema Type Mismatch:</div>
+          {warnings.map(w => <div style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'monospace' }}>• {w}</div>)}
+        </div>
+      )}
     </div>
   );
 }
+
+const FAKER_FORMATS = [
+  { value: '', label: 'Auto' },
+  { value: 'internet.email', label: 'internet.email' },
+  { value: 'internet.url', label: 'internet.url' },
+  { value: 'person.firstName', label: 'person.firstName' },
+  { value: 'person.lastName', label: 'person.lastName' },
+  { value: 'person.fullName', label: 'person.fullName' },
+  { value: 'person.jobTitle', label: 'person.jobTitle' },
+  { value: 'string.uuid', label: 'string.uuid' },
+  { value: 'date.recent', label: 'date.recent' },
+  { value: 'date.past', label: 'date.past' },
+  { value: 'lorem.word', label: 'lorem.word' },
+  { value: 'lorem.sentence', label: 'lorem.sentence' },
+  { value: 'lorem.paragraph', label: 'lorem.paragraph' },
+  { value: 'location.city', label: 'location.city' },
+  { value: 'location.country', label: 'location.country' },
+  { value: 'location.streetAddress', label: 'location.streetAddress' },
+  { value: 'phone.number', label: 'phone.number' },
+  { value: 'commerce.productName', label: 'commerce.productName' },
+  { value: 'commerce.price', label: 'commerce.price' },
+  { value: 'image.url', label: 'image.url' },
+  { value: 'number.int', label: 'number.int' }
+];
 
 function JsonViewerNode({ 
   name, 
@@ -111,7 +173,10 @@ function JsonViewerNode({
   isRoot = false, 
   path = 'root',
   fakerArraySizes = {},
-  onSizeChange
+  fakerFormats = {},
+  schemaTypes = {},
+  onSizeChange,
+  onFormatChange
 }: { 
   name?: string, 
   value: any, 
@@ -119,7 +184,10 @@ function JsonViewerNode({
   isRoot?: boolean,
   path?: string,
   fakerArraySizes?: Record<string, number>,
-  onSizeChange?: (path: string, size: number) => void
+  fakerFormats?: Record<string, string>,
+  schemaTypes?: Record<string, string>,
+  onSizeChange?: (path: string, size: number) => void,
+  onFormatChange?: (path: string, format: string) => void
 }) {
   const isObject = value !== null && typeof value === 'object';
   const isArray = Array.isArray(value);
@@ -149,7 +217,7 @@ function JsonViewerNode({
               {isEmpty ? (isArray ? '[]' : '{}') : (isArray ? '[' : '{')}
             </span>
             {isArray && onSizeChange && (
-              <div style={{ marginLeft: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>size:</span>
                 <input 
                   type="number" 
@@ -175,7 +243,10 @@ function JsonViewerNode({
                   isLast={i === keys.length - 1} 
                   path={childPath}
                   fakerArraySizes={fakerArraySizes}
+                  fakerFormats={fakerFormats}
+                  schemaTypes={schemaTypes}
                   onSizeChange={onSizeChange}
+                  onFormatChange={onFormatChange}
                 />
               );
             })}
@@ -212,28 +283,63 @@ function JsonViewerNode({
     typeLabel = 'Null';
   }
 
+  const expectedType = schemaTypes[path];
+  let isMismatch = false;
+  if (expectedType && value !== null) {
+    const actualType = typeof value;
+    if (expectedType === 'string' && actualType !== 'string') isMismatch = true;
+    if ((expectedType === 'number' || expectedType === 'integer') && actualType !== 'number') isMismatch = true;
+    if (expectedType === 'boolean' && actualType !== 'boolean') isMismatch = true;
+  }
+
   return (
-    <div style={{ marginLeft: '20px', fontFamily: "'SF Mono', monospace", fontSize: '12px', lineHeight: '1.6', display: 'flex' }}>
-      <div style={{ flex: 1 }}>
-        {name && <span style={{ color: '#e06c75' }}>{name}: </span>}
-        <span style={{ color: valueColor }}>{displayValue}</span>
-        {!isLast && <span style={{ color: 'var(--text-muted)' }}>,</span>}
+    <div style={{ marginLeft: isRoot ? '0' : '20px', fontFamily: "'SF Mono', monospace", fontSize: '12px', lineHeight: '1.6', display: 'flex', alignItems: 'center', flexWrap: 'nowrap' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+        <span style={{ width: '16px', display: 'inline-block', flexShrink: 0 }}></span>
+        {name && <span style={{ color: '#e06c75', flexShrink: 0 }}>{name}: </span>}
+        <span style={{ color: valueColor, overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 1 }}>{displayValue}</span>
+        {!isLast && <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>,</span>}
       </div>
-      <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px', marginLeft: '16px', userSelect: 'none' }}>
-        {typeLabel}
+      
+      <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '12px' }}>
+        {onFormatChange && (
+          <select 
+            value={fakerFormats[path] || ''}
+            onChange={(e) => onFormatChange(path, (e.target as HTMLSelectElement).value)}
+            style={{ width: '130px', padding: '2px 4px', fontSize: '10px', background: 'rgba(255,255,255,0.1)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px', cursor: 'pointer' }}
+            title="Faker format"
+          >
+            {FAKER_FORMATS.map(f => (
+              <option key={f.value} value={f.value} style={{ background: '#1e1e1e', color: '#fff' }}>{f.label}</option>
+            ))}
+          </select>
+        )}
+        <div 
+          style={{ color: isMismatch ? '#e5c07b' : 'rgba(255,255,255,0.3)', fontSize: '10px', width: '50px', textAlign: 'right', userSelect: 'none' }}
+          title={isMismatch ? `Warning: Schema expected ${expectedType}` : ''}
+        >
+          {isMismatch && <span style={{ marginRight: '2px' }}>⚠️</span>}
+          {typeLabel}
+        </div>
       </div>
     </div>
   );
 }
 
 function CompassJsonViewer({ 
-  jsonString,
-  fakerArraySizes,
-  onSizeChange
+  jsonString, 
+  fakerArraySizes, 
+  fakerFormats,
+  schemaTypes,
+  onSizeChange,
+  onFormatChange
 }: { 
-  jsonString: string,
+  jsonString: string, 
   fakerArraySizes?: Record<string, number>,
-  onSizeChange?: (path: string, size: number) => void 
+  fakerFormats?: Record<string, string>,
+  schemaTypes?: Record<string, string>,
+  onSizeChange?: (path: string, size: number) => void,
+  onFormatChange?: (path: string, format: string) => void
 }) {
   let parsed = null;
   let error = false;
@@ -262,7 +368,10 @@ function CompassJsonViewer({
         isLast={true} 
         isRoot={true} 
         fakerArraySizes={fakerArraySizes}
+        fakerFormats={fakerFormats}
+        schemaTypes={schemaTypes}
         onSizeChange={onSizeChange}
+        onFormatChange={onFormatChange}
       />
     </div>
   );
@@ -336,6 +445,7 @@ export function App() {
               mockMode: ep.config?.mockMode || 'auto',
               fakerArraySize: ep.config?.fakerArraySize || 3,
               fakerArraySizes: ep.config?.fakerArraySizes || {},
+              fakerFormats: ep.config?.fakerFormats || {},
               errorEnabled: ep.config?.errorEnabled,
               errorStatus: ep.config?.errorStatus,
               errorBody: ep.config?.errorBody
@@ -430,15 +540,22 @@ export function App() {
     if (Array.isArray(data)) {
       if (data.length === 0) return [];
       const size = sizes[path] ?? (path === 'root' ? (sizes['root'] ?? 3) : 3);
-      const template = applyFakerSizes(data[0], sizes, `${path}[]`);
-      return Array.from({ length: size }, (_, i) => {
-        const item = JSON.parse(JSON.stringify(template));
-        if (item && typeof item === 'object' && item.id) {
+      
+      const result = [];
+      for (let i = 0; i < size; i++) {
+        // Preserve existing random elements from backend, fallback to cloning data[0] if resizing larger
+        const sourceItem = i < data.length ? data[i] : data[0];
+        const processedItem = applyFakerSizes(sourceItem, sizes, `${path}[]`);
+        const item = JSON.parse(JSON.stringify(processedItem));
+        
+        // Only munge IDs for newly cloned items
+        if (i >= data.length && item && typeof item === 'object' && item.id) {
           if (typeof item.id === 'number') item.id += i;
           else if (typeof item.id === 'string') item.id = item.id.replace(/-[a-z0-9]+$/, `-${i}`);
         }
-        return item;
-      });
+        result.push(item);
+      }
+      return result;
     } else if (data !== null && typeof data === 'object') {
       const res: any = {};
       for (const key of Object.keys(data)) {
@@ -696,10 +813,56 @@ export function App() {
                                          <h4 style={{ color: 'var(--text)', marginBottom: '4px', fontSize: '13px' }}>Faker.js Data</h4>
                                          <p style={{ color: 'var(--text-muted)', fontSize: '11px', margin: 0 }}>Faker provides an initial random seed. You can edit it manually or regenerate it.</p>
                                        </div>
+                                       <button 
+                                         class="btn outline" 
+                                         style={{ padding: '4px 12px', fontSize: '11px', color: 'var(--accent)', borderColor: 'var(--border)' }}
+                                         onClick={async () => {
+                                           try {
+                                             toast('Regenerating...', 'info');
+                                             const res = await fetch('/api/regenerate-faker', {
+                                               method: 'POST',
+                                               headers: { 'Content-Type': 'application/json' },
+                                               body: JSON.stringify({
+                                                 specSource,
+                                                 key: ep.key,
+                                                 fakerArraySizes: ep.config?.fakerArraySizes || {},
+                                                 fakerFormats: ep.config?.fakerFormats || {}
+                                               })
+                                             });
+                                             const data = await res.json();
+                                             if (data.mockExampleFaker) {
+                                               const updatedTags = tags.map(t => ({
+                                                 ...t,
+                                                 endpoints: t.endpoints.map(e => e.key === ep.key ? { ...e, mockExampleFaker: data.mockExampleFaker } : e)
+                                               }));
+                                               setTags(updatedTags);
+                                               
+                                               let newMockData = ep.config?.mockData || '';
+                                               try {
+                                                 const parsedFaker = JSON.parse(data.mockExampleFaker || 'null');
+                                                 if (parsedFaker !== null) {
+                                                   newMockData = JSON.stringify(applyFakerSizes(parsedFaker, ep.config?.fakerArraySizes || {}), null, 2);
+                                                 }
+                                               } catch (e) {}
+                                               updateEndpointConfig(ep.key, { config: { ...ep.config, mockData: newMockData } });
+                                               
+                                               toast('Regenerated successfully!', 'success');
+                                             } else {
+                                               toast(data.error || 'Failed to regenerate', 'error');
+                                             }
+                                           } catch (err) {
+                                             toast('Failed to regenerate', 'error');
+                                           }
+                                         }}
+                                       >
+                                         Regenerate
+                                       </button>
                                      </div>
                                      <CompassJsonViewer 
                                        jsonString={getPreviewValue(ep)} 
                                        fakerArraySizes={ep.config?.fakerArraySizes || {}}
+                                       fakerFormats={ep.config?.fakerFormats || {}}
+                                       schemaTypes={ep.schemaTypes || {}}
                                        onSizeChange={(path, size) => {
                                          const newSizes = { ...(ep.config?.fakerArraySizes || {}), [path]: size };
                                          let newMockData = ep.config?.mockData || '';
@@ -710,6 +873,9 @@ export function App() {
                                            }
                                          } catch (e) {}
                                          updateEndpointConfig(ep.key, { config: { ...ep.config, fakerArraySizes: newSizes, mockData: newMockData } });
+                                       }}
+                                       onFormatChange={(path, format) => {
+                                         updateEndpointConfig(ep.key, { config: { ...ep.config, fakerFormats: { ...(ep.config?.fakerFormats || {}), [path]: format } } });
                                        }}
                                      />
                                    </div>
@@ -734,6 +900,7 @@ export function App() {
                                      </div>
                                      <JsonEditor 
                                        value={getPreviewValue(ep)} 
+                                       schemaTypes={ep.schemaTypes || {}}
                                        onChange={(v) => updateEndpointConfig(ep.key, { config: { ...ep.config, mockData: v, mockMode: 'manual' } })} 
                                      />
                                    </div>

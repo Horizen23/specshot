@@ -13,6 +13,7 @@ export interface MockEndpointEntry {
   mockMode?: "auto" | "faker" | "manual";
   fakerArraySize?: number; // legacy global
   fakerArraySizes?: Record<string, number>; // per-path sizes
+  fakerFormats?: Record<string, string>;
   errorEnabled?: boolean;
   errorStatus?: number;
   errorBody?: string;

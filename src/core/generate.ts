@@ -450,7 +450,7 @@ export async function generateApi(
             const mockMode = epCfg?.mockMode || "auto";
             if (mockMode === "faker") {
               usesFaker = true;
-              mockResponse = mockValueFromSchema(op.responseSchema, mockMode, schemas, new Set(), epCfg?.fakerArraySize || 3, epCfg?.fakerArraySizes || {});
+              mockResponse = mockValueFromSchema(op.responseSchema, mockMode, schemas, new Set(), epCfg?.fakerArraySize || 3, epCfg?.fakerArraySizes || {}, 'root', epCfg?.fakerFormats || {});
               mockComment = false;
             } else if (epCfg?.mockData) {
               mockResponse = epCfg.mockData;

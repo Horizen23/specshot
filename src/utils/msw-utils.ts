@@ -10,33 +10,30 @@ export function mockValueFromSchema(
   seen: Set<string> = new Set(),
   arraySize: number = 1,
   fakerArraySizes: Record<string, number> = {},
-  path: string = 'root'
+  path: string = 'root',
+  fakerFormats: Record<string, string> = {}
 ): string {
   if (!schema) return "null";
 
   if (schema.$ref) {
     const refName = cleanRefName(schema.$ref);
-    if (mockMode === "faker") {
-      if (seen.has(refName)) return "null";
-      const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === refName);
-      if (schemaKey) {
-        seen.add(refName);
-        return mockValueFromSchema(schemas[schemaKey], mockMode, schemas, seen, arraySize, fakerArraySizes, path);
-      }
+    if (seen.has(refName)) return "null";
+    const schemaKey = Object.keys(schemas).find(
+      (k) => cleanRefName(k) === refName,
+    );
+    if (schemaKey) {
+      if (mockMode !== "faker") seen.add(refName);
+      return mockValueFromSchema(schemas[schemaKey], mockMode, schemas, seen, arraySize, fakerArraySizes, path, fakerFormats);
     }
-    return `{} as ${refName}`;
+    return `{} /* TODO: ${refName} */`;
   }
 
   if (schema.type === "array") {
     if (schema.items) {
-      if (schema.items.$ref && mockMode === "auto") {
-        const refName = cleanRefName(schema.items.$ref);
-        return `[] as ${refName}[]`;
-      }
+      const size = mockMode === "faker" ? (fakerArraySizes[path] ?? (path === 'root' ? (fakerArraySizes['root'] ?? arraySize) : arraySize)) : 1;
       const items = [];
-      const size = mockMode === "faker" ? (fakerArraySizes[path] ?? fakerArraySizes['root'] ?? arraySize) : 1;
       for (let i = 0; i < size; i++) {
-        const itemMock = mockValueFromSchema(schema.items, mockMode, schemas, new Set(seen), arraySize, fakerArraySizes, `${path}[]`);
+        const itemMock = mockValueFromSchema(schema.items, mockMode, schemas, new Set(seen), arraySize, fakerArraySizes, `${path}[]`, fakerFormats);
         const indented = itemMock.split('\n').map(l => `  ${l}`).join('\n');
         items.push(indented);
       }
@@ -48,9 +45,10 @@ export function mockValueFromSchema(
   if (schema.type === "object" || schema.properties) {
     const props = getSchemaPropEntries(schema);
     if (props.length === 0) return "{}";
+
     const entries = props.map(({ safeKey, schema: ps }) => {
-      const fieldPath = path === 'root' ? safeKey : `${path}.${safeKey}`;
-      let value = mockValueFromSchema(ps, mockMode, schemas, new Set(seen), arraySize, fakerArraySizes, fieldPath);
+      const fieldPath = path === 'root' ? safeKey.replace(/^"|"$/g, "") : `${path}.${safeKey.replace(/^"|"$/g, "")}`;
+      let value = mockValueFromSchema(ps, mockMode, schemas, new Set(seen), arraySize, fakerArraySizes, fieldPath, fakerFormats);
       if (value.includes('\n')) {
         const lines = value.split('\n');
         value = lines[0] + '\n' + lines.slice(1).map(l => `  ${l}`).join('\n');
@@ -61,6 +59,11 @@ export function mockValueFromSchema(
   }
 
   if (mockMode === "faker") {
+    const customFormat = fakerFormats[path];
+    if (customFormat) {
+       return `faker.${customFormat}()`;
+    }
+
     if (schema.type === "integer" || schema.type === "number") {
       if (schema.enum) return String(schema.enum[0]);
       return "faker.number.int({ min: 1, max: 1000 })";
@@ -98,7 +101,8 @@ export function mockJsonFromSchema(
   mockMode: "auto" | "faker" = "auto",
   arraySize: number = 1,
   fakerArraySizes: Record<string, number> = {},
-  path: string = 'root'
+  path: string = 'root',
+  fakerFormats: Record<string, string> = {}
 ): string {
   if (!schema) return "null";
 
@@ -110,7 +114,7 @@ export function mockJsonFromSchema(
     );
     if (schemaKey) {
       if (mockMode !== "faker") seen.add(refName);
-      return mockJsonFromSchema(schemas[schemaKey], schemas, seen, mockMode, arraySize, fakerArraySizes, path);
+      return mockJsonFromSchema(schemas[schemaKey], schemas, seen, mockMode, arraySize, fakerArraySizes, path, fakerFormats);
     }
     return `{} // TODO: ${refName}`;
   }
@@ -120,7 +124,7 @@ export function mockJsonFromSchema(
       const items = [];
       const size = mockMode === "faker" ? (fakerArraySizes[path] ?? (path === 'root' ? (fakerArraySizes['root'] ?? arraySize) : arraySize)) : 1;
       for (let i = 0; i < size; i++) {
-        const itemMock = mockJsonFromSchema(schema.items, schemas, new Set(seen), mockMode, arraySize, fakerArraySizes, `${path}[]`);
+        const itemMock = mockJsonFromSchema(schema.items, schemas, new Set(seen), mockMode, arraySize, fakerArraySizes, `${path}[]`, fakerFormats);
         const indented = itemMock.split('\n').map(l => `  ${l}`).join('\n');
         items.push(indented);
       }
@@ -134,7 +138,7 @@ export function mockJsonFromSchema(
     if (props.length === 0) return "{}";
     const entries = props.map(({ safeKey, schema: ps }) => {
       const fieldPath = path === 'root' ? safeKey.replace(/^"|"$/g, "") : `${path}.${safeKey.replace(/^"|"$/g, "")}`;
-      let value = mockJsonFromSchema(ps, schemas, new Set(seen), mockMode, arraySize, fakerArraySizes, fieldPath);
+      let value = mockJsonFromSchema(ps, schemas, new Set(seen), mockMode, arraySize, fakerArraySizes, fieldPath, fakerFormats);
       if (value.includes('\n')) {
         const lines = value.split('\n');
         value = lines[0] + '\n' + lines.slice(1).map(l => `  ${l}`).join('\n');
@@ -145,6 +149,19 @@ export function mockJsonFromSchema(
   }
 
   if (mockMode === "faker") {
+    const customFormat = fakerFormats[path];
+    if (customFormat) {
+      try {
+        const parts = customFormat.split('.');
+        if (parts.length === 2 && (faker as any)[parts[0]] && (faker as any)[parts[0]][parts[1]]) {
+          const val = (faker as any)[parts[0]][parts[1]]();
+          if (typeof val === 'string') return `"${val}"`;
+          if (val instanceof Date) return `"${val.toISOString()}"`;
+          return String(val);
+        }
+      } catch (e) {}
+    }
+
     if (schema.type === "integer" || schema.type === "number") {
       if (schema.enum) return String(schema.enum[0]);
       return String(faker.number.int({ min: 1, max: 1000 }));
@@ -173,4 +190,41 @@ export function mockJsonFromSchema(
   if (schema.type === "boolean") return "false";
 
   return "null";
+}
+
+export function getSchemaTypes(
+  schema: OpenApiSchema | undefined,
+  schemas: Record<string, OpenApiSchema>,
+  seen: Set<string> = new Set(),
+  path: string = 'root',
+  types: Record<string, string> = {}
+): Record<string, string> {
+  if (!schema) return types;
+
+  if (schema.$ref) {
+    const refName = cleanRefName(schema.$ref);
+    if (seen.has(refName)) return types;
+    const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === refName);
+    if (schemaKey) {
+      seen.add(refName);
+      return getSchemaTypes(schemas[schemaKey], schemas, seen, path, types);
+    }
+    return types;
+  }
+
+  if (schema.type) {
+    types[path] = schema.type;
+  }
+
+  if (schema.type === "array" && schema.items) {
+    getSchemaTypes(schema.items, schemas, new Set(seen), `${path}[]`, types);
+  } else if (schema.type === "object" || schema.properties) {
+    const props = getSchemaPropEntries(schema);
+    for (const { safeKey, schema: ps } of props) {
+      const fieldPath = path === 'root' ? safeKey.replace(/^"|"$/g, "") : `${path}.${safeKey.replace(/^"|"$/g, "")}`;
+      getSchemaTypes(ps, schemas, new Set(seen), fieldPath, types);
+    }
+  }
+
+  return types;
 }

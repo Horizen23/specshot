@@ -1,18 +1,23 @@
 {
   "endpoints": {
     "memes-listMemes": {
-      "enabled": false,
+      "enabled": true,
       "tag": "memes",
       "operationId": "listMemes",
       "method": "GET",
       "path": "/memes",
       "statusCode": 200,
       "delay": 0,
-      "mockData": "[\n  {\n    \"id\": \"tibi\",\n    \"imageUrl\": \"verumtamen\",\n    \"caption\": \"vilitas\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 261,\n    \"realVotes\": 40,\n    \"fakeVotes\": 969\n  }\n]",
-      "mockMode": "faker",
+      "mockData": "[\n  {\n    \"id\": \"44cd762c-b0fe-4fa1-b60b-53cf40ca6686\",\n    \"imageUrl\": \"https://picsum.photos/seed/IzKMaAo5g/133/3012\",\n    \"caption\": \"absens\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 947,\n    \"realVotes\": 51,\n    \"fakeVotes\": 631\n  },\n  {\n    \"id\": \"caa7e945-0fac-42ef-86c6-f52aca458c0d\",\n    \"imageUrl\": \"https://picsum.photos/seed/Z7WosHiT/3870/464\",\n    \"caption\": \"adversus\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 408,\n    \"realVotes\": 419,\n    \"fakeVotes\": 541\n  },\n  {\n    \"id\": \"0956e687-2f29-4bde-9d23-b35003375d8c\",\n    \"imageUrl\": \"https://picsum.photos/seed/hq6e8Ch/2858/367\",\n    \"caption\": \"communis\",\n    \"category\": \"news\",\n    \"isReal\": true,\n    \"totalVotes\": 126,\n    \"realVotes\": 743,\n    \"fakeVotes\": 836\n  },\n  {\n    \"id\": \"9cb1a7f9-0286-4392-80e7-412cacbf3a4b\",\n    \"imageUrl\": \"https://picsum.photos/seed/UY4B2/3859/3112\",\n    \"caption\": \"quis\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 294,\n    \"realVotes\": 861,\n    \"fakeVotes\": 390\n  }\n]",
+      "mockMode": "manual",
       "fakerArraySize": 1,
       "fakerArraySizes": {
-        "root": 1
+        "root": 4
+      },
+      "fakerFormats": {
+        "root[].imageUrl": "image.url",
+        "root[].id": "string.uuid",
+        "root[].category": ""
       }
     },
     "memes-createMeme": {
@@ -26,7 +31,8 @@
       "mockData": "null",
       "mockMode": "faker",
       "fakerArraySize": 3,
-      "fakerArraySizes": {}
+      "fakerArraySizes": {},
+      "fakerFormats": {}
     },
     "memes-getMeme": {
       "enabled": false,
@@ -39,7 +45,8 @@
       "mockData": "{\n  \"id\": \"string\",\n  \"imageUrl\": \"string\",\n  \"caption\": \"string\",\n  \"category\": \"news\",\n  \"isReal\": false,\n  \"totalVotes\": 0,\n  \"realVotes\": 0,\n  \"fakeVotes\": 0\n}",
       "mockMode": "auto",
       "fakerArraySize": 3,
-      "fakerArraySizes": {}
+      "fakerArraySizes": {},
+      "fakerFormats": {}
     },
     "memes-voteMeme": {
       "enabled": true,
@@ -52,7 +59,8 @@
       "mockData": "{\n  \"correct\": true,\n  \"isReal\": true,\n  \"score\": 838,\n  \"totalVotes\": 854,\n  \"realVotes\": 205,\n  \"fakeVotes\": 316\n}",
       "mockMode": "faker",
       "fakerArraySize": 3,
-      "fakerArraySizes": {}
+      "fakerArraySizes": {},
+      "fakerFormats": {}
     },
     "leaderboard-getLeaderboard": {
       "enabled": false,
@@ -65,7 +73,8 @@
       "mockData": "[\n  {\n    \"rank\": 0,\n    \"username\": \"string\",\n    \"score\": 0,\n    \"totalVotes\": 0,\n    \"accuracy\": 0\n  }\n]",
       "mockMode": "auto",
       "fakerArraySize": 3,
-      "fakerArraySizes": {}
+      "fakerArraySizes": {},
+      "fakerFormats": {}
     }
   },
   "mockServerPort": 3457,
