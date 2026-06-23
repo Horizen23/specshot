@@ -24,7 +24,7 @@ program
   .description(
     "Fire an OpenAPI spec, get strictly-typed TypeScript code — with Zod validation",
   )
-  .version(pkg.version);
+  .version(pkg.version, "-v, --version", "output the version number");
 
 program
   .command("init")
