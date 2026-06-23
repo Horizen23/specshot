@@ -7,13 +7,34 @@ import { showBanner } from "./banner";
 import fs from "fs";
 import path from "path";
 
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function getVersion(): string {
+  try {
+    let pkgPath = path.join(__dirname, "../../package.json");
+    if (!fs.existsSync(pkgPath)) {
+      pkgPath = path.join(__dirname, "../package.json");
+    }
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+    return pkg.version;
+  } catch (e) {
+    return "2.x";
+  }
+}
+
 function isInitialized(): boolean {
-  return fs.existsSync(path.resolve(process.cwd(), "specshot.config.mjs")) || 
-         fs.existsSync(path.resolve(process.cwd(), "specshot.json"));
+  return (
+    fs.existsSync(path.resolve(process.cwd(), "specshot.config.mjs")) ||
+    fs.existsSync(path.resolve(process.cwd(), "specshot.json"))
+  );
 }
 
 export async function startTui() {
-  showBanner("SpecShot", "The Ultimate API CodeGen");
+  const version = getVersion();
+  showBanner("SpecShot", "The Ultimate API CodeGen", version);
   console.log(chalk.gray(" Welcome to SpecShot Interactive CLI\n"));
 
   const initialized = isInitialized();
@@ -22,26 +43,26 @@ export async function startTui() {
 
   if (!initialized) {
     choices.push({
-      name: `🚀 ${chalk.bold("Initialize Project")} (Scaffold core infrastructure)`,
+      name: `${chalk.bold("Initialize Project")} (Scaffold core infrastructure)`,
       value: "init",
     });
   } else {
     choices.push({
-      name: `🔄 ${chalk.bold("Generate API")} (Update types and services from schema)`,
+      name: `${chalk.bold("Generate API")} (Update types and services from schema)`,
       value: "generate",
     });
     choices.push({
-      name: `🌐 ${chalk.bold("Start Mock Dashboard")} (Interactive Web UI for Mocking)`,
+      name: `${chalk.bold("Start Mock Dashboard")} (Interactive Web UI for Mocking)`,
       value: "mock-web",
     });
     choices.push({
-      name: `🚀 ${chalk.bold("Re-Initialize Project")} (Scaffold core infrastructure)`,
+      name: `${chalk.bold("Re-Initialize Project")} (Scaffold core infrastructure)`,
       value: "init",
     });
   }
 
   choices.push(new inquirer.Separator());
-  choices.push({ name: `❌ ${chalk.red("Exit")}`, value: "exit" });
+  choices.push({ name: chalk.red("Exit"), value: "exit" });
 
   const { action } = await inquirer.prompt([
     {
@@ -66,7 +87,7 @@ export async function startTui() {
       await mockCommand({ web: true });
       break;
     case "exit":
-      console.log(chalk.gray("Goodbye! 👋"));
+      console.log(chalk.gray("Goodbye!"));
       process.exit(0);
   }
 }

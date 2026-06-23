@@ -1,37 +1,46 @@
 import chalk from "chalk";
+import os from "os";
+import figlet from "figlet";
 
-// Utility to count visible characters (ignores ANSI escape codes)
-function stripAnsi(str: string): string {
-  return str.replace(
-    /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
-    "",
-  );
-}
+export function showBanner(title: string, subtitle?: string, version?: string) {
+  const asciiText = figlet.textSync(title, {
+    font: "Small Slant",
+  });
+  const asciiLogo = asciiText
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+    .map((line) => chalk.cyanBright(line));
 
-export function showBanner(title: string, subtitle?: string) {
-  const titleLen = stripAnsi(title).length;
-  const subtitleLen = subtitle ? stripAnsi(subtitle).length : 0;
-  const width = Math.max(titleLen, subtitleLen) + 8;
+  let cwd = process.cwd();
+  const home = os.homedir();
+  if (cwd.startsWith(home)) {
+    cwd = "~" + cwd.slice(home.length);
+  }
 
-  const top = chalk.cyan("╭" + "─".repeat(width) + "╮");
-  const bottom = chalk.cyan("╰" + "─".repeat(width) + "╯");
+  const infoLines = [
+    version ? `v${version}` : "",
+    subtitle || "The Ultimate API CodeGen",
+    "Zero-dependency, Zod-validated",
+    cwd,
+  ];
 
-  const pad = (text: string) => {
-    const textLen = stripAnsi(text).length;
-    const left = Math.floor((width - textLen) / 2);
-    const right = width - textLen - left;
-    return " ".repeat(left) + text + " ".repeat(right);
-  };
+  // ensure infoLines has same length as asciiLogo to prevent undefined
+  while (infoLines.length < asciiLogo.length) {
+    infoLines.push("");
+  }
 
-  console.log(top);
-  console.log(
-    chalk.cyan("│") + pad(chalk.bold.whiteBright(title)) + chalk.cyan("│"),
-  );
-  if (subtitle) {
+  console.log();
+  for (let i = 0; i < asciiLogo.length; i++) {
+    // Add right padding to the logo so info lines align perfectly
+    const rawLine = asciiText.split("\n").filter((line) => line.trim() !== "")[
+      i
+    ];
+    const padLen = Math.max(0, 50 - rawLine.length); // Assuming figlet width is < 50
+    const padding = " ".repeat(padLen);
+
     console.log(
-      chalk.cyan("│") + pad(chalk.dim.italic(subtitle)) + chalk.cyan("│"),
+      `${asciiLogo[i]}${padding}   ${infoLines[i] ? chalk.dim(infoLines[i]) : ""}`,
     );
   }
-  console.log(bottom);
   console.log();
 }
