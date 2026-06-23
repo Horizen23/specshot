@@ -250,7 +250,8 @@ export function useMockConfig() {
           return (
             ep.path.toLowerCase().includes(query) ||
             ep.method.toLowerCase().includes(query) ||
-            (ep.summary || "").toLowerCase().includes(query)
+            (ep.summary || "").toLowerCase().includes(query) ||
+            t.tag.toLowerCase().includes(query)
           );
         }),
       }))

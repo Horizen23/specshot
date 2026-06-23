@@ -8,6 +8,8 @@ import { fileURLToPath } from "url";
 import { loadSpec } from "../../core/spec-loader";
 import { generateApi } from "../../core/generate";
 import { loadUserConfig } from "../../core/config-loader";
+import { showBanner } from "../ui/banner";
+
 import {
   loadMockConfig,
   saveMockConfig,
@@ -32,6 +34,7 @@ export async function mockCommand(options: {
   proxy?: string;
   noOpen?: boolean;
 }) {
+  showBanner("SpecShot", "Mock Server");
   const cwd = process.cwd();
   const config = await loadUserConfig(cwd, options.configPath);
   

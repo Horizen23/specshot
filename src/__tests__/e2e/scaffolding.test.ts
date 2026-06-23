@@ -23,7 +23,7 @@ describe("F1 Scaffolding (init command)", () => {
 
     expect(result.code).toBe(0);
     const combinedOutput = result.stdout + result.stderr;
-    expect(combinedOutput).toContain("Welcome to SpecShot!");
+    expect(combinedOutput).toContain("SpecShot");
     expect(combinedOutput).toContain("API Core installed");
 
     expect(fs.existsSync(path.join(tmpDir, "src/lib/api/core"))).toBe(true);

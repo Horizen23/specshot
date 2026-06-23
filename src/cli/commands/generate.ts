@@ -1,10 +1,12 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import inquirer from "inquirer";
 import ora from "ora";
 import chalk from "chalk";
 import { generateApi } from "../../core/generate";
 import { loadUserConfig } from "../../core/config-loader";
+import { showBanner } from "../ui/banner";
 
 interface GenerateOptions {
   url?: string;
@@ -20,6 +22,8 @@ interface GenerateOptions {
 }
 
 export async function generateCommand(options: GenerateOptions) {
+  showBanner("SpecShot", "API Code Generation");
+
   let url = options.url;
   let file = options.file;
   let outputDir = options.output;

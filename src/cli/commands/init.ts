@@ -8,6 +8,8 @@ import { fileURLToPath } from "url";
 import { generateApi } from "../../core/generate";
 import { DEFAULT_CONFIG_FILE, loadUserConfig } from "../../core/config-loader";
 
+import { showBanner } from "../ui/banner";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -21,7 +23,7 @@ interface InitOptions {
 }
 
 export async function initCommand(options: InitOptions = {}) {
-  console.log(chalk.cyan("Welcome to SpecShot!"));
+  showBanner("SpecShot", "The OpenAPI Code Generator");
 
   const cwd = process.cwd();
   const config = await loadUserConfig(cwd);
@@ -218,7 +220,11 @@ export async function initCommand(options: InitOptions = {}) {
       if (openapiUrl && openapiUrl.trim() !== "") {
         console.log(chalk.cyan(`\nAuto-generating services from ${openapiUrl}...`));
         const outputDir = path.join(targetProviderDir, "services");
-        await generateApi(openapiUrl, outputDir);
+        try {
+          await generateApi(openapiUrl, outputDir);
+        } catch (err) {
+          console.error(chalk.red("\nFailed to generate services:"), err);
+        }
       }
     };
 
