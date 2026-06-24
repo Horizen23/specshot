@@ -42,12 +42,27 @@ export async function handleGenerate(
   const { loadUserConfig } = await import("../config-loader");
   const userConfig = await loadUserConfig(ctx.cwd);
 
+  // Try to find the specific API config based on the outputDir or specSource
+  let finalMswOutputDir = userConfig.mswOutputDir;
+  if (userConfig.apis) {
+    for (const apiConfig of Object.values(userConfig.apis)) {
+      const apiProviderDir = path.resolve(ctx.cwd, apiConfig.providerDir);
+      // If the outputDir (e.g. .../api/meme/services) starts with the api providerDir (e.g. .../api/meme)
+      if (resolvedOutputDir.startsWith(apiProviderDir)) {
+        if (apiConfig.mswOutputDir) {
+          finalMswOutputDir = apiConfig.mswOutputDir;
+        }
+        break;
+      }
+    }
+  }
+
   await generateApi(specSource, resolvedOutputDir, undefined, undefined, {
     msw: true,
     mswOnly: true,
     mswEndpointFilter: selectedSet, // Pass the set directly, even if empty, so disabled mocks are NOT generated
     mswEndpointConfigs: configEndpoints || {},
-    mswOutputDir: userConfig.mswOutputDir ? path.resolve(ctx.cwd, userConfig.mswOutputDir) : undefined,
+    mswOutputDir: finalMswOutputDir ? path.resolve(ctx.cwd, finalMswOutputDir) : undefined,
   });
 
   saveMockConfig(mockConfig, ctx.cwd);

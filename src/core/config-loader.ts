@@ -29,6 +29,7 @@ export interface SpecshotUserConfig {
       openapiUrl: string;
       providerDir: string;
       interceptors?: string[];
+      mswOutputDir?: string;
     }
   >;
 }

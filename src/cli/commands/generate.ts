@@ -70,6 +70,7 @@ export async function generateCommand(options: GenerateOptions) {
           {
             configPath: options.config,
             msw: options.msw,
+            mswOutputDir: apiConfig.mswOutputDir || config.mswOutputDir,
             interceptorsDir: apiConfig.interceptors
               ? path.join(apiConfig.providerDir || "", "interceptors")
               : options.interceptors,
@@ -162,6 +163,7 @@ export async function generateCommand(options: GenerateOptions) {
               dryRun: true,
               configPath: options.config,
               msw: options.msw,
+              mswOutputDir: config.mswOutputDir,
               interceptorsDir: options.interceptors,
             },
           );
@@ -172,6 +174,7 @@ export async function generateCommand(options: GenerateOptions) {
         await generateApi(sourceLabel, targetDir, alias, options.templates, {
           configPath: options.config,
           msw: options.msw,
+          mswOutputDir: config.mswOutputDir,
           interceptorsDir: options.interceptors,
         });
 

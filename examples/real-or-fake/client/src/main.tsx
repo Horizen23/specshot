@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-import { startMocks } from "./lib/api/meme/msw/handlers/browser";
+import { startMocks } from "../.specshot/msw/browser";
 
 async function prepareApp() {
   if (import.meta.env.VITE_USE_MSW === "true") {

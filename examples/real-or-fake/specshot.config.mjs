@@ -9,6 +9,7 @@ export default {
       openapiUrl: "./meme.json",
     },
   },
+  mswOutputDir: "client/.specshot/msw",
   fakerPlugins: [
     {
       name: "meme-faker",
