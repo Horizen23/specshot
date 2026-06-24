@@ -391,6 +391,9 @@ export async function startMockWebServer(options: {
           `Port ${dashboardPort} is in use, trying ${dashboardPort + 1}...`,
         );
         dashboardPort++;
+        if (dashboardPort === mockState.mockServerPort) {
+          dashboardPort++; // Skip the mock server port
+        }
         serverInstance.listen(dashboardPort);
       } else {
         reject(err);
@@ -424,6 +427,8 @@ export async function startMockWebServer(options: {
           }
         });
       }
+
+      startMockServerInternal(cwd, mockState.mockServerPort).catch(console.error);
 
       resolve(serverInstance);
     });
