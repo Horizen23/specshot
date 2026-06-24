@@ -11,8 +11,8 @@ import type { {{#each typeImports}}{{this}}{{#unless @last}}, {{/unless}}{{/each
 /**
  * {{summary}}
  */
-export const {{fnName}} = http.{{httpMethod}}<PathParams<"{{pathPattern}}">>(
-  "{{pathPattern}}",
+export const {{fnName}} = http.{{httpMethod}}<PathParams<"*{{{pathPattern}}}">>(
+  "*{{{pathPattern}}}",
   async ({ params{{#if hasBody}}, request{{/if}} }) => {
     {{#if hasError}}
     return HttpResponse.json(

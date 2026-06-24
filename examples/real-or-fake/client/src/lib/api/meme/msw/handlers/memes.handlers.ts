@@ -5,8 +5,8 @@ import type { memesListMemesResponse } from "../../services/memes.types";
 /**
  * List memes to vote on
  */
-export const listMemesHandler = http.get<PathParams<"/memes">>(
-  "/memes",
+export const listMemesHandler = http.get<PathParams<"*/memes">>(
+  "*/memes",
   async ({ params }) => {
     return HttpResponse.json([] as memesListMemesResponse, { status: 200 });
   },
