@@ -8,7 +8,44 @@ import type { memesListMemesResponse } from "../../services/memes.types";
 export const listMemesHandler = http.get<PathParams<"/memes">>(
   "/memes",
   async ({ params }) => {
-    return HttpResponse.json([] as memesListMemesResponse, { status: 200 });
+    return HttpResponse.json(
+      [
+        {
+          id: "ultra",
+          imageUrl:
+            "https://loremflickr.com/2117/911/meme?lock=3590475628504407",
+          caption: "caput",
+          category: "news",
+          isReal: false,
+          totalVotes: 538,
+          realVotes: 662,
+          fakeVotes: 303,
+        },
+        {
+          id: "cunctatio",
+          imageUrl:
+            "https://loremflickr.com/2410/3432/meme?lock=5253031300156950",
+          caption: "temptatio",
+          category: "news",
+          isReal: true,
+          totalVotes: 793,
+          realVotes: 282,
+          fakeVotes: 310,
+        },
+        {
+          id: "sollers",
+          imageUrl:
+            "https://loremflickr.com/684/3931/meme?lock=2750975146025184",
+          caption: "denego",
+          category: "news",
+          isReal: true,
+          totalVotes: 981,
+          realVotes: 790,
+          fakeVotes: 373,
+        },
+      ],
+      { status: 200 },
+    );
   },
 );
 
