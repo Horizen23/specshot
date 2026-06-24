@@ -6,7 +6,10 @@
     "dev": "vite",
     "dev:mock": "VITE_USE_MSW=true vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "specshot:mock": "specshot mock --proxy http://localhost:3000 --web",
+    "specshot:generate": "specshot generate",
+    "specshot:init": "specshot init"
   },
   "dependencies": {
     "react": "^18.3.1",
