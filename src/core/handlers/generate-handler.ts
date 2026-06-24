@@ -23,8 +23,6 @@ export async function handleGenerate(
   }
 
   const resolvedOutputDir = path.resolve(ctx.cwd, outputDir);
-  const providerDirFromOutput = path.dirname(path.dirname(resolvedOutputDir));
-  const servicesDir = path.join(providerDirFromOutput, "services");
 
   const mockConfig: MockConfigFile = {
     endpoints: configEndpoints || {},
@@ -41,10 +39,9 @@ export async function handleGenerate(
       .map(([k]) => k),
   );
 
-  await generateApi(specSource, servicesDir, undefined, undefined, {
+  await generateApi(specSource, resolvedOutputDir, undefined, undefined, {
     msw: true,
     mswOnly: true,
-    mswOutputDir: resolvedOutputDir,
     mswEndpointFilter: selectedSet.size > 0 ? selectedSet : undefined,
     mswEndpointConfigs: configEndpoints || {},
   });
