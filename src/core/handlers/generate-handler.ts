@@ -42,7 +42,7 @@ export async function handleGenerate(
   await generateApi(specSource, resolvedOutputDir, undefined, undefined, {
     msw: true,
     mswOnly: true,
-    mswEndpointFilter: selectedSet.size > 0 ? selectedSet : undefined,
+    mswEndpointFilter: selectedSet, // Pass the set directly, even if empty, so disabled mocks are NOT generated
     mswEndpointConfigs: configEndpoints || {},
   });
 

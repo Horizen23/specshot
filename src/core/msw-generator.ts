@@ -138,7 +138,15 @@ export function generateMswHandlers(
       });
     }
 
-    if (handlerFns.length === 0) continue;
+    const handlersFilePath = path.join(mswDir, `${tagLowerCase}.handlers.ts`);
+
+    if (handlerFns.length === 0) {
+      if (fs.existsSync(handlersFilePath)) {
+        fs.unlinkSync(handlersFilePath);
+        console.log(`Deleted unused MSW ${tagLowerCase}.handlers.ts`);
+      }
+      continue;
+    }
 
     const handlersData = {
       tag,
@@ -152,7 +160,7 @@ export function generateMswHandlers(
       path.join(mswTemplatesDir, "handlers.hbs"),
     );
     writeGenerated(
-      path.join(mswDir, `${tagLowerCase}.handlers.ts`),
+      handlersFilePath,
       handlersTemplate(handlersData),
     );
     console.log(`Generated MSW ${tagLowerCase}.handlers.ts`);
@@ -160,14 +168,19 @@ export function generateMswHandlers(
     servicesForIndex.push({ tag, tagLowerCase });
   }
 
+  const indexFilePath = path.join(mswDir, "index.ts");
   if (servicesForIndex.length > 0) {
     const indexTemplate = compileTemplate(
       path.join(mswTemplatesDir, "index.hbs"),
     );
     writeGenerated(
-      path.join(mswDir, "index.ts"),
+      indexFilePath,
       indexTemplate({ services: servicesForIndex }),
     );
     console.log("Generated MSW handlers/index.ts");
+  } else if (fs.existsSync(indexFilePath)) {
+    // Generate an empty index if all mocks are disabled
+    writeGenerated(indexFilePath, "export const handlers = [];\n");
+    console.log("Emptied MSW handlers/index.ts");
   }
 }
