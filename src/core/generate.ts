@@ -53,6 +53,7 @@ export async function generateApi(
     mswEndpointFilter?: Set<string>;
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
     interceptorsDir?: string;
+    mswOnly?: boolean;
   },
 ) {
   const userConfig = await loadUserConfig(process.cwd());
@@ -90,28 +91,30 @@ export async function generateApi(
   const modelsPath = path.join(outputDir, "models.ts");
   const modelsCustomCode = extractCustomCode(modelsPath);
 
-  const modelsData = {
-    schemas: Array.from(sharedSchemas).map((name) => {
-      const schemaKey = Object.keys(schemas).find(
-        (k) => cleanRefName(k) === name,
-      );
-      return {
-        name,
-        zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
-      };
-    }),
-    customCode: modelsCustomCode,
-  };
+  if (!opts?.mswOnly) {
+    const modelsData = {
+      schemas: Array.from(sharedSchemas).map((name) => {
+        const schemaKey = Object.keys(schemas).find(
+          (k) => cleanRefName(k) === name,
+        );
+        return {
+          name,
+          zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
+        };
+      }),
+      customCode: modelsCustomCode,
+    };
 
-  const modelsTemplate = compileTemplate(path.join(templatesDir, "models.hbs"));
-  writeGenerated(modelsPath, modelsTemplate(modelsData));
-  console.log(`Generated models.ts (Shared Models)`);
+    const modelsTemplate = compileTemplate(path.join(templatesDir, "models.hbs"));
+    writeGenerated(modelsPath, modelsTemplate(modelsData));
+    console.log(`Generated models.ts (Shared Models)`);
 
-  const schemaAliases = modelsData.schemas
-    .map((s) => `export const ${s.name}Schema = ${s.name};`)
-    .join("\n");
-  if (schemaAliases) {
-    fs.appendFileSync(modelsPath, `\n${schemaAliases}\n`);
+    const schemaAliases = modelsData.schemas
+      .map((s) => `export const ${s.name}Schema = ${s.name};`)
+      .join("\n");
+    if (schemaAliases) {
+      fs.appendFileSync(modelsPath, `\n${schemaAliases}\n`);
+    }
   }
 
   // Group paths by tags
@@ -290,38 +293,40 @@ export async function generateApi(
       });
     }
 
-    const typesPath = path.join(outputDir, typesFileName);
-    const typesCustomCode = extractCustomCode(typesPath);
+    if (!opts?.mswOnly) {
+      const typesPath = path.join(outputDir, typesFileName);
+      const typesCustomCode = extractCustomCode(typesPath);
 
-    const typesData = {
-      tag,
-      imports: Array.from(modelsToImport),
-      specificSchemas: specificSchemasList,
-      operations: operationsList,
-      customCode: typesCustomCode,
-    };
+      const typesData = {
+        tag,
+        imports: Array.from(modelsToImport),
+        specificSchemas: specificSchemasList,
+        operations: operationsList,
+        customCode: typesCustomCode,
+      };
 
-    const typesTemplate = compileTemplate(path.join(templatesDir, "types.hbs"));
-    writeGenerated(typesPath, typesTemplate(typesData));
-    console.log(`Generated ${typesFileName}`);
+      const typesTemplate = compileTemplate(path.join(templatesDir, "types.hbs"));
+      writeGenerated(typesPath, typesTemplate(typesData));
+      console.log(`Generated ${typesFileName}`);
 
-    const servicePath = path.join(outputDir, serviceFileName);
-    const serviceCustomCode = extractCustomCode(servicePath);
+      const servicePath = path.join(outputDir, serviceFileName);
+      const serviceCustomCode = extractCustomCode(servicePath);
 
-    const serviceData = {
-      className,
-      tagPrefix,
-      exportsToReExport: [...Array.from(specificSchemas), ...typeNames],
-      operations: operationsList,
-      corePath: servicesCorePath,
-      customCode: serviceCustomCode,
-    };
+      const serviceData = {
+        className,
+        tagPrefix,
+        exportsToReExport: [...Array.from(specificSchemas), ...typeNames],
+        operations: operationsList,
+        corePath: servicesCorePath,
+        customCode: serviceCustomCode,
+      };
 
-    const serviceTemplate = compileTemplate(
-      path.join(templatesDir, "service.hbs"),
-    );
-    writeGenerated(servicePath, serviceTemplate(serviceData));
-    console.log(`Generated ${serviceFileName}`);
+      const serviceTemplate = compileTemplate(
+        path.join(templatesDir, "service.hbs"),
+      );
+      writeGenerated(servicePath, serviceTemplate(serviceData));
+      console.log(`Generated ${serviceFileName}`);
+    }
   }
 
   // -- MSW handler generation --
@@ -345,17 +350,19 @@ export async function generateApi(
   }
 
   // -- Provider index generation --
-  const interceptorsDir = opts?.interceptorsDir
-    ? path.resolve(process.cwd(), opts.interceptorsDir)
-    : path.join(providerDir, "interceptors");
+  if (!opts?.mswOnly) {
+    const interceptorsDir = opts?.interceptorsDir
+      ? path.resolve(process.cwd(), opts.interceptorsDir)
+      : path.join(providerDir, "interceptors");
 
-  generateProviderIndex({
-    providerDir,
-    interceptorsDir,
-    templatesDir,
-    corePathStr,
-    services,
-  });
+    generateProviderIndex({
+      providerDir,
+      interceptorsDir,
+      templatesDir,
+      corePathStr,
+      services,
+    });
+  }
 
   await formatGeneratedFiles(providerDir);
 

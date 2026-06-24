@@ -43,6 +43,7 @@ export async function handleGenerate(
 
   await generateApi(specSource, servicesDir, undefined, undefined, {
     msw: true,
+    mswOnly: true,
     mswOutputDir: resolvedOutputDir,
     mswEndpointFilter: selectedSet.size > 0 ? selectedSet : undefined,
     mswEndpointConfigs: configEndpoints || {},
