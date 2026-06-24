@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "VITE_USE_MSW=true vite",
     "build": "vite build",
     "preview": "vite preview"
   },

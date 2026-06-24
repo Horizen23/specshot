@@ -15,17 +15,18 @@ export function generateMswHandlers(
   schemas: Record<string, OpenApiSchema>,
   mswDir: string,
   mswTemplatesDir: string,
-  opts: {
+  opts?: {
     mswEndpointFilter?: Set<string>;
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
     fakerPlugins?: FakerPlugin[];
+    providerDir?: string;
   },
 ): void {
   if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
 
   const servicesForIndex: { tag: string; tagLowerCase: string }[] = [];
-  const filter = opts.mswEndpointFilter;
-  const epConfigs = opts.mswEndpointConfigs || {};
+  const filter = opts?.mswEndpointFilter;
+  const epConfigs = opts?.mswEndpointConfigs || {};
 
   for (const [tag, data] of Object.entries(services)) {
     const tagLowerCase = tag.toLowerCase();
@@ -148,12 +149,27 @@ export function generateMswHandlers(
       continue;
     }
 
+    // Compute relative path to the types file.
+    // typesFile = client/src/lib/api/meme/services/memes.types.ts
+    const servicesDir = opts?.providerDir 
+      ? path.join(opts.providerDir, "services") 
+      : path.join(path.dirname(mswDir), "services");
+      
+    const typesFilePath = path.join(servicesDir, `${tagLowerCase}.types`);
+    let typesImportPath = path.relative(mswDir, typesFilePath);
+    if (!typesImportPath.startsWith(".")) {
+      typesImportPath = `./${typesImportPath}`;
+    }
+    // Normalize path separators for Windows
+    typesImportPath = typesImportPath.replace(/\\/g, '/');
+
     const handlersData = {
       tag,
       tagLowerCase,
       handlers: handlerFns,
       typeImports: Array.from(typeImports),
       usesFaker,
+      typesImportPath,
     };
 
     const handlersTemplate = compileTemplate(

@@ -4,7 +4,7 @@ import { http, HttpResponse, type PathParams, delay } from "msw";
 import { faker } from "@faker-js/faker";
 {{/if}}
 {{#if typeImports.length}}
-import type { {{#each typeImports}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from "../../services/{{tagLowerCase}}.types";
+import type { {{#each typeImports}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from "{{{typesImportPath}}}";
 {{/if}}
 
 export function get{{tag}}Handlers(baseUrl: string = "") {

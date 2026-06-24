@@ -21,6 +21,7 @@ export interface SpecshotUserConfig {
   interceptors?: string[];
   alias?: string;
   templates?: string;
+  mswOutputDir?: string;
   fakerPlugins?: FakerPlugin[];
   apis?: Record<
     string,

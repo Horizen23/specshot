@@ -39,11 +39,15 @@ export async function handleGenerate(
       .map(([k]) => k),
   );
 
+  const { loadUserConfig } = await import("../config-loader");
+  const userConfig = await loadUserConfig(ctx.cwd);
+
   await generateApi(specSource, resolvedOutputDir, undefined, undefined, {
     msw: true,
     mswOnly: true,
     mswEndpointFilter: selectedSet, // Pass the set directly, even if empty, so disabled mocks are NOT generated
     mswEndpointConfigs: configEndpoints || {},
+    mswOutputDir: userConfig.mswOutputDir ? path.resolve(ctx.cwd, userConfig.mswOutputDir) : undefined,
   });
 
   saveMockConfig(mockConfig, ctx.cwd);

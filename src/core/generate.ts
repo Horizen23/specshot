@@ -346,6 +346,7 @@ export async function generateApi(
       mswEndpointFilter: opts.mswEndpointFilter,
       mswEndpointConfigs: opts.mswEndpointConfigs,
       fakerPlugins: userConfig.fakerPlugins,
+      providerDir,
     });
   }
 
