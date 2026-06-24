@@ -169,6 +169,8 @@ export function generateMswHandlers(
   }
 
   const indexFilePath = path.join(mswDir, "index.ts");
+  const browserFilePath = path.join(mswDir, "browser.ts");
+  
   if (servicesForIndex.length > 0) {
     const indexTemplate = compileTemplate(
       path.join(mswTemplatesDir, "index.hbs"),
@@ -178,9 +180,21 @@ export function generateMswHandlers(
       indexTemplate({ services: servicesForIndex }),
     );
     console.log("Generated MSW handlers/index.ts");
+
+    const browserTemplate = compileTemplate(
+      path.join(mswTemplatesDir, "browser.hbs"),
+    );
+    writeGenerated(browserFilePath, browserTemplate({}));
+    console.log("Generated MSW handlers/browser.ts");
   } else if (fs.existsSync(indexFilePath)) {
     // Generate an empty index if all mocks are disabled
     writeGenerated(indexFilePath, "export const handlers = [];\n");
     console.log("Emptied MSW handlers/index.ts");
+    
+    // Also clear the browser.ts to avoid startMocks trying to setup Worker with no handlers and failing, though handled by logic
+    if (fs.existsSync(browserFilePath)) {
+      writeGenerated(browserFilePath, "export function startMocks() { return Promise.resolve(); }\n");
+      console.log("Emptied MSW handlers/browser.ts");
+    }
   }
 }
