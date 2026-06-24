@@ -2,7 +2,9 @@
 import { setupWorker } from "msw/browser";
 import { handlers } from "./index";
 
-export function startMocks(options: Parameters<typeof setupWorker>[0]["start"][0] = {}) {
+export function startMocks(
+  options: Parameters<ReturnType<typeof setupWorker>["start"]>[0] = {},
+) {
   if (handlers.length === 0) {
     console.warn("[specshot] No MSW handlers are enabled. Mocking is disabled.");
     return Promise.resolve();

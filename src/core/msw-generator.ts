@@ -193,7 +193,7 @@ export function generateMswHandlers(
     
     // Also clear the browser.ts to avoid startMocks trying to setup Worker with no handlers and failing, though handled by logic
     if (fs.existsSync(browserFilePath)) {
-      writeGenerated(browserFilePath, "export function startMocks() { return Promise.resolve(); }\n");
+      writeGenerated(browserFilePath, "export function startMocks(options?: any) { return Promise.resolve(); }\n");
       console.log("Emptied MSW handlers/browser.ts");
     }
   }

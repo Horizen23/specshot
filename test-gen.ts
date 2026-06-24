@@ -9,6 +9,6 @@ await generateApi(
   {
     msw: true,
     mswOnly: true,
-    mswEndpointFilter: new Set([])
+    mswEndpointFilter: new Set(["memes-listMemes"])
   }
 );
