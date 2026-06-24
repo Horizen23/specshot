@@ -7,36 +7,33 @@ import { faker } from "@faker-js/faker";
 import type { {{#each typeImports}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from "../../services/{{tagLowerCase}}.types";
 {{/if}}
 
-{{#each handlers}}
-/**
- * {{summary}}
- */
-export const {{fnName}} = http.{{httpMethod}}<PathParams<"*{{{pathPattern}}}">>(
-  "*{{{pathPattern}}}",
-  async ({ params{{#if hasBody}}, request{{/if}} }) => {
-    {{#if hasError}}
-    return HttpResponse.json(
-      {{{errorBody}}},
-      { status: {{errorStatus}} }
-    );
-    {{/if}}
-    {{#if hasBody}}
-    const body = await request.json() as {{bodyTypeName}};
-    {{/if}}
-    {{#if delayMs}}
-    await delay({{delayMs}});
-    {{/if}}
-    return HttpResponse.json(
-      {{#if customMockData}}{{{customMockData}}}{{else}}{{{mockResponse}}}{{/if}},
-      { status: {{statusCode}} }
-    );
-  }
-);
-
-{{/each}}
-
-export const {{tag}}Handlers = [
-{{#each handlers}}
-  {{fnName}},
-{{/each}}
-];
+export function get{{tag}}Handlers(baseUrl: string = "") {
+  return [
+    {{#each handlers}}
+    /**
+     * {{summary}}
+     */
+    http.{{httpMethod}}(
+      `${baseUrl}{{{pathPattern}}}`,
+      async ({ params{{#if hasBody}}, request{{/if}} }) => {
+        {{#if hasError}}
+        return HttpResponse.json(
+          {{{errorBody}}},
+          { status: {{errorStatus}} }
+        );
+        {{/if}}
+        {{#if hasBody}}
+        const body = await request.json() as {{bodyTypeName}};
+        {{/if}}
+        {{#if delayMs}}
+        await delay({{delayMs}});
+        {{/if}}
+        return HttpResponse.json(
+          {{#if customMockData}}{{{customMockData}}}{{else}}{{{mockResponse}}}{{/if}},
+          { status: {{statusCode}} }
+        );
+      }
+    ){{#unless @last}},{{/unless}}
+    {{/each}}
+  ];
+}
