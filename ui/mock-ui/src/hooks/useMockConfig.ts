@@ -4,6 +4,7 @@ import type {
   Endpoint,
   EndpointConfig,
   ToastMessage,
+  WebSocketEndpoint,
 } from "../types";
 import * as api from "../api";
 import { applyFakerSizes } from "../utils";
@@ -26,6 +27,8 @@ export function useMockConfig() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [mockOnly, setMockOnly] = useState(false);
+
+  const [wsEndpoints, setWsEndpoints] = useState<WebSocketEndpoint[]>([]);
 
   const toast = (msg: string, type = "success") => {
     setToastMsg({ msg, type });
@@ -51,6 +54,11 @@ export function useMockConfig() {
         setMockServerRunning(data.running);
         if (data.port) setMockServerPort(data.port);
       })
+      .catch(console.error);
+
+    api
+      .fetchWebSocketEndpoints()
+      .then((data) => setWsEndpoints(data.endpoints))
       .catch(console.error);
   }, []);
 
@@ -275,6 +283,44 @@ export function useMockConfig() {
 
   const enabledCount = enabledEndpoints.length;
 
+  const fetchWsEndpoints = async () => {
+    try {
+      const data = await api.fetchWebSocketEndpoints();
+      setWsEndpoints(data.endpoints);
+    } catch (e: any) {
+      toast(e.message, "error");
+    }
+  };
+
+  const addWsEndpoint = async (path: string, description?: string) => {
+    try {
+      await api.saveWebSocketEndpoint({ path, description });
+      await fetchWsEndpoints();
+      toast("WebSocket endpoint added");
+    } catch (e: any) {
+      toast(e.message, "error");
+    }
+  };
+
+  const removeWsEndpoint = async (id: string) => {
+    try {
+      await api.deleteWebSocketEndpoint(id);
+      await fetchWsEndpoints();
+      toast("WebSocket endpoint removed");
+    } catch (e: any) {
+      toast(e.message, "error");
+    }
+  };
+
+  const triggerWsEvent = async (path: string, message: string) => {
+    try {
+      const data = await api.triggerWebSocketEvent({ path, message });
+      toast(`Event sent to ${data.sent} client(s) on ${data.path}`);
+    } catch (e: any) {
+      toast(e.message, "error");
+    }
+  };
+
   return {
     specSource,
     setSpecSource,
@@ -298,6 +344,11 @@ export function useMockConfig() {
     filteredTags,
     enabledEndpoints,
     enabledCount,
+    wsEndpoints,
+    fetchWsEndpoints,
+    addWsEndpoint,
+    removeWsEndpoint,
+    triggerWsEvent,
     loadSpec,
     toggleMockServer,
     updateEndpointConfig,

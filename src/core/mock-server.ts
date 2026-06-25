@@ -26,6 +26,13 @@ import {
   handlePostMockServer,
 } from "./handlers/mock-server-handler";
 import { handleProxy } from "./handlers/proxy-config-handler";
+import { handleUpgrade, setMockServer } from "./ws-connections";
+import {
+  handleGetWebSocket,
+  handlePostWebSocket,
+  handleDeleteWebSocket,
+  handleTriggerWebSocket,
+} from "./handlers/websocket-handler";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -238,12 +245,17 @@ function startMockServerInternal(
       }
     });
 
+    instance.on("upgrade", (req: http.IncomingMessage, socket, head) => {
+      handleUpgrade(req, socket, head);
+    });
+
     instance.listen(port, () => {
       const addr = instance.address();
       const actualPort = typeof addr === "object" && addr ? addr.port : port;
       mockState.mockServerPort = actualPort;
       console.log(`[MockServer] Running on http://localhost:${actualPort}`);
       mockState.mockServer = instance;
+      setMockServer(instance);
       resolve(instance);
     });
   });
@@ -359,6 +371,26 @@ export async function startMockWebServer(options: {
 
         if (req.method === "POST" && pathname === "/api/proxy") {
           await handleProxy(req, res, ctx);
+          return;
+        }
+
+        if (req.method === "GET" && pathname === "/api/websocket") {
+          await handleGetWebSocket(req, res, url, ctx);
+          return;
+        }
+
+        if (req.method === "POST" && pathname === "/api/websocket") {
+          await handlePostWebSocket(req, res, ctx);
+          return;
+        }
+
+        if (req.method === "DELETE" && pathname === "/api/websocket") {
+          await handleDeleteWebSocket(req, res, url, ctx);
+          return;
+        }
+
+        if (req.method === "POST" && pathname === "/api/websocket/trigger") {
+          await handleTriggerWebSocket(req, res, ctx);
           return;
         }
 

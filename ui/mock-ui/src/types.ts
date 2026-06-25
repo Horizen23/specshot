@@ -49,3 +49,11 @@ export interface TestResponse {
   body: string;
   error?: string;
 }
+
+export interface WebSocketEndpoint {
+  id: string;
+  path: string;
+  description?: string;
+  enabled: boolean;
+  connections: number;
+}

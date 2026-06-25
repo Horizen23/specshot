@@ -14,6 +14,9 @@
 .server-port-display {
   font-size: 12px;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .server-port-display .port-number {
   color: var(--text);
@@ -273,48 +276,66 @@
   gap: 24px;
 }
 .test-view-container .section-header {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
   margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 .test-left-col,
 .test-right-col {
   flex: 1;
+  min-width: 0;
 }
 .active-endpoints-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .empty-list-message {
   text-align: center;
-  padding: 32px;
+  padding: 40px 20px;
   color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.empty-list-message small {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
 }
 .active-endpoint-item {
-  padding: 12px 16px;
+  padding: 13px 18px;
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  transition: all var(--transition);
+}
+.active-endpoint-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.active-endpoint-item.selected {
+  border-color: var(--accent);
+  background: rgba(113, 113, 122, 0.06);
 }
 .active-endpoint-status-check {
   font-size: 11px;
   color: var(--green);
+  font-weight: 600;
 }
 
 /* Test Request Panel Forms */
 .test-api-panel {
   background: var(--surface);
-  padding: 20px;
+  padding: 22px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
 }
 .test-api-panel .form-row {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 .test-api-panel .select-row {
   align-items: stretch;
@@ -323,32 +344,61 @@
   align-items: center;
 }
 .test-api-panel .method-select {
-  padding: 8px;
-  background: var(--bg);
+  padding: 9px 12px;
+  background: var(--surface-2);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.test-api-panel .method-select:hover {
+  border-color: var(--border-strong);
 }
 .test-api-panel .endpoint-picker {
   flex: 1;
-  padding: 8px;
-  background: var(--bg);
+  padding: 9px 12px;
+  background: var(--surface-2);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.test-api-panel .endpoint-picker:hover {
+  border-color: var(--border-strong);
 }
 .test-api-panel .form-label {
   font-size: 11px;
   color: var(--text-muted);
   min-width: 44px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .test-api-panel .path-input {
   flex: 1;
-  padding: 8px;
-  background: var(--bg);
+  padding: 9px 12px;
+  background: var(--surface-2);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  transition: all var(--transition);
+}
+.test-api-panel .path-input:focus {
+  border-color: var(--accent);
+}
+.test-api-panel .path-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .form-buttons-row {
   display: flex;
@@ -358,30 +408,127 @@
 /* Response Client Layout */
 .test-response-container {
   margin-top: 16px;
-  background: var(--bg);
+  background: #0d0d10;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 14px;
+  border-radius: var(--radius-sm);
+  padding: 16px;
 }
 .response-error-message {
   color: var(--red);
+  font-size: 13px;
 }
 .response-status-title {
   font-weight: 700;
   font-size: 13px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
 }
 .response-status-title.status-success {
-  color: var(--green);
+  color: #4ade80;
 }
 .response-status-title.status-error {
-  color: var(--red);
+  color: #f87171;
 }
 .response-body-pre {
-  font-family: monospace;
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
   white-space: pre-wrap;
   color: var(--text);
   max-height: 300px;
   overflow: auto;
+}
+
+.ws-connection-count {
+  font-size: 11px;
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.ws-ep-card {
+  flex-wrap: wrap;
+}
+
+.ws-ep-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ws-copy-btn {
+  padding: 3px 7px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  line-height: 1;
+  transition: all var(--transition);
+}
+.ws-copy-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.ws-remove-btn {
+  margin-left: auto;
+  padding: 3px 9px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  line-height: 1;
+  transition: all var(--transition);
+}
+.ws-remove-btn:hover {
+  color: #f87171;
+  border-color: #f87171;
+}
+
+.ws-trigger-url {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: #0d0d10;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.ws-trigger-url code {
+  font-size: 12px;
+  color: #a1a1aa;
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+.ws-server-hint {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.server-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.server-dot.on {
+  background: #4ade80;
+}
+.server-dot.off {
+  background: var(--text-muted);
+  opacity: 0.35;
 }

@@ -113,3 +113,67 @@ export async function sendTestRequest(
     body: text,
   };
 }
+
+export async function fetchWebSocketEndpoints(): Promise<{
+  endpoints: Array<{
+    id: string;
+    path: string;
+    description?: string;
+    enabled: boolean;
+    connections: number;
+  }>;
+}> {
+  const res = await fetch("/api/websocket");
+  if (!res.ok) throw new Error("Failed to fetch WebSocket endpoints");
+  return res.json();
+}
+
+export async function saveWebSocketEndpoint(payload: {
+  path: string;
+  description?: string;
+  enabled?: boolean;
+}): Promise<{
+  endpoint: {
+    id: string;
+    path: string;
+    description?: string;
+    enabled: boolean;
+    connections: number;
+  };
+}> {
+  const res = await fetch("/api/websocket", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to save WebSocket endpoint");
+  return data;
+}
+
+export async function deleteWebSocketEndpoint(
+  id: string,
+): Promise<{ deleted: string }> {
+  const res = await fetch(`/api/websocket?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to delete WebSocket endpoint");
+  return data;
+}
+
+export async function triggerWebSocketEvent(payload: {
+  path: string;
+  message: string;
+}): Promise<{ sent: number; path: string; error?: string }> {
+  const res = await fetch("/api/websocket/trigger", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok && !data.sent) {
+    throw new Error(data.error || "Failed to trigger WebSocket event");
+  }
+  return data;
+}

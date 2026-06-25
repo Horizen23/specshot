@@ -19,8 +19,15 @@ export interface MockEndpointEntry {
   errorBody?: string;
 }
 
+export interface WebSocketEndpointEntry {
+  path: string;
+  description?: string;
+  enabled: boolean;
+}
+
 export interface MockConfigFile {
   endpoints: Record<string, MockEndpointEntry>;
+  webSocketEndpoints?: Record<string, WebSocketEndpointEntry>;
   outputDir?: string;
   specSource?: string;
   lastGenerated?: string;
