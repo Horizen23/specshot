@@ -74,7 +74,7 @@ npx specshot init
 ```bash
 npx specshot init \
   --core-dir src/lib/api/core \
-  --provider-dir src/lib/api/default \
+  --provider-dir src/lib/api/petstore \
   --integration react-query \
   --interceptors bearer,logger \
   --url http://localhost:8080/openapi.json
@@ -220,9 +220,9 @@ Control generated file names via `fileNaming` in config:
 ```javascript
 export default {
   apis: {
-    default: {
+    petstore: {
       openapiUrl: "./openapi.json",
-      providerDir: "src/lib/api/default",
+      providerDir: "src/lib/api/petstore",
       fileNaming: {
         models: "schemas",                          // → schemas.ts
         service: "{{pascalCase tag}}Service",       // → PetsService.ts
@@ -305,8 +305,8 @@ export default {
 
   // Define your APIs
   apis: {
-    default: {
-      providerDir: "src/lib/api/default",
+    petstore: {
+      providerDir: "src/lib/api/petstore",
       // openapiUrl supports:
       // 1. Backend URL (e.g., "http://localhost:8080/openapi.json")
       // 2. Local File (e.g., "./openapi.json")

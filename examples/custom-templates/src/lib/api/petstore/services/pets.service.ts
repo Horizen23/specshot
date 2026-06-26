@@ -5,18 +5,18 @@
 import type {
   Pet,
   CreatePetRequest,
-  petsListPetsResponse,
-  petsCreatePetPayload,
-  petsCreatePetResponse,
-  petsGetPetResponse,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
 } from "./pets.types";
 export type {
   Pet,
   CreatePetRequest,
-  petsListPetsResponse,
-  petsCreatePetPayload,
-  petsCreatePetResponse,
-  petsGetPetResponse,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
 } from "./pets.types";
 
 import { ApiError } from "./models";
@@ -40,12 +40,12 @@ export function getBaseUrl(): string {
  * listPets
  * List all pets
  * @param init — Optional fetch init (headers, signal, etc.)
- * @returns `Promise<petsListPetsResponse>`
+ * @returns `Promise<PetsListPetsResponse>`
  * @throws {ApiError} On non-2xx response
  */
 export async function listPets(
   init?: RequestInit,
-): Promise<petsListPetsResponse> {
+): Promise<PetsListPetsResponse> {
   let _url = `${_baseUrl}/pets`;
   const _res = await fetch(_url, {
     method: "get",
@@ -59,7 +59,7 @@ export async function listPets(
       _errBody,
     );
   }
-  return _res.json() as Promise<petsListPetsResponse>;
+  return _res.json() as Promise<PetsListPetsResponse>;
 }
 
 /**
@@ -68,13 +68,13 @@ export async function listPets(
 
  * @param body — Request body
  * @param init — Optional fetch init (headers, signal, etc.)
- * @returns `Promise<petsCreatePetResponse>`
+ * @returns `Promise<PetsCreatePetResponse>`
  * @throws {ApiError} On non-2xx response
  */
 export async function createPet(
-  body: petsCreatePetPayload,
+  body: PetsCreatePetPayload,
   init?: RequestInit,
-): Promise<petsCreatePetResponse> {
+): Promise<PetsCreatePetResponse> {
   let _url = `${_baseUrl}/pets`;
   const _res = await fetch(_url, {
     method: "post",
@@ -90,7 +90,7 @@ export async function createPet(
       _errBody,
     );
   }
-  return _res.json() as Promise<petsCreatePetResponse>;
+  return _res.json() as Promise<PetsCreatePetResponse>;
 }
 
 /**
@@ -98,13 +98,13 @@ export async function createPet(
  * Get a pet by ID
  * @param petId — Path parameter
  * @param init — Optional fetch init (headers, signal, etc.)
- * @returns `Promise<petsGetPetResponse>`
+ * @returns `Promise<PetsGetPetResponse>`
  * @throws {ApiError} On non-2xx response
  */
 export async function getPet(
   petId: string | number,
   init?: RequestInit,
-): Promise<petsGetPetResponse> {
+): Promise<PetsGetPetResponse> {
   let _url = `${_baseUrl}/pets/${petId}`;
   const _res = await fetch(_url, {
     method: "get",
@@ -118,7 +118,7 @@ export async function getPet(
       _errBody,
     );
   }
-  return _res.json() as Promise<petsGetPetResponse>;
+  return _res.json() as Promise<PetsGetPetResponse>;
 }
 
 // --- CUSTOM CODE START ---

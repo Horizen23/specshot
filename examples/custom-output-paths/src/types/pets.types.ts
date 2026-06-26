@@ -14,13 +14,13 @@ export type CreatePetRequest = {
 
 // -- Request & Response Types --
 
-export type petsListPetsResponse = Pet[];
+export type PetsListPetsResponse = Pet[];
 
-export type petsCreatePetPayload = CreatePetRequest;
+export type PetsCreatePetPayload = CreatePetRequest;
 
-export type petsCreatePetResponse = Pet;
+export type PetsCreatePetResponse = Pet;
 
-export type petsGetPetResponse = Pet;
+export type PetsGetPetResponse = Pet;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

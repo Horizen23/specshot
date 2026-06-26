@@ -6,12 +6,12 @@ import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
   LeaderboardEntry,
-  leaderboardGetLeaderboardResponse,
+  LeaderboardGetLeaderboardResponse,
 } from "./leaderboard.types";
 
-export type { LeaderboardEntry, leaderboardGetLeaderboardResponse };
+export type { LeaderboardEntry, LeaderboardGetLeaderboardResponse };
 
-export class leaderboardService extends BaseService<"leaderboard"> {
+export class LeaderboardService extends BaseService<"leaderboard"> {
   constructor(client: ApiClient) {
     super(client, "leaderboard");
   }
@@ -21,7 +21,7 @@ export class leaderboardService extends BaseService<"leaderboard"> {
    * Get top players by score
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `leaderboardGetLeaderboardResponse` (null on error)
+   *   - `data`: `LeaderboardGetLeaderboardResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -37,8 +37,8 @@ export class leaderboardService extends BaseService<"leaderboard"> {
    */
   public getLeaderboard(
     config?: AppRequestConfig,
-  ): Promise<ApiResult<leaderboardGetLeaderboardResponse, AppApiErrorData>> {
-    return this.client.get<leaderboardGetLeaderboardResponse, AppApiErrorData>(
+  ): Promise<ApiResult<LeaderboardGetLeaderboardResponse, AppApiErrorData>> {
+    return this.client.get<LeaderboardGetLeaderboardResponse, AppApiErrorData>(
       `/leaderboard`,
       this.withSignal(config),
     );

@@ -26,18 +26,18 @@ export const LoginResultSchema = z.object({
 export type LoginResult = z.infer<typeof LoginResultSchema>;
 
 // -- Request & Response Types --
-export type userCreateUserPayload = CreateUserRequest;
+export type UserCreateUserPayload = CreateUserRequest;
 
-export type userCreateUserResponse = User;
+export type UserCreateUserResponse = User;
 
-export type userLoginUserParams = {
+export type UserLoginUserParams = {
   username: string;
   password: string;
 };
 
-export type userLoginUserResponse = LoginResult;
+export type UserLoginUserResponse = LoginResult;
 
-export type userGetUserResponse = User;
+export type UserGetUserResponse = User;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

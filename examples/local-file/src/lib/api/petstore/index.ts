@@ -6,17 +6,11 @@ export * from "./interceptors";
 
 export * from "./services/pets.service";
 import { PetsService } from "./services/pets.service";
-export * from "./services/store.service";
-import { StoreService } from "./services/store.service";
-export * from "./services/user.service";
-import { UserService } from "./services/user.service";
 
 export function createApi(client: ApiClient) {
   return {
     client,
     pets: new PetsService(client),
-    store: new StoreService(client),
-    user: new UserService(client),
   } as const;
 }
 

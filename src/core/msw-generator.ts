@@ -106,7 +106,7 @@ export function generateMswHandlers(
               epCfg?.fakerArraySizes || {},
               "root",
               epCfg?.fakerFormats || {},
-              opts.fakerPlugins || [],
+              opts?.fakerPlugins || [],
             );
             mockComment = false;
           } else if (epCfg?.mockData) {

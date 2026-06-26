@@ -13,7 +13,7 @@ export type LeaderboardEntry = z.infer<typeof LeaderboardEntrySchema>;
 
 // -- Request & Response Types --
 
-export type leaderboardGetLeaderboardResponse = LeaderboardEntry[];
+export type LeaderboardGetLeaderboardResponse = LeaderboardEntry[];
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

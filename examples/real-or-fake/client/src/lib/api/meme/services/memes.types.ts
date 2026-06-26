@@ -39,22 +39,22 @@ export type VoteResult = z.infer<typeof VoteResultSchema>;
 
 // -- Request & Response Types --
 
-export type memesListMemesParams = {
+export type MemesListMemesParams = {
   limit?: number;
   category?: "news" | "history" | "science" | "pop-culture";
 };
 
-export type memesListMemesResponse = Meme[];
+export type MemesListMemesResponse = Meme[];
 
-export type memesCreateMemePayload = CreateMemeRequest;
+export type MemesCreateMemePayload = CreateMemeRequest;
 
-export type memesCreateMemeResponse = void;
+export type MemesCreateMemeResponse = void;
 
-export type memesGetMemeResponse = Meme;
+export type MemesGetMemeResponse = Meme;
 
-export type memesVoteMemePayload = VoteRequest;
+export type MemesVoteMemePayload = VoteRequest;
 
-export type memesVoteMemeResponse = VoteResult;
+export type MemesVoteMemeResponse = VoteResult;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

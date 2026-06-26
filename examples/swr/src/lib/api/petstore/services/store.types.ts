@@ -28,13 +28,13 @@ export type CreateOrderRequest = z.infer<typeof CreateOrderRequestSchema>;
 
 // -- Request & Response Types --
 
-export type storeListStoresResponse = Store[];
+export type StoreListStoresResponse = Store[];
 
-export type storePlaceOrderPayload = CreateOrderRequest;
+export type StorePlaceOrderPayload = CreateOrderRequest;
 
-export type storePlaceOrderResponse = Order;
+export type StorePlaceOrderResponse = Order;
 
-export type storeGetOrderResponse = Order;
+export type StoreGetOrderResponse = Order;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

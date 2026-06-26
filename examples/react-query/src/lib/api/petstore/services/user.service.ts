@@ -8,25 +8,25 @@ import type {
   User,
   CreateUserRequest,
   LoginResult,
-  userCreateUserPayload,
-  userCreateUserResponse,
-  userLoginUserParams,
-  userLoginUserResponse,
-  userGetUserResponse,
+  UserCreateUserPayload,
+  UserCreateUserResponse,
+  UserLoginUserParams,
+  UserLoginUserResponse,
+  UserGetUserResponse,
 } from "./user.types";
 
 export type {
   User,
   CreateUserRequest,
   LoginResult,
-  userCreateUserPayload,
-  userCreateUserResponse,
-  userLoginUserParams,
-  userLoginUserResponse,
-  userGetUserResponse,
+  UserCreateUserPayload,
+  UserCreateUserResponse,
+  UserLoginUserParams,
+  UserLoginUserResponse,
+  UserGetUserResponse,
 };
 
-export class userService extends BaseService<"user"> {
+export class UserService extends BaseService<"user"> {
   constructor(client: ApiClient) {
     super(client, "user");
   }
@@ -38,7 +38,7 @@ export class userService extends BaseService<"user"> {
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `userCreateUserResponse` (null on error)
+   *   - `data`: `UserCreateUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -53,10 +53,10 @@ export class userService extends BaseService<"user"> {
    * // use `data` safely here
    */
   public createUser(
-    payload: userCreateUserPayload,
+    payload: UserCreateUserPayload,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<userCreateUserResponse, AppApiErrorData>> {
-    return this.client.post<userCreateUserResponse, AppApiErrorData>(
+  ): Promise<ApiResult<UserCreateUserResponse, AppApiErrorData>> {
+    return this.client.post<UserCreateUserResponse, AppApiErrorData>(
       `/user`,
       payload,
       this.withSignal(config),
@@ -68,7 +68,7 @@ export class userService extends BaseService<"user"> {
    * Login a user
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `userLoginUserResponse` (null on error)
+   *   - `data`: `UserLoginUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -84,10 +84,10 @@ export class userService extends BaseService<"user"> {
    */
   public loginUser(
     config?: Omit<AppRequestConfig, "params"> & {
-      params?: userLoginUserParams;
+      params?: UserLoginUserParams;
     },
-  ): Promise<ApiResult<userLoginUserResponse, AppApiErrorData>> {
-    return this.client.get<userLoginUserResponse, AppApiErrorData>(
+  ): Promise<ApiResult<UserLoginUserResponse, AppApiErrorData>> {
+    return this.client.get<UserLoginUserResponse, AppApiErrorData>(
       `/user/login`,
       this.withSignal(config),
     );
@@ -99,7 +99,7 @@ export class userService extends BaseService<"user"> {
    * @param username - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `userGetUserResponse` (null on error)
+   *   - `data`: `UserGetUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -116,8 +116,8 @@ export class userService extends BaseService<"user"> {
   public getUser(
     username: string | number,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<userGetUserResponse, AppApiErrorData>> {
-    return this.client.get<userGetUserResponse, AppApiErrorData>(
+  ): Promise<ApiResult<UserGetUserResponse, AppApiErrorData>> {
+    return this.client.get<UserGetUserResponse, AppApiErrorData>(
       `/user/${username}`,
       this.withSignal(config),
     );
@@ -125,5 +125,6 @@ export class userService extends BaseService<"user"> {
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
+
   // --- CUSTOM CODE END ---
 }

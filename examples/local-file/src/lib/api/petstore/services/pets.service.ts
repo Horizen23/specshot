@@ -5,122 +5,119 @@ import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  Store,
-  Order,
-  CreateOrderRequest,
-  StoreListStoresResponse,
-  StorePlaceOrderPayload,
-  StorePlaceOrderResponse,
-  StoreGetOrderResponse,
-} from "./store.types";
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
 
 export type {
-  Store,
-  Order,
-  CreateOrderRequest,
-  StoreListStoresResponse,
-  StorePlaceOrderPayload,
-  StorePlaceOrderResponse,
-  StoreGetOrderResponse,
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
 };
 
-export class StoreService extends BaseService<"store"> {
+export class PetsService extends BaseService<"pets"> {
   constructor(client: ApiClient) {
-    super(client, "store");
+    super(client, "pets");
   }
 
   /**
-   * listStores
-   * List all stores
+   * listPets
+   * List all pets
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `StoreListStoresResponse` (null on error)
+   *   - `data`: `PetsListPetsResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const { data, error, ok } = await api.store.listStores(...);
+   * const { data, error, ok } = await api.pets.listPets(...);
    * if (!ok) {
    *   console.error(error.message);
    *   return;
    * }
    * // use `data` safely here
    */
-  public listStores(
+  public listPets(
     config?: AppRequestConfig,
-  ): Promise<ApiResult<StoreListStoresResponse, AppApiErrorData>> {
-    return this.client.get<StoreListStoresResponse, AppApiErrorData>(
-      `/stores`,
+  ): Promise<ApiResult<PetsListPetsResponse, AppApiErrorData>> {
+    return this.client.get<PetsListPetsResponse, AppApiErrorData>(
+      `/pets`,
       this.withSignal(config),
     );
   }
 
   /**
-   * placeOrder
-   * Place an order for a pet
+   * createPet
+   * Create a pet
 
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `StorePlaceOrderResponse` (null on error)
+   *   - `data`: `PetsCreatePetResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const { data, error, ok } = await api.store.placeOrder(...);
+   * const { data, error, ok } = await api.pets.createPet(...);
    * if (!ok) {
    *   console.error(error.message);
    *   return;
    * }
    * // use `data` safely here
    */
-  public placeOrder(
-    payload: StorePlaceOrderPayload,
+  public createPet(
+    payload: PetsCreatePetPayload,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<StorePlaceOrderResponse, AppApiErrorData>> {
-    return this.client.post<StorePlaceOrderResponse, AppApiErrorData>(
-      `/store/order`,
+  ): Promise<ApiResult<PetsCreatePetResponse, AppApiErrorData>> {
+    return this.client.post<PetsCreatePetResponse, AppApiErrorData>(
+      `/pets`,
       payload,
       this.withSignal(config),
     );
   }
 
   /**
-   * getOrder
-   * Find purchase order by ID
-   * @param orderId - Path parameter
+   * getPet
+   * Get a pet by ID
+   * @param petId - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `StoreGetOrderResponse` (null on error)
+   *   - `data`: `PetsGetPetResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const { data, error, ok } = await api.store.getOrder(...);
+   * const { data, error, ok } = await api.pets.getPet(...);
    * if (!ok) {
    *   console.error(error.message);
    *   return;
    * }
    * // use `data` safely here
    */
-  public getOrder(
-    orderId: string | number,
+  public getPet(
+    petId: string | number,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<StoreGetOrderResponse, AppApiErrorData>> {
-    return this.client.get<StoreGetOrderResponse, AppApiErrorData>(
-      `/store/order/${orderId}`,
+  ): Promise<ApiResult<PetsGetPetResponse, AppApiErrorData>> {
+    return this.client.get<PetsGetPetResponse, AppApiErrorData>(
+      `/pets/${petId}`,
       this.withSignal(config),
     );
   }
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
-
   // --- CUSTOM CODE END ---
 }

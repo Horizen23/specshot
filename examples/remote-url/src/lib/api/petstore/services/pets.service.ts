@@ -5,24 +5,24 @@ import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  Pet,
   CreatePetRequest,
-  petsListPetsResponse,
-  petsCreatePetPayload,
-  petsCreatePetResponse,
-  petsGetPetResponse,
+  PetsListPetsParams,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
 } from "./pets.types";
 
 export type {
-  Pet,
   CreatePetRequest,
-  petsListPetsResponse,
-  petsCreatePetPayload,
-  petsCreatePetResponse,
-  petsGetPetResponse,
+  PetsListPetsParams,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
 };
 
-export class petsService extends BaseService<"pets"> {
+export class PetsService extends BaseService<"pets"> {
   constructor(client: ApiClient) {
     super(client, "pets");
   }
@@ -32,7 +32,7 @@ export class petsService extends BaseService<"pets"> {
    * List all pets
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `petsListPetsResponse` (null on error)
+   *   - `data`: `PetsListPetsResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -47,9 +47,9 @@ export class petsService extends BaseService<"pets"> {
    * // use `data` safely here
    */
   public listPets(
-    config?: AppRequestConfig,
-  ): Promise<ApiResult<petsListPetsResponse, AppApiErrorData>> {
-    return this.client.get<petsListPetsResponse, AppApiErrorData>(
+    config?: Omit<AppRequestConfig, "params"> & { params?: PetsListPetsParams },
+  ): Promise<ApiResult<PetsListPetsResponse, AppApiErrorData>> {
+    return this.client.get<PetsListPetsResponse, AppApiErrorData>(
       `/pets`,
       this.withSignal(config),
     );
@@ -62,7 +62,7 @@ export class petsService extends BaseService<"pets"> {
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `petsCreatePetResponse` (null on error)
+   *   - `data`: `PetsCreatePetResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -77,10 +77,10 @@ export class petsService extends BaseService<"pets"> {
    * // use `data` safely here
    */
   public createPet(
-    payload: petsCreatePetPayload,
+    payload: PetsCreatePetPayload,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<petsCreatePetResponse, AppApiErrorData>> {
-    return this.client.post<petsCreatePetResponse, AppApiErrorData>(
+  ): Promise<ApiResult<PetsCreatePetResponse, AppApiErrorData>> {
+    return this.client.post<PetsCreatePetResponse, AppApiErrorData>(
       `/pets`,
       payload,
       this.withSignal(config),
@@ -93,7 +93,7 @@ export class petsService extends BaseService<"pets"> {
    * @param petId - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `petsGetPetResponse` (null on error)
+   *   - `data`: `PetsGetPetResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -110,8 +110,8 @@ export class petsService extends BaseService<"pets"> {
   public getPet(
     petId: string | number,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<petsGetPetResponse, AppApiErrorData>> {
-    return this.client.get<petsGetPetResponse, AppApiErrorData>(
+  ): Promise<ApiResult<PetsGetPetResponse, AppApiErrorData>> {
+    return this.client.get<PetsGetPetResponse, AppApiErrorData>(
       `/pets/${petId}`,
       this.withSignal(config),
     );
@@ -119,5 +119,6 @@ export class petsService extends BaseService<"pets"> {
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
+
   // --- CUSTOM CODE END ---
 }

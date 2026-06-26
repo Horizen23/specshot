@@ -9,13 +9,13 @@ import type {
   CreateMemeRequest,
   VoteRequest,
   VoteResult,
-  memesListMemesParams,
-  memesListMemesResponse,
-  memesCreateMemePayload,
-  memesCreateMemeResponse,
-  memesGetMemeResponse,
-  memesVoteMemePayload,
-  memesVoteMemeResponse,
+  MemesListMemesParams,
+  MemesListMemesResponse,
+  MemesCreateMemePayload,
+  MemesCreateMemeResponse,
+  MemesGetMemeResponse,
+  MemesVoteMemePayload,
+  MemesVoteMemeResponse,
 } from "./memes.types";
 
 export type {
@@ -23,16 +23,16 @@ export type {
   CreateMemeRequest,
   VoteRequest,
   VoteResult,
-  memesListMemesParams,
-  memesListMemesResponse,
-  memesCreateMemePayload,
-  memesCreateMemeResponse,
-  memesGetMemeResponse,
-  memesVoteMemePayload,
-  memesVoteMemeResponse,
+  MemesListMemesParams,
+  MemesListMemesResponse,
+  MemesCreateMemePayload,
+  MemesCreateMemeResponse,
+  MemesGetMemeResponse,
+  MemesVoteMemePayload,
+  MemesVoteMemeResponse,
 };
 
-export class memesService extends BaseService<"memes"> {
+export class MemesService extends BaseService<"memes"> {
   constructor(client: ApiClient) {
     super(client, "memes");
   }
@@ -42,7 +42,7 @@ export class memesService extends BaseService<"memes"> {
    * List memes to vote on
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `memesListMemesResponse` (null on error)
+   *   - `data`: `MemesListMemesResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -58,10 +58,10 @@ export class memesService extends BaseService<"memes"> {
    */
   public listMemes(
     config?: Omit<AppRequestConfig, "params"> & {
-      params?: memesListMemesParams;
+      params?: MemesListMemesParams;
     },
-  ): Promise<ApiResult<memesListMemesResponse, AppApiErrorData>> {
-    return this.client.get<memesListMemesResponse, AppApiErrorData>(
+  ): Promise<ApiResult<MemesListMemesResponse, AppApiErrorData>> {
+    return this.client.get<MemesListMemesResponse, AppApiErrorData>(
       `/memes`,
       this.withSignal(config),
     );
@@ -74,7 +74,7 @@ export class memesService extends BaseService<"memes"> {
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `memesCreateMemeResponse` (null on error)
+   *   - `data`: `MemesCreateMemeResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -89,10 +89,10 @@ export class memesService extends BaseService<"memes"> {
    * // use `data` safely here
    */
   public createMeme(
-    payload: memesCreateMemePayload,
+    payload: MemesCreateMemePayload,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<memesCreateMemeResponse, AppApiErrorData>> {
-    return this.client.post<memesCreateMemeResponse, AppApiErrorData>(
+  ): Promise<ApiResult<MemesCreateMemeResponse, AppApiErrorData>> {
+    return this.client.post<MemesCreateMemeResponse, AppApiErrorData>(
       `/memes`,
       payload,
       this.withSignal(config),
@@ -105,7 +105,7 @@ export class memesService extends BaseService<"memes"> {
    * @param memeId - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `memesGetMemeResponse` (null on error)
+   *   - `data`: `MemesGetMemeResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -122,8 +122,8 @@ export class memesService extends BaseService<"memes"> {
   public getMeme(
     memeId: string | number,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<memesGetMemeResponse, AppApiErrorData>> {
-    return this.client.get<memesGetMemeResponse, AppApiErrorData>(
+  ): Promise<ApiResult<MemesGetMemeResponse, AppApiErrorData>> {
+    return this.client.get<MemesGetMemeResponse, AppApiErrorData>(
       `/memes/${memeId}`,
       this.withSignal(config),
     );
@@ -137,7 +137,7 @@ export class memesService extends BaseService<"memes"> {
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `memesVoteMemeResponse` (null on error)
+   *   - `data`: `MemesVoteMemeResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -153,10 +153,10 @@ export class memesService extends BaseService<"memes"> {
    */
   public voteMeme(
     memeId: string | number,
-    payload: memesVoteMemePayload,
+    payload: MemesVoteMemePayload,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<memesVoteMemeResponse, AppApiErrorData>> {
-    return this.client.post<memesVoteMemeResponse, AppApiErrorData>(
+  ): Promise<ApiResult<MemesVoteMemeResponse, AppApiErrorData>> {
+    return this.client.post<MemesVoteMemeResponse, AppApiErrorData>(
       `/memes/${memeId}/vote`,
       payload,
       this.withSignal(config),

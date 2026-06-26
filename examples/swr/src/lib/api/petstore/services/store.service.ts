@@ -8,23 +8,23 @@ import type {
   Store,
   Order,
   CreateOrderRequest,
-  storeListStoresResponse,
-  storePlaceOrderPayload,
-  storePlaceOrderResponse,
-  storeGetOrderResponse,
+  StoreListStoresResponse,
+  StorePlaceOrderPayload,
+  StorePlaceOrderResponse,
+  StoreGetOrderResponse,
 } from "./store.types";
 
 export type {
   Store,
   Order,
   CreateOrderRequest,
-  storeListStoresResponse,
-  storePlaceOrderPayload,
-  storePlaceOrderResponse,
-  storeGetOrderResponse,
+  StoreListStoresResponse,
+  StorePlaceOrderPayload,
+  StorePlaceOrderResponse,
+  StoreGetOrderResponse,
 };
 
-export class storeService extends BaseService<"store"> {
+export class StoreService extends BaseService<"store"> {
   constructor(client: ApiClient) {
     super(client, "store");
   }
@@ -34,7 +34,7 @@ export class storeService extends BaseService<"store"> {
    * List all stores
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `storeListStoresResponse` (null on error)
+   *   - `data`: `StoreListStoresResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -50,8 +50,8 @@ export class storeService extends BaseService<"store"> {
    */
   public listStores(
     config?: AppRequestConfig,
-  ): Promise<ApiResult<storeListStoresResponse, AppApiErrorData>> {
-    return this.client.get<storeListStoresResponse, AppApiErrorData>(
+  ): Promise<ApiResult<StoreListStoresResponse, AppApiErrorData>> {
+    return this.client.get<StoreListStoresResponse, AppApiErrorData>(
       `/stores`,
       this.withSignal(config),
     );
@@ -64,7 +64,7 @@ export class storeService extends BaseService<"store"> {
    * @param payload - Request body
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `storePlaceOrderResponse` (null on error)
+   *   - `data`: `StorePlaceOrderResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -79,10 +79,10 @@ export class storeService extends BaseService<"store"> {
    * // use `data` safely here
    */
   public placeOrder(
-    payload: storePlaceOrderPayload,
+    payload: StorePlaceOrderPayload,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<storePlaceOrderResponse, AppApiErrorData>> {
-    return this.client.post<storePlaceOrderResponse, AppApiErrorData>(
+  ): Promise<ApiResult<StorePlaceOrderResponse, AppApiErrorData>> {
+    return this.client.post<StorePlaceOrderResponse, AppApiErrorData>(
       `/store/order`,
       payload,
       this.withSignal(config),
@@ -95,7 +95,7 @@ export class storeService extends BaseService<"store"> {
    * @param orderId - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `storeGetOrderResponse` (null on error)
+   *   - `data`: `StoreGetOrderResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
@@ -112,8 +112,8 @@ export class storeService extends BaseService<"store"> {
   public getOrder(
     orderId: string | number,
     config?: AppRequestConfig,
-  ): Promise<ApiResult<storeGetOrderResponse, AppApiErrorData>> {
-    return this.client.get<storeGetOrderResponse, AppApiErrorData>(
+  ): Promise<ApiResult<StoreGetOrderResponse, AppApiErrorData>> {
+    return this.client.get<StoreGetOrderResponse, AppApiErrorData>(
       `/store/order/${orderId}`,
       this.withSignal(config),
     );
@@ -121,5 +121,6 @@ export class storeService extends BaseService<"store"> {
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
+
   // --- CUSTOM CODE END ---
 }

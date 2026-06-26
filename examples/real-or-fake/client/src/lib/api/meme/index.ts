@@ -7,15 +7,15 @@ import { createApiHooks } from "./hooks";
 export * from "./interceptors";
 
 export * from "./services/memes.service";
-import { memesService } from "./services/memes.service";
+import { MemesService } from "./services/memes.service";
 export * from "./services/leaderboard.service";
-import { leaderboardService } from "./services/leaderboard.service";
+import { LeaderboardService } from "./services/leaderboard.service";
 
 export function createApi(client: ApiClient) {
   return {
     client,
-    memes: new memesService(client),
-    leaderboard: new leaderboardService(client),
+    memes: new MemesService(client),
+    leaderboard: new LeaderboardService(client),
   } as const;
 }
 

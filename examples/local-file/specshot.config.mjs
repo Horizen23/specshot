@@ -4,8 +4,8 @@ export default {
   integration: "none",
   interceptors: [],
   apis: {
-    default: {
-      providerDir: "src/lib/api/default",
+    petstore: {
+      providerDir: "src/lib/api/petstore",
       openapiUrl: "./openapi.json",
     }
   },
