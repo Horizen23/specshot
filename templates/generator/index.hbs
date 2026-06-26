@@ -9,8 +9,8 @@ import { createApiHooks } from "{{{indexHooksPath}}}";
 export * from "{{{interceptorsPath}}}";
 
 {{#each tags}}
-export * from "{{{../indexServiceDir}}}/{{this.tag}}.service";
-import { {{this.className}} } from "{{{../indexServiceDir}}}/{{this.tag}}.service";
+export * from "{{{../indexServiceDir}}}/{{this.serviceFile}}";
+import { {{this.className}} } from "{{{../indexServiceDir}}}/{{this.serviceFile}}";
 {{/each}}
 
 export function createApi(client: ApiClient) {

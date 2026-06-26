@@ -1,0 +1,11 @@
+{
+  "name": "specshot-naming-helpers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "specshot:generate": "specshot generate --file ./openapi.json --output src/services --templates ./templates"
+  },
+  "dependencies": {
+    "specshot": "file:../.."
+  }
+}

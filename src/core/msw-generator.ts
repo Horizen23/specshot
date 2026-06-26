@@ -35,7 +35,7 @@ export function generateMswHandlers(
 ): void {
   if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
 
-  const servicesForIndex: { tag: string; tagLowerCase: string }[] = [];
+  const servicesForIndex: { tag: string; tagLowerCase: string; capTag: string }[] = [];
   const filter = opts?.mswEndpointFilter;
   const epConfigs = opts?.mswEndpointConfigs || {};
 
@@ -64,7 +64,8 @@ export function generateMswHandlers(
 
       const methodName = toMethodName(op.operationId);
       const capMethod = capitalize(methodName);
-      const typeNameResponse = `${tag}${capMethod}Response`;
+      const capTag = capitalize(tag);
+      const typeNameResponse = `${capTag}${capMethod}Response`;
 
       let responseTypeName: string | null = null;
       let mockResponse: string;
@@ -126,7 +127,7 @@ export function generateMswHandlers(
       let bodyTypeName: string | null = null;
       let typeNamePayload: string | null = null;
       if (op.hasBody) {
-        typeNamePayload = `${tag}${capMethod}Payload`;
+        typeNamePayload = `${capTag}${capMethod}Payload`;
         bodyTypeName = typeNamePayload;
         typeImports.add(typeNamePayload);
       }
@@ -177,6 +178,7 @@ export function generateMswHandlers(
 
     const handlersData = {
       tag,
+      capTag: capitalize(tag),
       tagLowerCase,
       handlers: handlerFns,
       typeImports: Array.from(typeImports),
@@ -198,7 +200,7 @@ export function generateMswHandlers(
     );
     console.log(`Generated MSW ${tagLowerCase}.handlers.ts`);
 
-    servicesForIndex.push({ tag, tagLowerCase });
+    servicesForIndex.push({ tag, tagLowerCase, capTag: capitalize(tag) });
   }
 
   const indexFilePath = path.join(mswDir, "index.ts");

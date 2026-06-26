@@ -29,6 +29,7 @@ export function generateProviderIndex(params: {
   indexHooksPath?: string;
   indexServiceDir?: string;
   servicesDir?: string;
+  serviceFileNames?: Record<string, string>;
 }): void {
   const {
     providerDir,
@@ -43,6 +44,7 @@ export function generateProviderIndex(params: {
     indexClientPath,
     indexHooksPath,
     indexServiceDir,
+    serviceFileNames,
   } = params;
 
   const actualIndexDir = indexDir || providerDir;
@@ -122,6 +124,7 @@ export function generateProviderIndex(params: {
     tags: Object.keys(services).map((t) => ({
       tag: t.toLowerCase(),
       className: toClassName(t),
+      serviceFile: serviceFileNames?.[t] || `${t.toLowerCase()}.service`,
     })),
     interceptors: interceptorImports,
     customCode: indexCustomCode,

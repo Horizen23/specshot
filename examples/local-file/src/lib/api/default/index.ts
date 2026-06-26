@@ -5,12 +5,12 @@ export * from "./client";
 export * from "./interceptors";
 
 export * from "./services/pets.service";
-import { petsService } from "./services/pets.service";
+import { PetsService } from "./services/pets.service";
 
 export function createApi(client: ApiClient) {
   return {
     client,
-    pets: new petsService(client),
+    pets: new PetsService(client),
   } as const;
 }
 

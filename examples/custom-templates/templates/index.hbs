@@ -7,7 +7,7 @@ export * from "./hooks";
 {{/if}}
 
 {{#each tags}}
-export * from "./services/{{this.tag}}.service";
+export * from "./services/{{this.serviceFile}}";
 {{/each}}
 
 // --- CUSTOM CODE START ---

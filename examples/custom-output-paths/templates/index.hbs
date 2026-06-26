@@ -2,7 +2,7 @@
 // Simply re-exports everything from services.
 
 {{#each tags}}
-export * from "{{{../indexServiceDir}}}/{{this.tag}}.service";
+export * from "{{{../indexServiceDir}}}/{{this.serviceFile}}";
 {{/each}}
 
 // --- CUSTOM CODE START ---

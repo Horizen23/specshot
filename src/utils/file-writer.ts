@@ -1,6 +1,38 @@
 import fs from "fs";
 import path from "path";
 import Handlebars from "handlebars";
+import {
+  capitalize,
+  toCamelCase,
+  toPascalCase,
+  toKebabCase,
+  toSnakeCase,
+  toLowerCase,
+  toUpperCase,
+} from "./naming-utils";
+
+let helpersRegistered = false;
+
+function registerNamingHelpers(): void {
+  if (helpersRegistered) return;
+  helpersRegistered = true;
+
+  Handlebars.registerHelper("capitalize", capitalize);
+  Handlebars.registerHelper("camelCase", toCamelCase);
+  Handlebars.registerHelper("pascalCase", toPascalCase);
+  Handlebars.registerHelper("kebabCase", toKebabCase);
+  Handlebars.registerHelper("snakeCase", toSnakeCase);
+  Handlebars.registerHelper("toLowerCase", toLowerCase);
+  Handlebars.registerHelper("toUpperCase", toUpperCase);
+
+  Handlebars.registerHelper("ifEq", function (this: unknown, a: unknown, b: unknown, opts: { fn: (ctx: unknown) => string; inverse: (ctx: unknown) => string }) {
+    return a === b ? opts.fn(this) : opts.inverse(this);
+  });
+
+  Handlebars.registerHelper("ifNeq", function (this: unknown, a: unknown, b: unknown, opts: { fn: (ctx: unknown) => string; inverse: (ctx: unknown) => string }) {
+    return a !== b ? opts.fn(this) : opts.inverse(this);
+  });
+}
 
 export function extractCustomCode(filePath: string): string | null {
   if (!fs.existsSync(filePath)) return null;
@@ -15,6 +47,7 @@ export function extractCustomCode(filePath: string): string | null {
 }
 
 export function compileTemplate(hbsPath: string): Handlebars.TemplateDelegate {
+  registerNamingHelpers();
   try {
     const hbs = fs.readFileSync(hbsPath, "utf8");
     return Handlebars.compile(hbs);

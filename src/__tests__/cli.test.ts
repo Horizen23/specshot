@@ -463,7 +463,7 @@ describe("CLI", () => {
         path.join(outputDir, "tasks.service.ts"),
         "utf8",
       );
-      expect(svcContent).toContain("CLI-TPL tasksService service");
+      expect(svcContent).toContain("CLI-TPL TasksService service");
 
       const indexContent = fs.readFileSync(
         path.join(path.dirname(outputDir), "index.ts"),

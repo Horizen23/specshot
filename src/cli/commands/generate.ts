@@ -188,6 +188,7 @@ export async function generateCommand(options: GenerateOptions) {
               ? path.join(apiConfig.providerDir || "", "interceptors")
               : options.interceptors,
             outputPaths: apiConfig.outputPaths,
+            fileNaming: apiConfig.fileNaming,
           },
         );
         console.log(
@@ -217,7 +218,7 @@ export async function generateCommand(options: GenerateOptions) {
     outputDir = path.join(firstApi.providerDir, "services");
   if (!alias && config.alias) alias = config.alias;
 
-  if (firstApi) {
+  if (firstApi && !hasCustomTemplates(options, config.templates)) {
     ensureInfrastructure(config, options, firstApi, "default");
   }
 

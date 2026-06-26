@@ -1,0 +1,16 @@
+{
+  "name": "specshot-design-patterns",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "specshot:init": "specshot init",
+    "specshot:generate": "node generate-all.mjs",
+    "specshot:generate:singleton": "specshot generate --output src/singleton --template-service ./templates/singleton-service.hbs",
+    "specshot:generate:factory": "specshot generate --output src/factory --template-service ./templates/factory-service.hbs",
+    "specshot:generate:observer": "specshot generate --output src/observer --template-service ./templates/observer-service.hbs",
+    "specshot:generate:builder": "specshot generate --output src/builder --template-service ./templates/builder-service.hbs"
+  },
+  "dependencies": {
+    "specshot": "file:../.."
+  }
+}

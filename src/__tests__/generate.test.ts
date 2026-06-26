@@ -61,7 +61,7 @@ describe("generateApi", () => {
       path.join(outputDir, "pets.service.ts"),
       "utf8",
     );
-    expect(petsService).toContain("class petsService");
+    expect(petsService).toContain("class PetsService");
     expect(petsService).toContain("listPets");
     expect(petsService).toContain("createPet");
     expect(petsService).toContain("getPet");
@@ -70,7 +70,7 @@ describe("generateApi", () => {
       path.join(outputDir, "stores.service.ts"),
       "utf8",
     );
-    expect(storesService).toContain("class storesService");
+    expect(storesService).toContain("class StoresService");
     expect(storesService).toContain("listStores");
   });
 
@@ -518,7 +518,7 @@ import { BaseService } from "{{corePath}}/base-service";
       path.join(tplOut, "notes.service.ts"),
       "utf8",
     );
-    expect(serviceContent).toContain("CUSTOM-TPL notesService service");
+    expect(serviceContent).toContain("CUSTOM-TPL NotesService service");
 
     const indexContent = fs.readFileSync(
       path.join(path.dirname(tplOut), "index.ts"),

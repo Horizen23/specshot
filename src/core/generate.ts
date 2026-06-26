@@ -32,8 +32,8 @@ import {
   resolveTemplatePath,
 } from "../utils/file-writer";
 import { loadSpec } from "./spec-loader";
-import { loadUserConfig, relModulePath, computeCorePath } from "./config-loader";
-import type { TemplateOverrides, OutputPaths } from "./config-loader";
+import { loadUserConfig, relModulePath, computeCorePath, renderFileName } from "./config-loader";
+import type { TemplateOverrides, OutputPaths, FileNaming } from "./config-loader";
 import { formatGeneratedFiles } from "../utils/formatter";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { generateMswHandlers } from "./msw-generator";
@@ -57,6 +57,7 @@ export async function generateApi(
     interceptorsDir?: string;
     mswOnly?: boolean;
     outputPaths?: OutputPaths;
+    fileNaming?: FileNaming;
   },
 ) {
   const userConfig = await loadUserConfig(process.cwd());
@@ -134,9 +135,17 @@ export async function generateApi(
   const usesOutputDir = !opts?.outputPaths?.models || !opts?.outputPaths?.types || !opts?.outputPaths?.services;
   if (usesOutputDir && !fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
+  // ── Resolve file names (with optional naming templates) ──
+  const modelsFileName = renderFileName(
+    opts?.fileNaming?.models,
+    "models.ts",
+    {},
+  );
+  const modelsNoExt = modelsFileName.replace(/\.ts$/, "");
+
   // ── Compute relative module paths for cross-file imports ──
-  const modelsModulePath = relModulePath(typesDir, modelsDir, "models");
-  const serviceModelsModulePath = relModulePath(servicesDir, modelsDir, "models");
+  const modelsModulePath = relModulePath(typesDir, modelsDir, modelsNoExt);
+  const serviceModelsModulePath = relModulePath(servicesDir, modelsDir, modelsNoExt);
   const serviceProviderTypesPath = relModulePath(servicesDir, providerDir, "types");
   const indexProviderTypesPath = relModulePath(indexDir, providerDir, "types");
   const indexClientPath = relModulePath(indexDir, providerDir, "client");
@@ -146,7 +155,7 @@ export async function generateApi(
   const servicesCorePath = computeCorePath(servicesDir, providerDir, importAlias, userConfig.coreDir);
 
   // GENERATE SHARED MODELS (models.ts)
-  const modelsPath = path.join(modelsDir, "models.ts");
+  const modelsPath = path.join(modelsDir, modelsFileName);
   const modelsCustomCode = extractCustomCode(modelsPath);
 
   if (!opts?.mswOnly) {
@@ -173,7 +182,7 @@ export async function generateApi(
       ),
     );
     writeGenerated(modelsPath, modelsTemplate(modelsData));
-    console.log(`Generated models.ts (Shared Models)`);
+    console.log(`Generated ${modelsFileName} (Shared Models)`);
 
     const schemaAliases = modelsData.schemas
       .map((s) => `export const ${s.name}Schema = ${s.name};`)
@@ -214,8 +223,17 @@ export async function generateApi(
   for (const [tag, data] of Object.entries(services)) {
     const className = toClassName(tag);
     const tagPrefix = tag.toLowerCase();
-    const serviceFileName = `${tagPrefix}.service.ts`;
-    const typesFileName = `${tagPrefix}.types.ts`;
+    const namingContext = { tag, tagPrefix, className };
+    const serviceFileName = renderFileName(
+      opts?.fileNaming?.service,
+      `${tagPrefix}.service.ts`,
+      namingContext,
+    );
+    const typesFileName = renderFileName(
+      opts?.fileNaming?.types,
+      `${tagPrefix}.types.ts`,
+      namingContext,
+    );
 
     const modelsToImport = new Set<string>();
     const specificSchemasList: { name: string; zod: string; tsType: string }[] = [];
@@ -245,11 +263,12 @@ export async function generateApi(
     for (const op of data.operations) {
       const methodName = toMethodName(op.operationId);
       const capMethod = capitalize(methodName);
+      const capTag = capitalize(tag);
 
       let typeNamePayload: string | null = null;
       let bodyType = "any";
       if (op.hasBody) {
-        typeNamePayload = `${tag}${capMethod}Payload`;
+        typeNamePayload = `${capTag}${capMethod}Payload`;
         typeNames.push(typeNamePayload);
         if (op.bodySchema?.$ref) {
           const refName = cleanRefName(op.bodySchema.$ref);
@@ -267,7 +286,7 @@ export async function generateApi(
         tsType: string;
       }[] = [];
       if (op.hasQuery) {
-        typeNameParams = `${tag}${capMethod}Params`;
+        typeNameParams = `${capTag}${capMethod}Params`;
         typeNames.push(typeNameParams);
         const queryParams = op.parameters.filter((p) => p.in === "query");
         for (const p of queryParams) {
@@ -279,7 +298,7 @@ export async function generateApi(
         }
       }
 
-      const typeNameResponse = `${tag}${capMethod}Response`;
+      const typeNameResponse = `${capTag}${capMethod}Response`;
       typeNames.push(typeNameResponse);
       let resType = "void";
       if (op.responseSchema?.$ref) {
@@ -380,11 +399,12 @@ export async function generateApi(
       const servicePath = path.join(servicesDir, serviceFileName);
       const serviceCustomCode = extractCustomCode(servicePath);
 
-      const typesModulePath = relModulePath(servicesDir, typesDir, `${tagPrefix}.types`);
+      const typesModulePath = relModulePath(servicesDir, typesDir, typesFileName.replace(/\.ts$/, ""));
 
       const serviceData = {
         className,
         tagPrefix,
+        tagLowerCase: tagPrefix,
         exportsToReExport: [...Array.from(specificSchemas), ...typeNames],
         operations: operationsList,
         corePath: servicesCorePath,
@@ -460,6 +480,19 @@ export async function generateApi(
       ? path.resolve(process.cwd(), opts.interceptorsDir)
       : path.join(providerDir, "interceptors");
 
+    // Build map of tag → service file name (without extension) for index template
+    const serviceFileNames: Record<string, string> = {};
+    for (const tag of Object.keys(services)) {
+      const tagPrefix = tag.toLowerCase();
+      const namingCtx = { tag, tagPrefix, className: toClassName(tag) };
+      const sfName = renderFileName(
+        opts?.fileNaming?.service,
+        `${tagPrefix}.service.ts`,
+        namingCtx,
+      );
+      serviceFileNames[tag] = sfName.replace(/\.ts$/, "");
+    }
+
     generateProviderIndex({
       providerDir,
       indexDir,
@@ -474,6 +507,7 @@ export async function generateApi(
       indexHooksPath,
       indexServiceDir,
       servicesDir,
+      serviceFileNames,
     });
   }
 

@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
+import Handlebars from "handlebars";
 import type { Faker } from "@faker-js/faker";
 import type { OpenApiSchema } from "../types/types";
 
@@ -39,6 +40,13 @@ export interface OutputPaths {
   index?: string;
 }
 
+export interface FileNaming {
+  models?: string;
+  service?: string;
+  types?: string;
+  index?: string;
+}
+
 export interface SpecshotUserConfig {
   coreDir?: string;
   integration?: string;
@@ -55,6 +63,7 @@ export interface SpecshotUserConfig {
       interceptors?: string[];
       mswOutputDir?: string;
       outputPaths?: OutputPaths;
+      fileNaming?: FileNaming;
     }
   >;
 }
@@ -144,4 +153,19 @@ export function computeCorePath(
   let rel = path.relative(fromDir, targetCore).replace(/\\/g, "/");
   if (!rel.startsWith(".")) rel = "./" + rel;
   return rel;
+}
+
+export function renderFileName(
+  template: string | undefined,
+  defaultName: string,
+  context: Record<string, unknown>,
+): string {
+  if (!template) return defaultName;
+  try {
+    const compiled = Handlebars.compile(template);
+    const result = compiled(context);
+    return result || defaultName;
+  } catch {
+    return defaultName;
+  }
 }
