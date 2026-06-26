@@ -15,12 +15,36 @@ export interface FakerPlugin {
   generate: (faker: Faker, context: FakerPluginContext) => unknown;
 }
 
+export interface MswTemplateOverrides {
+  dir?: string;
+  handlers?: string;
+  index?: string;
+  browser?: string;
+}
+
+export interface TemplateOverrides {
+  dir?: string;
+  models?: string;
+  types?: string;
+  service?: string;
+  index?: string;
+  "interceptors-index"?: string;
+  msw?: MswTemplateOverrides;
+}
+
+export interface OutputPaths {
+  models?: string;
+  services?: string;
+  types?: string;
+  index?: string;
+}
+
 export interface SpecshotUserConfig {
   coreDir?: string;
   integration?: string;
   interceptors?: string[];
   alias?: string;
-  templates?: string;
+  templates?: string | TemplateOverrides;
   mswOutputDir?: string;
   fakerPlugins?: FakerPlugin[];
   apis?: Record<
@@ -30,6 +54,7 @@ export interface SpecshotUserConfig {
       providerDir: string;
       interceptors?: string[];
       mswOutputDir?: string;
+      outputPaths?: OutputPaths;
     }
   >;
 }
@@ -93,4 +118,30 @@ export function resolveCorePaths(
     ? `${importAlias}/core`
     : "../" + corePathStr;
   return { corePathStr, servicesCorePath };
+}
+
+export function relModulePath(
+  fromDir: string,
+  toDir: string,
+  toFileNoExt: string,
+): string {
+  let rel = path.relative(fromDir, toDir).replace(/\\/g, "/");
+  if (!rel) rel = ".";
+  if (!rel.startsWith(".")) rel = "./" + rel;
+  return toFileNoExt ? `${rel}/${toFileNoExt}` : rel;
+}
+
+export function computeCorePath(
+  fromDir: string,
+  providerDir: string,
+  importAlias: string | undefined,
+  coreDir?: string,
+): string {
+  if (importAlias) return `${importAlias}/core`;
+  const targetCore = coreDir
+    ? path.resolve(process.cwd(), coreDir)
+    : path.join(providerDir, "core");
+  let rel = path.relative(fromDir, targetCore).replace(/\\/g, "/");
+  if (!rel.startsWith(".")) rel = "./" + rel;
+  return rel;
 }

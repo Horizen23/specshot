@@ -29,9 +29,11 @@ import {
   extractCustomCode,
   compileTemplate,
   writeGenerated,
+  resolveTemplatePath,
 } from "../utils/file-writer";
 import { loadSpec } from "./spec-loader";
-import { loadUserConfig, resolveCorePaths } from "./config-loader";
+import { loadUserConfig, relModulePath, computeCorePath } from "./config-loader";
+import type { TemplateOverrides, OutputPaths } from "./config-loader";
 import { formatGeneratedFiles } from "../utils/formatter";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { generateMswHandlers } from "./msw-generator";
@@ -44,7 +46,7 @@ export async function generateApi(
   specSource: string,
   outputDir: string,
   importAlias?: string,
-  templatesDirOverride?: string,
+  templatesOverride?: string | TemplateOverrides,
   opts?: {
     dryRun?: boolean;
     configPath?: string;
@@ -54,6 +56,7 @@ export async function generateApi(
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
     interceptorsDir?: string;
     mswOnly?: boolean;
+    outputPaths?: OutputPaths;
   },
 ) {
   const userConfig = await loadUserConfig(process.cwd());
@@ -69,8 +72,6 @@ export async function generateApi(
     return Object.keys(spec.paths).length;
   }
 
-  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-
   // Resolve which schemas are shared (models.ts) vs tag-local
   const schemas = spec.components?.schemas || {};
   const { sharedSchemas, tagSchemas } = resolveSchemaOwnership(spec);
@@ -83,12 +84,69 @@ export async function generateApi(
     defaultTemplatesDir = path.join(__dirname, "../templates/generator");
   }
 
-  const templatesDir = templatesDirOverride
-    ? path.resolve(process.cwd(), templatesDirOverride)
-    : defaultTemplatesDir;
+  const tplConfig: TemplateOverrides =
+    typeof templatesOverride === "string"
+      ? { dir: templatesOverride }
+      : (templatesOverride || {});
+
+  const overrideDir = tplConfig.dir
+    ? path.resolve(process.cwd(), tplConfig.dir)
+    : undefined;
+
+  const perFile = {
+    models: tplConfig.models
+      ? path.resolve(process.cwd(), tplConfig.models)
+      : undefined,
+    types: tplConfig.types
+      ? path.resolve(process.cwd(), tplConfig.types)
+      : undefined,
+    service: tplConfig.service
+      ? path.resolve(process.cwd(), tplConfig.service)
+      : undefined,
+    index: tplConfig.index
+      ? path.resolve(process.cwd(), tplConfig.index)
+      : undefined,
+    "interceptors-index": tplConfig["interceptors-index"]
+      ? path.resolve(process.cwd(), tplConfig["interceptors-index"])
+      : undefined,
+  };
+
+  // ── Resolve custom output directories ──
+  const providerDir = path.dirname(outputDir);
+  const modelsDir = opts?.outputPaths?.models
+    ? path.resolve(process.cwd(), opts.outputPaths.models)
+    : outputDir;
+  const typesDir = opts?.outputPaths?.types
+    ? path.resolve(process.cwd(), opts.outputPaths.types)
+    : outputDir;
+  const servicesDir = opts?.outputPaths?.services
+    ? path.resolve(process.cwd(), opts.outputPaths.services)
+    : outputDir;
+  const indexDir = opts?.outputPaths?.index
+    ? path.resolve(process.cwd(), opts.outputPaths.index)
+    : providerDir;
+
+  for (const dir of [modelsDir, typesDir, servicesDir, indexDir]) {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  }
+
+  // Only create outputDir if it's actually used (no custom override for that type)
+  const usesOutputDir = !opts?.outputPaths?.models || !opts?.outputPaths?.types || !opts?.outputPaths?.services;
+  if (usesOutputDir && !fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+
+  // ── Compute relative module paths for cross-file imports ──
+  const modelsModulePath = relModulePath(typesDir, modelsDir, "models");
+  const serviceModelsModulePath = relModulePath(servicesDir, modelsDir, "models");
+  const serviceProviderTypesPath = relModulePath(servicesDir, providerDir, "types");
+  const indexProviderTypesPath = relModulePath(indexDir, providerDir, "types");
+  const indexClientPath = relModulePath(indexDir, providerDir, "client");
+  const indexHooksPath = relModulePath(indexDir, providerDir, "hooks");
+  const indexServiceDir = relModulePath(indexDir, servicesDir, "");
+  const indexCorePath = computeCorePath(indexDir, providerDir, importAlias, userConfig.coreDir);
+  const servicesCorePath = computeCorePath(servicesDir, providerDir, importAlias, userConfig.coreDir);
 
   // GENERATE SHARED MODELS (models.ts)
-  const modelsPath = path.join(outputDir, "models.ts");
+  const modelsPath = path.join(modelsDir, "models.ts");
   const modelsCustomCode = extractCustomCode(modelsPath);
 
   if (!opts?.mswOnly) {
@@ -100,12 +158,20 @@ export async function generateApi(
         return {
           name,
           zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
+          tsType: schemaKey ? schemaToTsType(schemas[schemaKey]) : "unknown",
         };
       }),
       customCode: modelsCustomCode,
     };
 
-    const modelsTemplate = compileTemplate(path.join(templatesDir, "models.hbs"));
+    const modelsTemplate = compileTemplate(
+      resolveTemplatePath(
+        "models.hbs",
+        overrideDir,
+        defaultTemplatesDir,
+        perFile.models,
+      ),
+    );
     writeGenerated(modelsPath, modelsTemplate(modelsData));
     console.log(`Generated models.ts (Shared Models)`);
 
@@ -145,13 +211,6 @@ export async function generateApi(
     }
   }
 
-  const providerDir = path.dirname(outputDir);
-  const { corePathStr, servicesCorePath } = resolveCorePaths(
-    userConfig,
-    outputDir,
-    importAlias,
-  );
-
   for (const [tag, data] of Object.entries(services)) {
     const className = toClassName(tag);
     const tagPrefix = tag.toLowerCase();
@@ -159,7 +218,7 @@ export async function generateApi(
     const typesFileName = `${tagPrefix}.types.ts`;
 
     const modelsToImport = new Set<string>();
-    const specificSchemasList: { name: string; zod: string }[] = [];
+    const specificSchemasList: { name: string; zod: string; tsType: string }[] = [];
     const specificSchemas = tagSchemas.get(tag) || new Set();
 
     if (specificSchemas.size > 0) {
@@ -174,6 +233,7 @@ export async function generateApi(
           specificSchemasList.push({
             name,
             zod: schemaToZod(schemas[schemaKey]),
+            tsType: schemaToTsType(schemas[schemaKey]),
           });
         }
       }
@@ -294,7 +354,7 @@ export async function generateApi(
     }
 
     if (!opts?.mswOnly) {
-      const typesPath = path.join(outputDir, typesFileName);
+      const typesPath = path.join(typesDir, typesFileName);
       const typesCustomCode = extractCustomCode(typesPath);
 
       const typesData = {
@@ -303,14 +363,24 @@ export async function generateApi(
         specificSchemas: specificSchemasList,
         operations: operationsList,
         customCode: typesCustomCode,
+        modelsModulePath,
       };
 
-      const typesTemplate = compileTemplate(path.join(templatesDir, "types.hbs"));
+      const typesTemplate = compileTemplate(
+        resolveTemplatePath(
+          "types.hbs",
+          overrideDir,
+          defaultTemplatesDir,
+          perFile.types,
+        ),
+      );
       writeGenerated(typesPath, typesTemplate(typesData));
       console.log(`Generated ${typesFileName}`);
 
-      const servicePath = path.join(outputDir, serviceFileName);
+      const servicePath = path.join(servicesDir, serviceFileName);
       const serviceCustomCode = extractCustomCode(servicePath);
+
+      const typesModulePath = relModulePath(servicesDir, typesDir, `${tagPrefix}.types`);
 
       const serviceData = {
         className,
@@ -319,10 +389,18 @@ export async function generateApi(
         operations: operationsList,
         corePath: servicesCorePath,
         customCode: serviceCustomCode,
+        typesModulePath,
+        serviceProviderTypesPath,
+        modelsModulePath: serviceModelsModulePath,
       };
 
       const serviceTemplate = compileTemplate(
-        path.join(templatesDir, "service.hbs"),
+        resolveTemplatePath(
+          "service.hbs",
+          overrideDir,
+          defaultTemplatesDir,
+          perFile.service,
+        ),
       );
       writeGenerated(servicePath, serviceTemplate(serviceData));
       console.log(`Generated ${serviceFileName}`);
@@ -334,20 +412,46 @@ export async function generateApi(
     const mswDir =
       opts.mswOutputDir || path.join(providerDir, "msw", "handlers");
 
-    let mswTemplatesDir = path.join(__dirname, "../../templates/msw");
+    let defaultMswTemplatesDir = path.join(__dirname, "../../templates/msw");
     if (
-      !fs.existsSync(mswTemplatesDir) ||
-      !fs.existsSync(path.join(mswTemplatesDir, "handlers.hbs"))
+      !fs.existsSync(defaultMswTemplatesDir) ||
+      !fs.existsSync(path.join(defaultMswTemplatesDir, "handlers.hbs"))
     ) {
-      mswTemplatesDir = path.join(__dirname, "../templates/msw");
+      defaultMswTemplatesDir = path.join(__dirname, "../templates/msw");
     }
 
-    generateMswHandlers(spec, services, schemas, mswDir, mswTemplatesDir, {
-      mswEndpointFilter: opts.mswEndpointFilter,
-      mswEndpointConfigs: opts.mswEndpointConfigs,
-      fakerPlugins: userConfig.fakerPlugins,
-      providerDir,
-    });
+    const mswOverrideDir = overrideDir
+      ? path.join(overrideDir, "msw")
+      : undefined;
+
+    const mswPerFile = {
+      handlers: tplConfig.msw?.handlers
+        ? path.resolve(process.cwd(), tplConfig.msw.handlers)
+        : undefined,
+      index: tplConfig.msw?.index
+        ? path.resolve(process.cwd(), tplConfig.msw.index)
+        : undefined,
+      browser: tplConfig.msw?.browser
+        ? path.resolve(process.cwd(), tplConfig.msw.browser)
+        : undefined,
+    };
+
+    generateMswHandlers(
+      spec,
+      services,
+      schemas,
+      mswDir,
+      defaultMswTemplatesDir,
+      {
+        mswEndpointFilter: opts.mswEndpointFilter,
+        mswEndpointConfigs: opts.mswEndpointConfigs,
+        fakerPlugins: userConfig.fakerPlugins,
+        providerDir,
+        typesDir,
+        templatesOverride: mswOverrideDir,
+        perFile: mswPerFile,
+      },
+    );
   }
 
   // -- Provider index generation --
@@ -358,14 +462,26 @@ export async function generateApi(
 
     generateProviderIndex({
       providerDir,
+      indexDir,
       interceptorsDir,
-      templatesDir,
-      corePathStr,
+      templatesDir: defaultTemplatesDir,
+      templatesOverride: overrideDir,
+      perFile,
+      corePathStr: indexCorePath,
       services,
+      indexProviderTypesPath,
+      indexClientPath,
+      indexHooksPath,
+      indexServiceDir,
+      servicesDir,
     });
   }
 
-  await formatGeneratedFiles(providerDir);
+  // Format all directories that may contain generated files
+  const formatDirs = [...new Set([modelsDir, typesDir, servicesDir, indexDir, providerDir])];
+  for (const dir of formatDirs) {
+    await formatGeneratedFiles(dir);
+  }
 
   console.log(`\nSmart generation complete!`);
 }

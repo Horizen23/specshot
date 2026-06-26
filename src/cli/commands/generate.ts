@@ -6,6 +6,8 @@ import ora from "ora";
 import chalk from "chalk";
 import { generateApi } from "../../core/generate";
 import { loadUserConfig } from "../../core/config-loader";
+import type { TemplateOverrides } from "../../core/config-loader";
+import { installCore, installProvider } from "../../core/installer";
 import { showBanner } from "../ui/banner";
 
 interface GenerateOptions {
@@ -15,10 +17,104 @@ interface GenerateOptions {
   alias?: string;
   config?: string;
   templates?: string;
+  templateModels?: string;
+  templateTypes?: string;
+  templateService?: string;
+  templateIndex?: string;
+  templateInterceptorsIndex?: string;
+  templateMswHandlers?: string;
+  templateMswIndex?: string;
+  templateMswBrowser?: string;
   dryRun?: boolean;
   msw?: boolean;
   interceptors?: string;
   watch?: boolean;
+}
+
+function mergeTemplateOverrides(
+  options: GenerateOptions,
+  configTemplates?: string | TemplateOverrides,
+): string | TemplateOverrides | undefined {
+  const cliFlags: TemplateOverrides = {};
+  const cwd = process.cwd();
+  if (options.templateModels)
+    cliFlags.models = path.resolve(cwd, options.templateModels);
+  if (options.templateTypes)
+    cliFlags.types = path.resolve(cwd, options.templateTypes);
+  if (options.templateService)
+    cliFlags.service = path.resolve(cwd, options.templateService);
+  if (options.templateIndex)
+    cliFlags.index = path.resolve(cwd, options.templateIndex);
+  if (options.templateInterceptorsIndex)
+    cliFlags["interceptors-index"] = path.resolve(
+      cwd,
+      options.templateInterceptorsIndex,
+    );
+  if (options.templateMswHandlers || options.templateMswIndex || options.templateMswBrowser) {
+    cliFlags.msw = {};
+    if (options.templateMswHandlers)
+      cliFlags.msw!.handlers = path.resolve(cwd, options.templateMswHandlers);
+    if (options.templateMswIndex)
+      cliFlags.msw!.index = path.resolve(cwd, options.templateMswIndex);
+    if (options.templateMswBrowser)
+      cliFlags.msw!.browser = path.resolve(cwd, options.templateMswBrowser);
+  }
+
+  const hasCliFlags = Object.keys(cliFlags).length > 0;
+  if (!hasCliFlags) return options.templates || configTemplates;
+
+  if (typeof configTemplates === "object" && configTemplates !== null) {
+    return { ...configTemplates, ...cliFlags };
+  }
+  if (typeof configTemplates === "string") {
+    return { dir: configTemplates, ...cliFlags };
+  }
+  return cliFlags;
+}
+
+function hasCustomTemplates(
+  options: GenerateOptions,
+  configTemplates?: string | TemplateOverrides,
+): boolean {
+  if (options.templates) return true;
+  if (configTemplates) return true;
+  if (
+    options.templateModels ||
+    options.templateTypes ||
+    options.templateService ||
+    options.templateIndex ||
+    options.templateInterceptorsIndex
+  )
+    return true;
+  return false;
+}
+
+function ensureInfrastructure(
+  config: Awaited<ReturnType<typeof loadUserConfig>>,
+  options: GenerateOptions,
+  apiConfig: { providerDir?: string; openapiUrl?: string },
+  apiName: string,
+): void {
+  if (hasCustomTemplates(options, config.templates)) return;
+  if (!apiConfig.providerDir) return;
+
+  const interceptors = config.interceptors || [];
+  const integration = config.integration || "none";
+
+  if (config.coreDir) {
+    const installed = installCore({ coreDir: config.coreDir });
+    if (installed) console.log(chalk.green(`✔ Core installed at ${config.coreDir}`));
+  }
+
+  const installed = installProvider({
+    providerDir: apiConfig.providerDir,
+    coreDir: config.coreDir || "src/lib/api/core",
+    integration,
+    interceptors,
+    openapiUrl: apiConfig.openapiUrl,
+  });
+  if (installed)
+    console.log(chalk.green(`✔ Provider skeleton installed at ${apiConfig.providerDir}`));
 }
 
 export async function generateCommand(options: GenerateOptions) {
@@ -39,16 +135,33 @@ export async function generateCommand(options: GenerateOptions) {
       const apiSpecUrl = apiConfig.openapiUrl;
       const apiOutputDir = apiConfig.providerDir
         ? path.join(apiConfig.providerDir, "services")
-        : "";
+        : apiConfig.outputPaths
+          ? process.cwd()
+          : "";
 
       if (!apiSpecUrl || !apiOutputDir) {
-        console.warn(
-          chalk.yellow(
-            `Skipping ${apiName} due to missing openapiUrl or providerDir.`,
-          ),
-        );
-        continue;
+        if (apiConfig.providerDir) {
+          ensureInfrastructure(config, options, apiConfig, apiName);
+        }
+        if (!apiSpecUrl) {
+          console.warn(
+            chalk.yellow(
+              `Skipping ${apiName} generation due to missing openapiUrl.`,
+            ),
+          );
+          continue;
+        }
+        if (!apiOutputDir) {
+          console.warn(
+            chalk.yellow(
+              `Skipping ${apiName} due to missing providerDir or outputPaths.`,
+            ),
+          );
+          continue;
+        }
       }
+
+      ensureInfrastructure(config, options, apiConfig, apiName);
 
       const mergedOptions = {
         ...options,
@@ -66,7 +179,7 @@ export async function generateCommand(options: GenerateOptions) {
           specSource,
           targetDir,
           alias || config.alias,
-          options.templates || config.templates,
+          mergeTemplateOverrides(options, config.templates),
           {
             configPath: options.config,
             msw: options.msw,
@@ -74,6 +187,7 @@ export async function generateCommand(options: GenerateOptions) {
             interceptorsDir: apiConfig.interceptors
               ? path.join(apiConfig.providerDir || "", "interceptors")
               : options.interceptors,
+            outputPaths: apiConfig.outputPaths,
           },
         );
         console.log(
@@ -102,8 +216,12 @@ export async function generateCommand(options: GenerateOptions) {
   if (!outputDir && firstApi?.providerDir)
     outputDir = path.join(firstApi.providerDir, "services");
   if (!alias && config.alias) alias = config.alias;
-  if (!options.templates && config.templates)
-    options.templates = config.templates;
+
+  if (firstApi) {
+    ensureInfrastructure(config, options, firstApi, "default");
+  }
+
+  const finalTemplates = mergeTemplateOverrides(options, config.templates);
 
   const specSource = file ? path.resolve(process.cwd(), file) : url;
 
@@ -151,14 +269,14 @@ export async function generateCommand(options: GenerateOptions) {
             ),
           );
           console.log(
-            chalk.gray("  Templates: ") + (options.templates || "built-in"),
+            chalk.gray("  Templates: ") + (finalTemplates || "built-in"),
           );
           console.log(chalk.gray("  Alias:     ") + (alias || "none"));
           const spec = await generateApi(
             sourceLabel,
             targetDir,
             alias,
-            options.templates,
+            finalTemplates,
             {
               dryRun: true,
               configPath: options.config,
@@ -171,7 +289,7 @@ export async function generateCommand(options: GenerateOptions) {
           return;
         }
 
-        await generateApi(sourceLabel, targetDir, alias, options.templates, {
+        await generateApi(sourceLabel, targetDir, alias, finalTemplates, {
           configPath: options.config,
           msw: options.msw,
           mswOutputDir: config.mswOutputDir,

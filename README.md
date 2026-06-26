@@ -87,7 +87,7 @@ npx specshot init \
 | `--provider-dir <dir>`      | Directory to install the API Provider skeleton        |
 | `--integration <type>`      | `swr`, `react-query`, or `none`                       |
 | `--interceptors, -i <list>` | Comma-separated list (e.g. `bearer,logger`) or `none` |
-| `--templates, -t <dir>`     | Custom Handlebars templates directory                 |
+| `--templates, -t <dir>`     | Custom Handlebars templates directory (partial override) |
 | `--url, -u <url>`           | OpenAPI JSON URL to auto-generate services after init |
 
 ### 2. `generate` (Run repeatedly on API updates)
@@ -118,9 +118,76 @@ npx specshot generate --url http://localhost:8080/openapi.json
 | `--output, -o <dir>`       | Output directory                               |
 | `--alias, -a <alias>`      | Import alias (e.g. `@/lib/api`)                |
 | `--config, -c <path>`      | Custom config file path                        |
-| `--templates, -t <dir>`    | Custom Handlebars templates                    |
+| `--templates, -t <dir>`    | Custom Handlebars templates (partial override) |
 | `--interceptors, -i <dir>` | Custom interceptors directory (Auto-discovery) |
 | `--dry-run`                | Preview without writing files                  |
+| `--msw`                    | Generate MSW mock handlers                     |
+
+### 3. `templates` (Eject built-in templates for customization)
+
+Copies the built-in Handlebars templates to a local directory so you can customize them. Only the templates you edit will override the built-ins — missing files automatically fall back to defaults.
+
+```bash
+npx specshot templates --output ./my-templates
+```
+
+| Flag                   | Description                                  |
+| ---------------------- | -------------------------------------------- |
+| `--output, -o <dir>`   | Output directory (default: `./templates`)    |
+| `--generator-only`     | Eject only generator templates               |
+| `--msw-only`           | Eject only MSW templates                     |
+
+Then generate with your custom templates:
+
+```bash
+npx specshot generate --templates ./my-templates
+```
+
+#### Template structure
+
+```
+my-templates/
+  models.hbs              # Generator: shared Zod schemas + types
+  types.hbs               # Generator: per-tag request/response types
+  service.hbs             # Generator: per-tag service class
+  index.hbs               # Generator: provider index + createApi factory
+  interceptors-index.hbs  # Generator: interceptor auto-wiring
+  msw/
+    handlers.hbs          # MSW: per-tag http.<method>() handlers
+    index.hbs             # MSW: handler barrel export
+    browser.hbs           # MSW: setupWorker entry
+```
+
+#### Partial override
+
+You don't need to copy all templates. Place only the files you want to customize in your override directory. Any missing file will use the built-in default automatically.
+
+For example, to customize only the service template:
+
+```
+my-templates/
+  service.hbs    # Your custom version
+```
+
+```bash
+npx specshot generate --templates ./my-templates
+# models.hbs, types.hbs, index.hbs → built-in defaults
+# service.hbs → your custom version
+```
+
+#### Template context
+
+Templates use standard [Handlebars](https://handlebarsjs.com/) syntax. Key variables available:
+
+| Template         | Context variables                                                            |
+| ---------------- | --------------------------------------------------------------------------- |
+| `models.hbs`     | `schemas` (shared), `version`, `customCode`                                 |
+| `types.hbs`      | `tag`, `imports`, `specificSchemas`, `operations`, `customCode`             |
+| `service.hbs`    | `className`, `tagPrefix`, `exportsToReExport`, `operations`, `corePath`, `customCode` |
+| `index.hbs`      | `services`, `corePath`, `interceptorsPath`, `customCode`                    |
+| `handlers.hbs`   | `tag`, `tagLowerCase`, `handlers`, `typeImports`, `usesFaker`, `typesImportPath` |
+
+Each generated file preserves a `// --- CUSTOM CODE START ---` / `// --- CUSTOM CODE END ---` block so your hand-written code survives regeneration.
 
 ### `mock` (Zero-config API Mocking)
 
@@ -145,6 +212,7 @@ When you run with `--web`, SpecShot opens a beautiful dashboard where you can:
 - **Set Latency & Errors**: Simulate slow networks or 500/400 error states instantly.
 - **Customize Data (Faker.js)**: Use the searchable dropdown to map specific JSON fields to Faker.js functions (e.g., `internet.email`, `image.url`).
 - **Manual Overrides**: Write custom JSON payloads directly in the browser.
+- **WebSocket Mocking**: Configure WebSocket endpoints and push events to connected clients in real-time from the dashboard.
 
 _(Mock configurations and overrides are automatically saved to `.specshot/mocks.json` so your team can share the same mock state!)_
 
@@ -196,6 +264,8 @@ export default {
 | [`examples/react-query`](examples/react-query)   | Integration with `@tanstack/react-query`   |
 | [`examples/swr`](examples/swr)                   | Integration with `swr` for data fetching   |
 | [`examples/real-or-fake`](examples/real-or-fake) | Full-stack usage with the mock server      |
+| [`examples/websocket`](examples/websocket)       | WebSocket mock server with live event push |
+| [`examples/custom-templates`](examples/custom-templates) | Custom Handlebars templates with partial override |
 
 ---
 

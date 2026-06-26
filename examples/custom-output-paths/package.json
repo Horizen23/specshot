@@ -1,0 +1,13 @@
+{
+  "name": "specshot-custom-output-paths",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "specshot:init": "specshot init",
+    "specshot:generate": "specshot generate",
+    "specshot:mock": "specshot mock --web"
+  },
+  "dependencies": {
+    "specshot": "file:../.."
+  }
+}

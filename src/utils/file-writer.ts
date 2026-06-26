@@ -34,3 +34,17 @@ export function writeGenerated(filePath: string, content: string): void {
     );
   }
 }
+
+export function resolveTemplatePath(
+  filename: string,
+  overrideDir: string | undefined,
+  defaultDir: string,
+  perFileOverride?: string,
+): string {
+  if (perFileOverride && fs.existsSync(perFileOverride)) return perFileOverride;
+  if (overrideDir) {
+    const overridePath = path.join(overrideDir, filename);
+    if (fs.existsSync(overridePath)) return overridePath;
+  }
+  return path.join(defaultDir, filename);
+}

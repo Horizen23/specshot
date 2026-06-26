@@ -24,11 +24,12 @@ describe("F1 Scaffolding (init command)", () => {
     expect(result.code).toBe(0);
     const combinedOutput = result.stdout + result.stderr;
     expect(combinedOutput).toContain("The OpenAPI Code Generator");
-    expect(combinedOutput).toContain("API Core installed");
 
+    expect(fs.existsSync(path.join(tmpDir, "specshot.config.mjs"))).toBe(true);
+
+    await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "src/lib/api/core"))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, "src/lib/api/default"))).toBe(true);
-    expect(fs.existsSync(path.join(tmpDir, "specshot.config.mjs"))).toBe(true);
   });
 
   // Test 2
@@ -51,6 +52,9 @@ describe("F1 Scaffolding (init command)", () => {
     );
 
     expect(result.code).toBe(0);
+    expect(fs.existsSync(path.join(tmpDir, "specshot.config.mjs"))).toBe(true);
+
+    await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "custom/core"))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, "custom/provider"))).toBe(true);
   });
@@ -91,6 +95,8 @@ describe("F1 Scaffolding (init command)", () => {
     );
 
     expect(result.code).toBe(0);
+
+    await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "my-api-libs/core-files"))).toBe(
       true,
     );
@@ -119,6 +125,8 @@ describe("F1 Scaffolding (init command)", () => {
     );
 
     expect(result.code).toBe(0);
+
+    await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "my-api-libs/provider-files"))).toBe(
       true,
     );
@@ -179,6 +187,7 @@ describe("F1 Scaffolding (init command)", () => {
       { cwd: tmpDir },
     );
 
+    await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "prov/hooks.ts"))).toBe(true);
     const hooksContent = fs.readFileSync(
       path.join(tmpDir, "prov/hooks.ts"),
@@ -206,6 +215,7 @@ describe("F1 Scaffolding (init command)", () => {
       { cwd: tmpDir },
     );
 
+    await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "prov/hooks.ts"))).toBe(true);
     const hooksContent = fs.readFileSync(
       path.join(tmpDir, "prov/hooks.ts"),
@@ -233,6 +243,7 @@ describe("F1 Scaffolding (init command)", () => {
       { cwd: tmpDir },
     );
 
+    await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "prov/client.ts"))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, "prov/hooks.ts"))).toBe(false);
   });
@@ -283,6 +294,7 @@ describe("F1 Scaffolding (init command)", () => {
       { cwd: tmpDir },
     );
 
+    await runCli(["generate"], { cwd: tmpDir });
     const interceptorDir = path.join(tmpDir, "prov/interceptors");
     expect(fs.existsSync(path.join(interceptorDir, "bearer.ts"))).toBe(true);
     expect(fs.existsSync(path.join(interceptorDir, "logger.ts"))).toBe(false);

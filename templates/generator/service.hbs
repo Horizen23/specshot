@@ -2,10 +2,10 @@
 import { BaseService } from "{{corePath}}/base-service";
 import { ApiClient } from "{{corePath}}/api-client";
 import { ApiResult } from "{{corePath}}/types";
-import { AppRequestConfig, AppApiErrorData } from "../types";
+import { AppRequestConfig, AppApiErrorData } from "{{{serviceProviderTypesPath}}}";
 
 {{#if exportsToReExport.length}}
-import type { {{#each exportsToReExport}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from "./{{tagPrefix}}.types";
+import type { {{#each exportsToReExport}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from "{{{typesModulePath}}}";
 
 export type { {{#each exportsToReExport}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} };
 {{/if}}

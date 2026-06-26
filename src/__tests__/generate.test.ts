@@ -816,7 +816,7 @@ import { BaseService } from "{{corePath}}/base-service";
     ).toBe(true);
   });
 
-  it("throws on missing template file", async () => {
+  it("falls back to built-in templates when override dir is empty", async () => {
     globalThis.fetch = (async () =>
       ({
         ok: true,
@@ -840,14 +840,15 @@ import { BaseService } from "{{corePath}}/base-service";
     fs.mkdirSync(emptyTplDir, { recursive: true });
 
     const tplErrDir = path.join(tmpDir, "tpl-err-out");
-    await expect(
-      generateApi(
-        "https://example.com/tpl-err.json",
-        tplErrDir,
-        undefined,
-        emptyTplDir,
-      ),
-    ).rejects.toThrow(/Failed to compile template|ENOENT/);
+    await generateApi(
+      "https://example.com/tpl-err.json",
+      tplErrDir,
+      undefined,
+      emptyTplDir,
+    );
+    expect(fs.existsSync(path.join(tplErrDir, "models.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(tplErrDir, "items.types.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(tplErrDir, "items.service.ts"))).toBe(true);
   });
 
   it("handles path params with hyphens via toCamelCase", async () => {

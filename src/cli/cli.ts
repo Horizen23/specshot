@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { initCommand } from "./commands/init";
 import { generateCommand } from "./commands/generate";
 import { mockCommand } from "./commands/mock";
+import { templatesCommand } from "./commands/templates";
 
 // Export types for JS/TS config autocomplete
 export type { SpecshotUserConfig as SpecshotConfig } from "../core/config-loader";
@@ -63,6 +64,14 @@ program
   .option("-a, --alias <alias>", "Import alias prefix (e.g. @/lib/api)")
   .option("-c, --config <path>", "Path to specshot.json config file")
   .option("-t, --templates <dir>", "Custom templates directory")
+  .option("--template-models <path>", "Override models.hbs template file")
+  .option("--template-types <path>", "Override types.hbs template file")
+  .option("--template-service <path>", "Override service.hbs template file")
+  .option("--template-index <path>", "Override provider index.hbs template file")
+  .option("--template-interceptors-index <path>", "Override interceptors-index.hbs template file")
+  .option("--template-msw-handlers <path>", "Override MSW handlers.hbs template file")
+  .option("--template-msw-index <path>", "Override MSW index.hbs template file")
+  .option("--template-msw-browser <path>", "Override MSW browser.hbs template file")
   .option("-i, --interceptors <dir>", "Custom interceptors directory")
   .option("-w, --watch", "Watch for changes and auto-regenerate")
   .option("--dry-run", "Run without writing any files")
@@ -97,6 +106,26 @@ program
     } catch (err) {
       const chalk = (await import("chalk")).default;
       console.error(chalk.red("Mock command failed"));
+      console.error(err);
+    }
+  });
+
+program
+  .command("templates")
+  .description("Eject built-in Handlebars templates for local customization")
+  .option("-o, --output <dir>", "Output directory (default: ./templates)")
+  .option("--generator-only", "Eject only generator templates")
+  .option("--msw-only", "Eject only MSW templates")
+  .action(async (options) => {
+    try {
+      await templatesCommand({
+        output: options.output,
+        generatorOnly: options.generatorOnly,
+        mswOnly: options.mswOnly,
+      });
+    } catch (err) {
+      const chalk = (await import("chalk")).default;
+      console.error(chalk.red("Templates command failed"));
       console.error(err);
     }
   });

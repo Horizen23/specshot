@@ -5,7 +5,11 @@ import type { OpenApiSchema } from "../types/types";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { endpointKey } from "../types/mock-config";
 import { toMethodName, capitalize } from "../utils/naming-utils";
-import { compileTemplate, writeGenerated } from "../utils/file-writer";
+import {
+  compileTemplate,
+  writeGenerated,
+  resolveTemplatePath,
+} from "../utils/file-writer";
 import { mockValueFromSchema } from "../utils/msw-utils";
 import type { FakerPlugin } from "./config-loader";
 
@@ -20,6 +24,13 @@ export function generateMswHandlers(
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
     fakerPlugins?: FakerPlugin[];
     providerDir?: string;
+    typesDir?: string;
+    templatesOverride?: string;
+    perFile?: {
+      handlers?: string;
+      index?: string;
+      browser?: string;
+    };
   },
 ): void {
   if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
@@ -150,12 +161,13 @@ export function generateMswHandlers(
     }
 
     // Compute relative path to the types file.
-    // typesFile = client/src/lib/api/meme/services/memes.types.ts
-    const servicesDir = opts?.providerDir 
-      ? path.join(opts.providerDir, "services") 
-      : path.join(path.dirname(mswDir), "services");
+    const actualTypesDir = opts?.typesDir
+      ? opts.typesDir
+      : opts?.providerDir 
+        ? path.join(opts.providerDir, "services") 
+        : path.join(path.dirname(mswDir), "services");
       
-    const typesFilePath = path.join(servicesDir, `${tagLowerCase}.types`);
+    const typesFilePath = path.join(actualTypesDir, `${tagLowerCase}.types`);
     let typesImportPath = path.relative(mswDir, typesFilePath);
     if (!typesImportPath.startsWith(".")) {
       typesImportPath = `./${typesImportPath}`;
@@ -173,7 +185,12 @@ export function generateMswHandlers(
     };
 
     const handlersTemplate = compileTemplate(
-      path.join(mswTemplatesDir, "handlers.hbs"),
+      resolveTemplatePath(
+        "handlers.hbs",
+        opts?.templatesOverride,
+        mswTemplatesDir,
+        opts?.perFile?.handlers,
+      ),
     );
     writeGenerated(
       handlersFilePath,
@@ -189,7 +206,12 @@ export function generateMswHandlers(
   
   if (servicesForIndex.length > 0) {
     const indexTemplate = compileTemplate(
-      path.join(mswTemplatesDir, "index.hbs"),
+      resolveTemplatePath(
+        "index.hbs",
+        opts?.templatesOverride,
+        mswTemplatesDir,
+        opts?.perFile?.index,
+      ),
     );
     writeGenerated(
       indexFilePath,
@@ -198,7 +220,12 @@ export function generateMswHandlers(
     console.log("Generated MSW handlers/index.ts");
 
     const browserTemplate = compileTemplate(
-      path.join(mswTemplatesDir, "browser.hbs"),
+      resolveTemplatePath(
+        "browser.hbs",
+        opts?.templatesOverride,
+        mswTemplatesDir,
+        opts?.perFile?.browser,
+      ),
     );
     writeGenerated(browserFilePath, browserTemplate({}));
     console.log("Generated MSW handlers/browser.ts");
