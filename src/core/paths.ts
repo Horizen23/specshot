@@ -24,7 +24,7 @@ export function getTemplatesBaseDir(): string {
 }
 
 export function getProjectPresetsDir(): string | null {
-  const dir = path.resolve(process.cwd(), "templates/presets");
+  const dir = path.resolve(process.cwd(), ".specshot/templates/presets");
   return fs.existsSync(dir) ? dir : null;
 }
 

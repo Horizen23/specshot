@@ -59,11 +59,11 @@ export async function templatesEjectPresetCommand(presetName: string): Promise<v
   const srcDir = getPresetDirFromPaths(presetName);
 
   // Destination: project's templates/presets/<presetName>/
-  const projectPresetsDir = path.resolve(process.cwd(), "templates/presets");
+  const projectPresetsDir = path.resolve(process.cwd(), ".specshot/templates/presets");
   const destDir = path.join(projectPresetsDir, presetName);
 
   if (fs.existsSync(destDir)) {
-    console.error(chalk.red(`  Preset "${presetName}" already exists at templates/presets/${presetName}/`));
+    console.error(chalk.red(`  Preset "${presetName}" already exists at .specshot/templates/presets/${presetName}/`));
     console.log(chalk.gray(`  Remove it first or choose a different name.\n`));
     return;
   }
@@ -73,7 +73,7 @@ export async function templatesEjectPresetCommand(presetName: string): Promise<v
   const { confirm } = await inquirer.prompt([{
     type: "confirm",
     name: "confirm",
-    message: `Eject preset "${presetName}" to templates/presets/${presetName}/?`,
+    message: `Eject preset "${presetName}" to .specshot/templates/presets/${presetName}/?`,
     default: true,
   }]);
   if (!confirm) {
@@ -89,7 +89,7 @@ export async function templatesEjectPresetCommand(presetName: string): Promise<v
   // Copy entire preset directory
   const copied = copyDir(srcDir, destDir);
 
-  console.log(chalk.green(`  ✔ Ejected preset "${presetName}" to templates/presets/${presetName}/\n`));
+  console.log(chalk.green(`  ✔ Ejected preset "${presetName}" to .specshot/templates/presets/${presetName}/\n`));
   console.log(chalk.gray(`  ${copied.length} files copied\n`));
 
   // Show info
@@ -101,7 +101,7 @@ export async function templatesEjectPresetCommand(presetName: string): Promise<v
   }
 
   console.log(chalk.cyan(`\n  The preset is now [custom] — edit any .hbs file in:`));
-  console.log(`    templates/presets/${presetName}/\n`);
+  console.log(`    .specshot/templates/presets/${presetName}/\n`);
   console.log(chalk.gray("  It will appear in 'specshot templates list' as [custom] automatically.\n"));
 }
 
@@ -411,7 +411,7 @@ export async function templatesInstallCommand(packageName: string, nameOverride?
     }
   }
 
-  const projectPresetsDir = path.resolve(process.cwd(), "templates/presets");
+  const projectPresetsDir = path.resolve(process.cwd(), ".specshot/templates/presets");
   const destDir = path.join(projectPresetsDir, presetName);
 
   if (!fs.existsSync(projectPresetsDir)) {
@@ -429,7 +429,7 @@ export async function templatesInstallCommand(packageName: string, nameOverride?
   copyDir(srcDir, destDir);
   cleanupTemp(tempDir);
 
-  console.log(chalk.green(`  ✔ Installed preset "${presetName}" to templates/presets/${presetName}/\n`));
+  console.log(chalk.green(`  ✔ Installed preset "${presetName}" to .specshot/templates/presets/${presetName}/\n`));
 
   // Validate
   const errors = validatePresetStructure(presetName);

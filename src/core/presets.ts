@@ -39,7 +39,7 @@ export function getAvailablePresets(): PresetInfo[] {
 
   // 2. Scan project-level custom presets (user's project templates/presets/)
   //    Project-level OVERRIDES package-level (ejected presets take priority)
-  const projectBase = path.resolve(process.cwd(), "templates/presets");
+  const projectBase = path.resolve(process.cwd(), ".specshot/templates/presets");
   if (fs.existsSync(projectBase) && projectBase !== pkgBase) {
     for (const entry of fs.readdirSync(projectBase)) {
       const dir = path.join(projectBase, entry);
