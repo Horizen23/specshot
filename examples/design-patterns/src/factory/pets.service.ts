@@ -2,22 +2,8 @@
 // Design Pattern: Factory — create configured service instances per environment/tenant.
 // Use case: Multi-tenant apps, different API environments (staging/prod), test isolation.
 
-import type {
-  Pet,
-  CreatePetRequest,
-  PetsListPetsResponse,
-  PetsCreatePetPayload,
-  PetsCreatePetResponse,
-  PetsGetPetResponse,
-} from "./pets.types";
-export type {
-  Pet,
-  CreatePetRequest,
-  PetsListPetsResponse,
-  PetsCreatePetPayload,
-  PetsCreatePetResponse,
-  PetsGetPetResponse,
-} from "./pets.types";
+import type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
+export type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
 
 import { ApiError } from "./models";
 
@@ -54,10 +40,7 @@ export class PetsService {
     body?: unknown,
   ): Promise<T> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(
-      () => controller.abort(),
-      this._config.timeout,
-    );
+    const timeoutId = setTimeout(() => controller.abort(), this._config.timeout);
 
     let lastError: Error | null = null;
     const maxAttempts = this._config.retries + 1;
@@ -76,11 +59,7 @@ export class PetsService {
         clearTimeout(timeoutId);
         if (!_res.ok) {
           const _errBody = await _res.text().catch(() => "");
-          throw new ApiError(
-            `${method} ${url} failed: ${_res.status}`,
-            _res.status,
-            _errBody,
-          );
+          throw new ApiError(`${method} ${url} failed: ${_res.status}`, _res.status, _errBody);
         }
         return _res.json() as Promise<T>;
       } catch (err) {
@@ -99,7 +78,8 @@ export class PetsService {
    * List all pets
    * @throws {ApiError} On non-2xx response
    */
-  async listPets(): Promise<PetsListPetsResponse> {
+  async listPets(
+  ): Promise<PetsListPetsResponse> {
     let _url = `${this._config.baseUrl}/pets`;
     return this._request<PetsListPetsResponse>("get", _url);
   }
@@ -109,7 +89,9 @@ export class PetsService {
    * Create a pet
    * @throws {ApiError} On non-2xx response
    */
-  async createPet(body: PetsCreatePetPayload): Promise<PetsCreatePetResponse> {
+  async createPet(
+    body: PetsCreatePetPayload,
+  ): Promise<PetsCreatePetResponse> {
     let _url = `${this._config.baseUrl}/pets`;
     return this._request<PetsCreatePetResponse>("post", _url, body);
   }
@@ -119,10 +101,13 @@ export class PetsService {
    * Get a pet by ID
    * @throws {ApiError} On non-2xx response
    */
-  async getPet(petId: string | number): Promise<PetsGetPetResponse> {
+  async getPet(
+    petId: string | number,
+  ): Promise<PetsGetPetResponse> {
     let _url = `${this._config.baseUrl}/pets/${petId}`;
     return this._request<PetsGetPetResponse>("get", _url);
   }
+
 }
 
 // ─────────────────────────────────────────────

@@ -4,11 +4,12 @@
   "type": "module",
   "scripts": {
     "specshot:init": "specshot init",
-    "specshot:generate": "node generate-all.mjs",
-    "specshot:generate:singleton": "specshot generate --output src/singleton --template-service ./templates/singleton-service.hbs",
-    "specshot:generate:factory": "specshot generate --output src/factory --template-service ./templates/factory-service.hbs",
-    "specshot:generate:observer": "specshot generate --output src/observer --template-service ./templates/observer-service.hbs",
-    "specshot:generate:builder": "specshot generate --output src/builder --template-service ./templates/builder-service.hbs"
+    "specshot:template:list": "specshot templates list",
+    "specshot:generate": "npm run specshot:generate:singleton && npm run specshot:generate:factory && npm run specshot:generate:observer && npm run specshot:generate:builder",
+    "specshot:generate:singleton": "specshot generate --config specshot.singleton.config.mjs",
+    "specshot:generate:factory": "specshot generate --config specshot.factory.config.mjs",
+    "specshot:generate:observer": "specshot generate --config specshot.observer.config.mjs",
+    "specshot:generate:builder": "specshot generate --config specshot.builder.config.mjs"
   },
   "dependencies": {
     "specshot": "file:../.."

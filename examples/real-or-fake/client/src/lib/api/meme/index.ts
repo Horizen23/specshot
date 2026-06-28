@@ -4,7 +4,7 @@ export * from "./types";
 export * from "./client";
 export * from "./hooks";
 import { createApiHooks } from "./hooks";
-export * from "./interceptors";
+export * from "./plugins";
 
 export * from "./services/memes.service";
 import { MemesService } from "./services/memes.service";
@@ -21,7 +21,7 @@ export function createApi(client: ApiClient) {
 
 // Client-side singletons for convenient browser usage (e.g. SWR)
 import { createApiClient } from "./client";
-import { useAllPlugins } from "./interceptors";
+import { useAllPlugins } from "./plugins";
 
 export const browserClient = createApiClient();
 useAllPlugins(browserClient);

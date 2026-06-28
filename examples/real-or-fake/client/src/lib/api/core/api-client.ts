@@ -180,11 +180,7 @@ export class ApiClient {
             err,
           );
         }
-        throw new ClientError(
-          "network",
-          "Unexpected fetch error",
-          err instanceof Error ? err : new Error(String(err)),
-        );
+        throw new ClientError("network", "Unexpected fetch error", err instanceof Error ? err : new Error(String(err)));
       }
 
       // Run response interceptors
@@ -239,15 +235,7 @@ export class ApiClient {
       if (err instanceof ApiError || err instanceof ClientError) {
         return { data: null, error: err, ok: false };
       }
-      return {
-        data: null,
-        error: new ClientError(
-          "network",
-          "Unexpected internal error",
-          err instanceof Error ? err : new Error(String(err)),
-        ),
-        ok: false,
-      };
+      return { data: null, error: new ClientError("network", "Unexpected internal error", err instanceof Error ? err : new Error(String(err))), ok: false };
     }
   }
 

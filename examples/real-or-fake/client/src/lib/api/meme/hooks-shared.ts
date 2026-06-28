@@ -49,5 +49,7 @@ export function extractCacheKeyArgs(args: any[]): any[] {
 // ============================================================================
 
 export type ApiHooksProxy<TApi, TProxyService> = {
-  [S in keyof TApi]: TApi[S] extends BaseService<any> ? TProxyService : never;
+  [S in keyof TApi]: TApi[S] extends BaseService<any>
+    ? TProxyService
+    : never;
 };

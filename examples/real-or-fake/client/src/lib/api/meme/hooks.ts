@@ -47,58 +47,46 @@ export type ApiHooksProxy<TApi> = {
 export function createApiHooks<TApi>(apiInstance: TApi) {
   return new Proxy({} as ApiHooksProxy<TApi>, {
     get: (_, serviceName: string) => {
-      return new Proxy(
-        {},
-        {
-          get: (_, methodName: string) => {
-            const hookFn = (...args: any[]) => {
-              const service = (
-                apiInstance as Record<string, Record<string, unknown>>
-              )[serviceName];
-              const method = service[methodName] as Function;
+      return new Proxy({}, {
+        get: (_, methodName: string) => {
+          const hookFn = (...args: any[]) => {
+            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
+            const method = service[methodName] as Function;
 
-              const resourceName = service.resourceName ?? serviceName;
-              const cacheKeyArgs = extractCacheKeyArgs(args);
-              const key = [resourceName, methodName, ...cacheKeyArgs] as const;
+            const resourceName = service.resourceName ?? serviceName;
+            const cacheKeyArgs = extractCacheKeyArgs(args);
+            const key = [resourceName, methodName, ...cacheKeyArgs] as const;
 
-              const fetcher = async () => {
-                const result = await method.apply(service, args);
-                if (!result.ok) {
-                  throw result.error;
-                }
-                return result.data;
-              };
-
-              return useSWR(key, fetcher);
+            const fetcher = async () => {
+              const result = await method.apply(service, args);
+              if (!result.ok) {
+                throw result.error;
+              }
+              return result.data;
             };
 
-            hookFn.key = (...args: any[]) => {
-              const service = (
-                apiInstance as Record<string, Record<string, unknown>>
-              )[serviceName];
-              const resourceName = service.resourceName ?? serviceName;
-              const cacheKeyArgs = extractCacheKeyArgs(args);
-              return [resourceName, methodName, ...cacheKeyArgs] as const;
-            };
+            return useSWR(key, fetcher);
+          };
 
-            hookFn.mutate = (...args: any[]) => {
-              const service = (
-                apiInstance as Record<string, Record<string, unknown>>
-              )[serviceName];
-              const resourceName = service.resourceName ?? serviceName;
-              return mutate(
-                (key: any) =>
-                  Array.isArray(key) &&
-                  key[0] === resourceName &&
-                  key[1] === methodName,
-                ...args,
-              ).catch(() => undefined);
-            };
+          hookFn.key = (...args: any[]) => {
+            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
+            const resourceName = service.resourceName ?? serviceName;
+            const cacheKeyArgs = extractCacheKeyArgs(args);
+            return [resourceName, methodName, ...cacheKeyArgs] as const;
+          };
 
-            return hookFn;
-          },
-        },
-      );
-    },
+          hookFn.mutate = (...args: any[]) => {
+            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
+            const resourceName = service.resourceName ?? serviceName;
+            return mutate(
+              (key: any) => Array.isArray(key) && key[0] === resourceName && key[1] === methodName,
+              ...args
+            ).catch(() => undefined);
+          };
+
+          return hookFn;
+        }
+      });
+    }
   });
 }

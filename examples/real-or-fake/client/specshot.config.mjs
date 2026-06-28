@@ -1,15 +1,35 @@
-/** @type {import('specshot').SpecshotConfig} */
+/**
+ * @typedef {Object} TemplateData
+ * @property {"react-query" | "swr" | "none"} [hook] - Which hooks framework to scaffold: 'react-query', 'swr', or 'none'
+ * @property {("bearer" | "logger")[]} [pluginNames] - List of interceptor plugins to generate
+ */
+/**
+ * @typedef {Object} Overrides
+ * @property {string} [dir]
+ * @property {string} [browser]
+ * @property {string} [core]
+ * @property {string} [handlerPerTag]
+ * @property {string} [index]
+ * @property {string} [plugins]
+ * @property {string} [provider]
+ * @property {string} [servicePerTag]
+ * @property {string} [typesPerTag]
+ */
+/** @type {import('specshot').SpecshotConfig<TemplateData, Overrides>} */
 export default {
-  coreDir: "src/lib/api/core",
-  integration: "swr",
-  interceptors: ["logger"],
+  preset: "class",
   apis: {
-    meme: {
-      providerDir: "src/lib/api/meme",
+    "meme": {
       openapiUrl: "../meme.json",
-      mswOutputDir: ".specshot/msw/meme",
     },
   },
+  templateData: {
+      "hook": "swr",
+      "pluginNames": [
+          "logger"
+      ]
+  },
+
   fakerPlugins: [
     {
       name: "meme-faker",
@@ -18,5 +38,4 @@ export default {
         ctx.schema.description?.includes("Meme image"),
       generate: (faker) => faker.image.urlLoremFlickr({ category: "meme" }),
     },
-  ],
-};
+  ],};

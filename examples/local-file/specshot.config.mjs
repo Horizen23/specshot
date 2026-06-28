@@ -6,10 +6,14 @@
 /**
  * @typedef {Object} Overrides
  * @property {string} [dir]
- * @property {string} [msw-handlers]
- * @property {string} [plugins-index]
- * @property {string} [service]
- * @property {string} [types]
+ * @property {string} [browser]
+ * @property {string} [core]
+ * @property {string} [handlerPerTag]
+ * @property {string} [index]
+ * @property {string} [plugins]
+ * @property {string} [provider]
+ * @property {string} [servicePerTag]
+ * @property {string} [typesPerTag]
  */
 /** @type {import('specshot').SpecshotConfig<TemplateData, Overrides>} */
 export default {

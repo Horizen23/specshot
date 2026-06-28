@@ -1,0 +1,21 @@
+{
+  "endpoints": {
+    "memes-listMemes": {
+      "enabled": true,
+      "tag": "memes",
+      "operationId": "listMemes",
+      "method": "GET",
+      "path": "/memes",
+      "statusCode": 200,
+      "delay": 0,
+      "mockData": "[\n  {\n    \"id\": \"deinde\",\n    \"imageUrl\": \"https://loremflickr.com/243/621/meme?lock=2259584348121297\",\n    \"caption\": \"curiositas\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 741,\n    \"realVotes\": 887,\n    \"fakeVotes\": 642\n  },\n  {\n    \"id\": \"tergo\",\n    \"imageUrl\": \"https://loremflickr.com/48/1499/meme?lock=3516972616480413\",\n    \"caption\": \"caput\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 503,\n    \"realVotes\": 655,\n    \"fakeVotes\": 313\n  },\n  {\n    \"id\": \"tantum\",\n    \"imageUrl\": \"https://loremflickr.com/1094/3045/meme?lock=8970589966940677\",\n    \"caption\": \"infit\",\n    \"category\": \"news\",\n    \"isReal\": false,\n    \"totalVotes\": 412,\n    \"realVotes\": 490,\n    \"fakeVotes\": 24\n  }\n]",
+      "mockMode": "faker",
+      "fakerArraySize": 3,
+      "fakerArraySizes": {},
+      "fakerFormats": {}
+    }
+  },
+  "outputDir": "src/lib/api/meme/services",
+  "specSource": "../meme.json",
+  "lastGenerated": "2026-06-24T01:58:24.159Z"
+}
