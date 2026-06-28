@@ -8,4 +8,5 @@ coverage
 .agents
 .opencode
 
-.specshot
+.specshot/*
+!.specshot/templates/
