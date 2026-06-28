@@ -50,7 +50,9 @@ export interface SpecshotUserConfig<
 
 export const DEFAULT_CONFIG_FILE = "specshot.config.mjs";
 
-export async function loadUserConfig<TemplateData extends Record<string, unknown> = Record<string, unknown>>(
+export async function loadUserConfig<
+  TemplateData extends Record<string, unknown> = Record<string, unknown>,
+>(
   cwd: string = process.cwd(),
   configPathOverride?: string,
 ): Promise<SpecshotUserConfig<TemplateData>> {

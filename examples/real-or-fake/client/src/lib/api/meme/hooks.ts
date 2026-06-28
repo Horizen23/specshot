@@ -25,11 +25,13 @@ export type SWRProxyMethod<TMethod extends (...args: any[]) => Promise<any>> = {
 };
 
 export type SWRProxyService<TService> = {
-  [K in keyof TService as K extends "abort" | "getSignal" | "withSignal"
-    ? never
-    : TService[K] extends (...args: any[]) => Promise<any>
-      ? K
-      : never]: TService[K] extends (...args: any[]) => Promise<any>
+  [
+    K in keyof TService as K extends "abort" | "getSignal" | "withSignal"
+      ? never
+      : TService[K] extends (...args: any[]) => Promise<any>
+        ? K
+        : never
+  ]: TService[K] extends (...args: any[]) => Promise<any>
     ? SWRProxyMethod<TService[K]>
     : never;
 };
@@ -47,46 +49,58 @@ export type ApiHooksProxy<TApi> = {
 export function createApiHooks<TApi>(apiInstance: TApi) {
   return new Proxy({} as ApiHooksProxy<TApi>, {
     get: (_, serviceName: string) => {
-      return new Proxy({}, {
-        get: (_, methodName: string) => {
-          const hookFn = (...args: any[]) => {
-            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
-            const method = service[methodName] as Function;
+      return new Proxy(
+        {},
+        {
+          get: (_, methodName: string) => {
+            const hookFn = (...args: any[]) => {
+              const service = (
+                apiInstance as Record<string, Record<string, unknown>>
+              )[serviceName];
+              const method = service[methodName] as Function;
 
-            const resourceName = service.resourceName ?? serviceName;
-            const cacheKeyArgs = extractCacheKeyArgs(args);
-            const key = [resourceName, methodName, ...cacheKeyArgs] as const;
+              const resourceName = service.resourceName ?? serviceName;
+              const cacheKeyArgs = extractCacheKeyArgs(args);
+              const key = [resourceName, methodName, ...cacheKeyArgs] as const;
 
-            const fetcher = async () => {
-              const result = await method.apply(service, args);
-              if (!result.ok) {
-                throw result.error;
-              }
-              return result.data;
+              const fetcher = async () => {
+                const result = await method.apply(service, args);
+                if (!result.ok) {
+                  throw result.error;
+                }
+                return result.data;
+              };
+
+              return useSWR(key, fetcher);
             };
 
-            return useSWR(key, fetcher);
-          };
+            hookFn.key = (...args: any[]) => {
+              const service = (
+                apiInstance as Record<string, Record<string, unknown>>
+              )[serviceName];
+              const resourceName = service.resourceName ?? serviceName;
+              const cacheKeyArgs = extractCacheKeyArgs(args);
+              return [resourceName, methodName, ...cacheKeyArgs] as const;
+            };
 
-          hookFn.key = (...args: any[]) => {
-            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
-            const resourceName = service.resourceName ?? serviceName;
-            const cacheKeyArgs = extractCacheKeyArgs(args);
-            return [resourceName, methodName, ...cacheKeyArgs] as const;
-          };
+            hookFn.mutate = (...args: any[]) => {
+              const service = (
+                apiInstance as Record<string, Record<string, unknown>>
+              )[serviceName];
+              const resourceName = service.resourceName ?? serviceName;
+              return mutate(
+                (key: any) =>
+                  Array.isArray(key) &&
+                  key[0] === resourceName &&
+                  key[1] === methodName,
+                ...args,
+              ).catch(() => undefined);
+            };
 
-          hookFn.mutate = (...args: any[]) => {
-            const service = (apiInstance as Record<string, Record<string, unknown>>)[serviceName];
-            const resourceName = service.resourceName ?? serviceName;
-            return mutate(
-              (key: any) => Array.isArray(key) && key[0] === resourceName && key[1] === methodName,
-              ...args
-            ).catch(() => undefined);
-          };
-
-          return hookFn;
-        }
-      });
-    }
+            return hookFn;
+          },
+        },
+      );
+    },
   });
 }

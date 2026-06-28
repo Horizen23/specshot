@@ -3,7 +3,11 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { DEFAULT_CONFIG_FILE, loadUserConfig } from "../../core/config-loader";
-import { readAllSchemas, generateTypeFile, generateJSDocTypeDef } from "../../core/template-registry";
+import {
+  readAllSchemas,
+  generateTypeFile,
+  generateJSDocTypeDef,
+} from "../../core/template-registry";
 import { getAvailablePresets, DEFAULT_PRESET } from "../../core/presets";
 
 import { showBanner } from "../ui/banner";
@@ -103,7 +107,10 @@ export async function initCommand(options: InitOptions = {}) {
 
       apisToGenerate.push({
         name: singleAnswers.apiName,
-        url: finalOpenapiUrl !== undefined ? finalOpenapiUrl : (singleAnswers.openapiUrl || ""),
+        url:
+          finalOpenapiUrl !== undefined
+            ? finalOpenapiUrl
+            : singleAnswers.openapiUrl || "",
       });
 
       finalOpenapiUrl =
@@ -129,13 +136,17 @@ export async function initCommand(options: InitOptions = {}) {
   const selectedPreset = presetAnswer.preset;
 
   // Validate preset has required structure
-  const errors = (await import("../../core/presets")).validatePresetStructure(selectedPreset);
+  const errors = (await import("../../core/presets")).validatePresetStructure(
+    selectedPreset,
+  );
   if (errors.length > 0) {
     console.error(chalk.red(`\n  Preset "${selectedPreset}" has issues:`));
     for (const err of errors) {
       console.error(chalk.red(`    - ${err}`));
     }
-    console.log(chalk.gray("\n  Choose a different preset or fix the issues above.\n"));
+    console.log(
+      chalk.gray("\n  Choose a different preset or fix the issues above.\n"),
+    );
     return;
   }
 
@@ -143,11 +154,20 @@ export async function initCommand(options: InitOptions = {}) {
   const schemas = readAllSchemas(selectedPreset);
   const mergedProps: Record<
     string,
-    { type: string; description?: string; enum?: string[]; items?: { type: string; enum?: string[] }; default?: unknown }
+    {
+      type: string;
+      description?: string;
+      enum?: string[];
+      items?: { type: string; enum?: string[] };
+      default?: unknown;
+    }
   > = {};
   for (const schema of schemas) {
     for (const [key, prop] of Object.entries(schema.properties || {})) {
-      mergedProps[key] = { ...prop, default: prop.default ?? mergedProps[key]?.default };
+      mergedProps[key] = {
+        ...prop,
+        default: prop.default ?? mergedProps[key]?.default,
+      };
     }
   }
 
@@ -235,7 +255,10 @@ export async function initCommand(options: InitOptions = {}) {
   }
 
   const existingTemplateData = (config && config.templateData) || {};
-  const mergedTemplateData = { ...existingTemplateData, ...templateDataAnswers };
+  const mergedTemplateData = {
+    ...existingTemplateData,
+    ...templateDataAnswers,
+  };
   const tdKeys = Object.keys(mergedTemplateData);
   const tdStr =
     tdKeys.length > 0
@@ -256,12 +279,14 @@ ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : "
 
   const configPath = path.resolve(cwd, DEFAULT_CONFIG_FILE);
   if (fs.existsSync(configPath)) {
-    const { overwrite } = await inquirer.prompt([{
-      type: "confirm",
-      name: "overwrite",
-      message: `${DEFAULT_CONFIG_FILE} already exists. Overwrite?`,
-      default: false,
-    }]);
+    const { overwrite } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "overwrite",
+        message: `${DEFAULT_CONFIG_FILE} already exists. Overwrite?`,
+        default: false,
+      },
+    ]);
     if (!overwrite) {
       console.log(chalk.gray("  Cancelled.\n"));
       return;

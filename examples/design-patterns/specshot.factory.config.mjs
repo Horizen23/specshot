@@ -11,7 +11,7 @@
 export default {
   preset: "factory",
   apis: {
-    "petstore": {
+    petstore: {
       openapiUrl: "./openapi.json",
     },
   },

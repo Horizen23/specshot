@@ -28,7 +28,12 @@
     "start": "node dist/cli.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit",
+    "test:coverage": "vitest run --coverage",
+    "lint": "npm run lint:types && npm run lint:format",
+    "lint:types": "tsc --noEmit",
+    "lint:format": "prettier --check .",
+    "format": "prettier --write .",
+    "clean": "rm -rf dist ui/mock-ui/dist",
     "prepublishOnly": "npm run build",
     "prepare": "husky"
   },
@@ -75,6 +80,7 @@
     "@types/inquirer": "^9.0.9",
     "@types/node": "^25.9.2",
     "husky": "^9.1.7",
+    "prettier": "^3.9.1",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^1.6.0"

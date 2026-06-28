@@ -460,7 +460,9 @@ export async function startMockWebServer(options: {
         });
       }
 
-      startMockServerInternal(cwd, mockState.mockServerPort).catch(console.error);
+      startMockServerInternal(cwd, mockState.mockServerPort).catch(
+        console.error,
+      );
 
       resolve(serverInstance);
     });

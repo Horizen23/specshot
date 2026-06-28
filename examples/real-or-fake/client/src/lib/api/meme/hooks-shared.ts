@@ -13,9 +13,7 @@ import type { AppApiErrorData } from "./types";
 // ============================================================================
 
 export type ApiHookError<TErrorData = AppApiErrorData> =
-  | ApiError<TErrorData>
-  | ClientError
-  | Error;
+  ApiError<TErrorData> | ClientError | Error;
 
 // ============================================================================
 // Shared type helpers
@@ -49,7 +47,5 @@ export function extractCacheKeyArgs(args: any[]): any[] {
 // ============================================================================
 
 export type ApiHooksProxy<TApi, TProxyService> = {
-  [S in keyof TApi]: TApi[S] extends BaseService<any>
-    ? TProxyService
-    : never;
+  [S in keyof TApi]: TApi[S] extends BaseService<any> ? TProxyService : never;
 };

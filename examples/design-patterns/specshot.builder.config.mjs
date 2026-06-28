@@ -11,7 +11,7 @@
 export default {
   preset: "builder",
   apis: {
-    "petstore": {
+    petstore: {
       openapiUrl: "./openapi.json",
     },
   },

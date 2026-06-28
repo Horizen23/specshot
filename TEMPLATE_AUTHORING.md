@@ -6,11 +6,11 @@ Create custom presets for the SpecShot template marketplace.
 
 SpecShot supports 3 types of presets. Run `specshot templates list` to see all available presets with their type.
 
-| Type | Tag | Description | Location |
-|------|-----|-------------|----------|
-| **Built-in** | `[built-in]` | Ships with specshot | Inside the specshot package |
-| **Community** | `[community]` | Installed from npm or GitHub | Installed into the specshot package dir |
-| **Custom** | `[custom]` | Created by you in your project | `.specshot/templates/presets/` |
+| Type          | Tag           | Description                    | Location                                |
+| ------------- | ------------- | ------------------------------ | --------------------------------------- |
+| **Built-in**  | `[built-in]`  | Ships with specshot            | Inside the specshot package             |
+| **Community** | `[community]` | Installed from npm or GitHub   | Installed into the specshot package dir |
+| **Custom**    | `[custom]`    | Created by you in your project | `.specshot/templates/presets/`          |
 
 ### Built-in
 
@@ -100,12 +100,12 @@ Contains scaffold templates that are copied to the project **only once** (first 
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Unique preset name (used as directory name) |
-| `description` | string | Yes | Short description shown in `init` menu |
-| `features` | string[] | No | List of features for marketplace listing |
-| `deps` | string[] | No | npm dependencies this preset requires |
+| Field         | Type     | Required | Description                                 |
+| ------------- | -------- | -------- | ------------------------------------------- |
+| `name`        | string   | Yes      | Unique preset name (used as directory name) |
+| `description` | string   | Yes      | Short description shown in `init` menu      |
+| `features`    | string[] | No       | List of features for marketplace listing    |
+| `deps`        | string[] | No       | npm dependencies this preset requires       |
 
 ## Template Data Schema
 
@@ -129,13 +129,13 @@ Place `_template-data.schema.json` in any template directory to define variables
 
 Every template directory uses meta files to control output:
 
-| File | Purpose | Example |
-|------|---------|---------|
-| `_target.hbs` | Output directory | `{{outputDir}}` |
-| `_name.hbs` | Output filename | `{{tagPrefix}}.service.ts` |
-| `_iterate.hbs` | Array key to iterate | `tags` |
-| `_condition.hbs` | Skip condition | `skip` (returns "skip" to skip) |
-| `_filter.hbs` | Allowed filenames | `service.hbs\ntypes.hbs` |
+| File             | Purpose              | Example                         |
+| ---------------- | -------------------- | ------------------------------- |
+| `_target.hbs`    | Output directory     | `{{outputDir}}`                 |
+| `_name.hbs`      | Output filename      | `{{tagPrefix}}.service.ts`      |
+| `_iterate.hbs`   | Array key to iterate | `tags`                          |
+| `_condition.hbs` | Skip condition       | `skip` (returns "skip" to skip) |
+| `_filter.hbs`    | Allowed filenames    | `service.hbs\ntypes.hbs`        |
 
 ## Custom Code Markers
 
@@ -154,10 +154,11 @@ The markers must be exactly `--- CUSTOM CODE START ---` and `--- CUSTOM CODE END
 Compiles to the output directory path. Common values:
 
 ```hbs
-{{outputDir}}          # Services output directory
-{{outputDir}}/..       # Parent of output (for index.ts)
-{{outputDir}}/../core  # Core directory
-{{outputDir}}/../plugins  # Plugins directory
+{{outputDir}}
+# Services output directory
+{{outputDir}}/.. # Parent of output (for index.ts)
+{{outputDir}}/../core # Core directory
+{{outputDir}}/../plugins # Plugins directory
 ```
 
 ### `_name.hbs`
@@ -165,10 +166,9 @@ Compiles to the output directory path. Common values:
 Compiles to the output filename. Common patterns:
 
 ```hbs
-{{tagPrefix}}.service.ts       # pets.service.ts
-{{tagPrefix}}.types.ts         # pets.types.ts
-models.ts                      # Static name
-index.ts                       # Static name
+{{tagPrefix}}.service.ts # pets.service.ts
+{{tagPrefix}}.types.ts # pets.types.ts models.ts # Static name index.ts # Static
+name
 ```
 
 ### `_iterate.hbs`
@@ -176,7 +176,7 @@ index.ts                       # Static name
 Returns the name of a key in the template data to iterate over:
 
 ```hbs
-tags    # Iterates over data.tags array (one file per tag)
+tags # Iterates over data.tags array (one file per tag)
 ```
 
 Each iteration spreads the item properties into the template context.
@@ -259,15 +259,15 @@ Adds file-relative import paths:
 Templates can preserve user edits between re-generations:
 
 ```hbs
-export class {{className}} extends BaseService {
-  // --- CUSTOM CODE START ---
+export class
+{{className}}
+extends BaseService { // --- CUSTOM CODE START ---
 {{#if customCode}}
-{{{customCode}}}
+  {{{customCode}}}
 {{else}}
   // Add your custom methods here. Do not remove these comments.
 {{/if}}
-  // --- CUSTOM CODE END ---
-}
+// --- CUSTOM CODE END --- }
 ```
 
 ## Template Variables Schema
@@ -307,22 +307,22 @@ Place this file anywhere in your preset tree. The `init` command will auto-disco
 
 ## Available Handlebars Helpers
 
-| Helper | Usage | Example |
-|--------|-------|---------|
-| `capitalize` | First letter uppercase | `{{capitalize tag}}` → `Pets` |
-| `camelCase` | camelCase | `{{camelCase tag}}` → `petStore` |
-| `pascalCase` | PascalCase | `{{pascalCase tag}}` → `PetStore` |
-| `kebabCase` | kebab-case | `{{kebabCase tag}}` → `pet-store` |
-| `snakeCase` | snake_case | `{{snakeCase tag}}` → `pet_store` |
-| `toLowerCase` | lowercase | `{{toLowerCase tag}}` → `pets` |
-| `toUpperCase` | UPPERCASE | `{{toUpperCase tag}}` → `PETS` |
-| `ifEq` | Equality check | `{{#ifEq tag 'pets'}}...{{/ifEq}}` |
-| `ifNeq` | Not-equal check | `{{#ifNeq tag 'users'}}...{{/ifNeq}}` |
-| `includes` | Array/string contains | `{{#if (includes imports 'Pet')}}...{{/if}}` |
-| `concat` | Concatenate strings | `{{concat a b}}` |
-| `hasFile` | File exists check | `{{#if (hasFile 'bearer.ts')}}...{{/if}}` |
-| `scanPlugins` | Scan plugins dir | `{{#each (scanPlugins)}}...{{/each}}` |
-| `relPath` | Relative path | `{{relPath from to}}` |
+| Helper        | Usage                  | Example                                      |
+| ------------- | ---------------------- | -------------------------------------------- |
+| `capitalize`  | First letter uppercase | `{{capitalize tag}}` → `Pets`                |
+| `camelCase`   | camelCase              | `{{camelCase tag}}` → `petStore`             |
+| `pascalCase`  | PascalCase             | `{{pascalCase tag}}` → `PetStore`            |
+| `kebabCase`   | kebab-case             | `{{kebabCase tag}}` → `pet-store`            |
+| `snakeCase`   | snake_case             | `{{snakeCase tag}}` → `pet_store`            |
+| `toLowerCase` | lowercase              | `{{toLowerCase tag}}` → `pets`               |
+| `toUpperCase` | UPPERCASE              | `{{toUpperCase tag}}` → `PETS`               |
+| `ifEq`        | Equality check         | `{{#ifEq tag 'pets'}}...{{/ifEq}}`           |
+| `ifNeq`       | Not-equal check        | `{{#ifNeq tag 'users'}}...{{/ifNeq}}`        |
+| `includes`    | Array/string contains  | `{{#if (includes imports 'Pet')}}...{{/if}}` |
+| `concat`      | Concatenate strings    | `{{concat a b}}`                             |
+| `hasFile`     | File exists check      | `{{#if (hasFile 'bearer.ts')}}...{{/if}}`    |
+| `scanPlugins` | Scan plugins dir       | `{{#each (scanPlugins)}}...{{/each}}`        |
+| `relPath`     | Relative path          | `{{relPath from to}}`                        |
 
 ## Sharing Your Preset
 
@@ -370,6 +370,7 @@ npx specshot templates validate --preset my-preset
 ```
 
 This checks:
+
 - `_preset.json` format
 - Required directories exist
 - Template files are present

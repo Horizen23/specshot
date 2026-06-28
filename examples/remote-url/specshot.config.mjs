@@ -19,12 +19,12 @@
 export default {
   preset: "class",
   apis: {
-    "petstore": {
+    petstore: {
       openapiUrl: "http://localhost:8080/openapi.json",
     },
   },
   templateData: {
-      "hook": "none",
-      "pluginNames": []
+    hook: "none",
+    pluginNames: [],
   },
 };

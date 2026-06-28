@@ -191,19 +191,58 @@ describe("F2 Code Generation (generate command)", () => {
     fs.mkdirSync(customTplDir, { recursive: true });
 
     // Build metadata structure matching the default templates
-    function writeTpl(subdir: string, tplFile: string, meta: { target: string; name?: string; iterate?: string }, content: string) {
+    function writeTpl(
+      subdir: string,
+      tplFile: string,
+      meta: { target: string; name?: string; iterate?: string },
+      content: string,
+    ) {
       const d = path.join(customTplDir, subdir);
       fs.mkdirSync(d, { recursive: true });
       fs.writeFileSync(path.join(d, "_target.hbs"), meta.target);
       if (meta.name) fs.writeFileSync(path.join(d, "_name.hbs"), meta.name);
-      if (meta.iterate) fs.writeFileSync(path.join(d, "_iterate.hbs"), meta.iterate);
+      if (meta.iterate)
+        fs.writeFileSync(path.join(d, "_iterate.hbs"), meta.iterate);
       fs.writeFileSync(path.join(d, tplFile), content);
     }
-    writeTpl("models", "models.hbs", { target: "{{outputDir}}", name: "models.ts" }, "// custom models {{version}}");
-    writeTpl("types-per-tag", "types.hbs", { target: "{{outputDir}}", name: "{{tagPrefix}}.types.ts", iterate: "tags" }, "// custom types");
-    writeTpl("service-per-tag", "service.hbs", { target: "{{outputDir}}", name: "{{tagPrefix}}.service.ts", iterate: "tags" }, "// custom service");
-    writeTpl("plugins", "plugins-index.hbs", { target: "{{outputDir}}/../plugins", name: "index.ts" }, "// custom plugins");
-    writeTpl("index", "index.hbs", { target: "{{outputDir}}/..", name: "index.ts" }, "// custom index");
+    writeTpl(
+      "models",
+      "models.hbs",
+      { target: "{{outputDir}}", name: "models.ts" },
+      "// custom models {{version}}",
+    );
+    writeTpl(
+      "types-per-tag",
+      "types.hbs",
+      {
+        target: "{{outputDir}}",
+        name: "{{tagPrefix}}.types.ts",
+        iterate: "tags",
+      },
+      "// custom types",
+    );
+    writeTpl(
+      "service-per-tag",
+      "service.hbs",
+      {
+        target: "{{outputDir}}",
+        name: "{{tagPrefix}}.service.ts",
+        iterate: "tags",
+      },
+      "// custom service",
+    );
+    writeTpl(
+      "plugins",
+      "plugins-index.hbs",
+      { target: "{{outputDir}}/../plugins", name: "index.ts" },
+      "// custom plugins",
+    );
+    writeTpl(
+      "index",
+      "index.hbs",
+      { target: "{{outputDir}}/..", name: "index.ts" },
+      "// custom index",
+    );
 
     const result = await runCli(
       [

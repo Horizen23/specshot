@@ -32,7 +32,11 @@ export function generateMswHandlers(
   let globalUsesFaker = false;
 
   const tags: Record<string, unknown>[] = [];
-  const servicesForIndex: { tag: string; tagLowerCase: string; capTag: string }[] = [];
+  const servicesForIndex: {
+    tag: string;
+    tagLowerCase: string;
+    capTag: string;
+  }[] = [];
 
   for (const [tag, data] of Object.entries(services)) {
     const tagLowerCase = tag.toLowerCase();
@@ -63,7 +67,8 @@ export function generateMswHandlers(
       let responseTypeName: string | null = null;
       let mockResponse: string;
       let mockComment = false;
-      let statusCode = httpMethod === "post" ? 201 : httpMethod === "delete" ? 204 : 200;
+      let statusCode =
+        httpMethod === "post" ? 201 : httpMethod === "delete" ? 204 : 200;
 
       if (epCfg?.statusCode) statusCode = epCfg.statusCode;
 
@@ -87,16 +92,26 @@ export function generateMswHandlers(
           if (mockMode === "faker") {
             usesFaker = true;
             mockResponse = mockValueFromSchema(
-              op.responseSchema, "faker", schemas, new Set(),
-              epCfg?.fakerArraySize || 3, epCfg?.fakerArraySizes || {},
-              "root", epCfg?.fakerFormats || {}, opts?.fakerPlugins || [],
+              op.responseSchema,
+              "faker",
+              schemas,
+              new Set(),
+              epCfg?.fakerArraySize || 3,
+              epCfg?.fakerArraySizes || {},
+              "root",
+              epCfg?.fakerFormats || {},
+              opts?.fakerPlugins || [],
             );
             mockComment = false;
           } else if (epCfg?.mockData) {
             mockResponse = epCfg.mockData;
             mockComment = false;
           } else {
-            mockResponse = mockValueFromSchema(op.responseSchema, mockMode === "manual" ? "auto" : mockMode, schemas);
+            mockResponse = mockValueFromSchema(
+              op.responseSchema,
+              mockMode === "manual" ? "auto" : mockMode,
+              schemas,
+            );
           }
         }
       } else {
@@ -110,10 +125,16 @@ export function generateMswHandlers(
       }
 
       handlerFns.push({
-        fnName, httpMethod, pathPattern,
+        fnName,
+        httpMethod,
+        pathPattern,
         summary: op.summary || op.operationId || op.method,
-        hasBody: op.hasBody, bodyTypeName, mockResponse, mockComment,
-        responseTypeName, statusCode,
+        hasBody: op.hasBody,
+        bodyTypeName,
+        mockResponse,
+        mockComment,
+        responseTypeName,
+        statusCode,
         delayMs: epCfg?.delay || undefined,
         customMockData: epCfg?.mockData || undefined,
         hasError: epCfg?.errorEnabled || false,
@@ -135,14 +156,19 @@ export function generateMswHandlers(
 
     const actualTypesDir = opts?.typesDir
       ? opts.typesDir
-      : opts?.servicesDir ? opts.servicesDir : path.join(path.dirname(mswDir), "services");
+      : opts?.servicesDir
+        ? opts.servicesDir
+        : path.join(path.dirname(mswDir), "services");
     const typesFilePath = path.join(actualTypesDir, `${tagLowerCase}.types`);
     let typesImportPath = path.relative(mswDir, typesFilePath);
-    if (!typesImportPath.startsWith(".")) typesImportPath = `./${typesImportPath}`;
+    if (!typesImportPath.startsWith("."))
+      typesImportPath = `./${typesImportPath}`;
     typesImportPath = typesImportPath.replace(/\\/g, "/");
 
     tags.push({
-      tag, capTag: capitalize(tag), tagLowerCase,
+      tag,
+      capTag: capitalize(tag),
+      tagLowerCase,
       handlers: handlerFns,
       typeImports: Array.from(typeImports),
       usesFaker,
@@ -161,9 +187,15 @@ export function generateMswHandlers(
     const mergedDir = path.join(os.tmpdir(), `specshot-msw-tpl-${Date.now()}`);
     fs.mkdirSync(mergedDir, { recursive: true });
     // Copy default metadata structure
-    for (const entry of fs.readdirSync(mswTemplatesDir, { withFileTypes: true })) {
+    for (const entry of fs.readdirSync(mswTemplatesDir, {
+      withFileTypes: true,
+    })) {
       if (entry.isDirectory()) {
-        fs.cpSync(path.join(mswTemplatesDir, entry.name), path.join(mergedDir, entry.name), { recursive: true });
+        fs.cpSync(
+          path.join(mswTemplatesDir, entry.name),
+          path.join(mergedDir, entry.name),
+          { recursive: true },
+        );
       } else if (entry.name.endsWith(".hbs") && !entry.name.startsWith("_")) {
         // Don't copy old flat files
       }

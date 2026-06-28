@@ -4,9 +4,23 @@ import { ApiClient } from "../../core/api-client";
 import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
-import type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
+import type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
 
-export type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse };
+export type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+};
 
 export class PetsService extends BaseService<"pets"> {
   constructor(client: ApiClient) {
@@ -33,11 +47,11 @@ export class PetsService extends BaseService<"pets"> {
    * // use `data` safely here
    */
   public listPets(
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<PetsListPetsResponse, AppApiErrorData>> {
     return this.client.get<PetsListPetsResponse, AppApiErrorData>(
       `/pets`,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
 
@@ -64,12 +78,12 @@ export class PetsService extends BaseService<"pets"> {
    */
   public createPet(
     payload: PetsCreatePetPayload,
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<PetsCreatePetResponse, AppApiErrorData>> {
     return this.client.post<PetsCreatePetResponse, AppApiErrorData>(
       `/pets`,
       payload,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
 
@@ -95,14 +109,13 @@ export class PetsService extends BaseService<"pets"> {
    */
   public getPet(
     petId: string | number,
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<PetsGetPetResponse, AppApiErrorData>> {
     return this.client.get<PetsGetPetResponse, AppApiErrorData>(
       `/pets/${petId}`,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
-
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.

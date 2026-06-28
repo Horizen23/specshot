@@ -4,7 +4,10 @@ import inquirer from "inquirer";
 import chalk from "chalk";
 import { generateApi } from "../../core/generate";
 import { loadUserConfig } from "../../core/config-loader";
-import { scaffoldInfrastructure, hasCustomTemplateConfig } from "../../core/installer";
+import {
+  scaffoldInfrastructure,
+  hasCustomTemplateConfig,
+} from "../../core/installer";
 import { DEFAULT_PRESET } from "../../core/presets";
 import { showBanner } from "../ui/banner";
 
@@ -49,7 +52,9 @@ export async function generateCommand(options: GenerateOptions) {
         });
         if (installed) console.log(chalk.green(`✔ Scaffold installed`));
       } else {
-        console.log(chalk.gray(`  Skipping scaffold (custom templates configured)`));
+        console.log(
+          chalk.gray(`  Skipping scaffold (custom templates configured)`),
+        );
       }
 
       if (!apiSpecUrl) {
@@ -67,10 +72,14 @@ export async function generateCommand(options: GenerateOptions) {
       };
 
       const specSource = apiSpecUrl;
-      const tdOutput = (apiConfig.templateData?.outDir as string)
-        || (config.templateData?.outDir as string)
-        || `src/lib/api/${apiName}/services`;
-      const targetDir = path.resolve(process.cwd(), mergedOptions.output || tdOutput);
+      const tdOutput =
+        (apiConfig.templateData?.outDir as string) ||
+        (config.templateData?.outDir as string) ||
+        `src/lib/api/${apiName}/services`;
+      const targetDir = path.resolve(
+        process.cwd(),
+        mergedOptions.output || tdOutput,
+      );
 
       try {
         await generateApi(
@@ -86,20 +95,18 @@ export async function generateCommand(options: GenerateOptions) {
             templateData: {
               ...config.templateData,
               ...apiConfig.templateData,
-              outDir: (apiConfig.templateData?.outDir as string)
-                || (config.templateData?.outDir as string)
-                || `src/lib/api/${apiName}/services`,
-              coreOut: (apiConfig.templateData?.coreOut as string)
-                || (config.templateData?.coreOut as string)
-                || `src/lib/api/core`,
+              outDir:
+                (apiConfig.templateData?.outDir as string) ||
+                (config.templateData?.outDir as string) ||
+                `src/lib/api/${apiName}/services`,
+              coreOut:
+                (apiConfig.templateData?.coreOut as string) ||
+                (config.templateData?.coreOut as string) ||
+                `src/lib/api/core`,
             },
           },
         );
-        console.log(
-          chalk.green(
-            `API ${apiName} generated successfully!`,
-          ),
-        );
+        console.log(chalk.green(`API ${apiName} generated successfully!`));
       } catch (err) {
         console.error(chalk.red(`Failed to generate API ${apiName}`));
         console.error(err);
@@ -182,7 +189,10 @@ export async function generateCommand(options: GenerateOptions) {
             chalk.gray("  Templates: ") + (mergedTemplates || "built-in"),
           );
           console.log(chalk.gray("  Alias:     ") + (alias || "none"));
-          console.log(chalk.gray("  Preset:    ") + (options.preset || config.preset || DEFAULT_PRESET));
+          console.log(
+            chalk.gray("  Preset:    ") +
+              (options.preset || config.preset || DEFAULT_PRESET),
+          );
           const spec = await generateApi(
             sourceLabel,
             targetDir,

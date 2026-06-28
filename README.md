@@ -77,11 +77,11 @@ npx specshot init \
   --url http://localhost:8080/openapi.json
 ```
 
-| Flag                    | Description                                                          |
-| ----------------------- | -------------------------------------------------------------------- |
-| `--preset <name>`       | Preset: `class`, `functional`, or community/custom                   |
-| `--templates, -t <dir>` | Custom Handlebars templates directory                                |
-| `--url, -u <url>`       | OpenAPI JSON URL to save in config for later generation              |
+| Flag                    | Description                                             |
+| ----------------------- | ------------------------------------------------------- |
+| `--preset <name>`       | Preset: `class`, `functional`, or community/custom      |
+| `--templates, -t <dir>` | Custom Handlebars templates directory                   |
+| `--url, -u <url>`       | OpenAPI JSON URL to save in config for later generation |
 
 ### 2. `generate` (Run repeatedly on API updates)
 
@@ -91,16 +91,17 @@ Installs the API core infrastructure (if missing), then reads your OpenAPI spec 
 
 Choose a built-in code style with `--preset`:
 
-| Preset | Style | Dependencies | Result pattern |
-|--------|-------|-------------|----------------|
-| `class` (default) | `BaseService` + `ApiClient` + Zod | `zod` | `Promise<{ data, error, ok }>` |
-| `functional` | Standalone `async function` + native `fetch()` | none | `Promise<T>` (throws on error) |
+| Preset            | Style                                          | Dependencies | Result pattern                 |
+| ----------------- | ---------------------------------------------- | ------------ | ------------------------------ |
+| `class` (default) | `BaseService` + `ApiClient` + Zod              | `zod`        | `Promise<{ data, error, ok }>` |
+| `functional`      | Standalone `async function` + native `fetch()` | none         | `Promise<T>` (throws on error) |
 
 ```bash
 npx specshot generate --preset functional
 ```
 
 Or set it in config:
+
 ```javascript
 export default {
   preset: "functional",
@@ -126,18 +127,18 @@ npx specshot generate --url http://localhost:8080/openapi.json
 
 ### `generate` options
 
-| Flag                                    | Description                                              |
-| --------------------------------------- | -------------------------------------------------------- |
-| `--url, -u <url>`                       | Remote OpenAPI spec URL                                  |
-| `--file, -f <path>`                     | Local OpenAPI JSON file                                  |
-| `--output, -o <dir>`                    | Output directory                                         |
-| `--alias, -a <alias>`                   | Import alias (e.g. `@/lib/api`)                          |
-| `--config, -c <path>`                   | Custom config file path                                  |
-| `--templates, -t <dir>`                 | Custom Handlebars templates (partial override)           |
-| `--preset <name>`                       | Built-in preset: `class`, `functional`                   |
-| `-w, --watch`                           | Watch for changes and auto-regenerate                    |
-| `--dry-run`                             | Preview without writing files                            |
-| `--msw`                                 | Generate MSW mock handlers                               |
+| Flag                    | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `--url, -u <url>`       | Remote OpenAPI spec URL                        |
+| `--file, -f <path>`     | Local OpenAPI JSON file                        |
+| `--output, -o <dir>`    | Output directory                               |
+| `--alias, -a <alias>`   | Import alias (e.g. `@/lib/api`)                |
+| `--config, -c <path>`   | Custom config file path                        |
+| `--templates, -t <dir>` | Custom Handlebars templates (partial override) |
+| `--preset <name>`       | Built-in preset: `class`, `functional`         |
+| `-w, --watch`           | Watch for changes and auto-regenerate          |
+| `--dry-run`             | Preview without writing files                  |
+| `--msw`                 | Generate MSW mock handlers                     |
 
 ### 3. `templates` (Manage Handlebars templates)
 
@@ -152,11 +153,11 @@ npx specshot templates eject class
 npx specshot templates eject functional --output ./my-templates
 ```
 
-| Flag                   | Description                                  |
-| ---------------------- | -------------------------------------------- |
-| `--output, -o <dir>`   | Output directory (default: `.specshot/templates/presets/`) |
-| `--generator-only`     | Eject only generator templates               |
-| `--msw-only`           | Eject only MSW templates                     |
+| Flag                 | Description                                                |
+| -------------------- | ---------------------------------------------------------- |
+| `--output, -o <dir>` | Output directory (default: `.specshot/templates/presets/`) |
+| `--generator-only`   | Eject only generator templates                             |
+| `--msw-only`         | Eject only MSW templates                                   |
 
 #### `templates list`
 
@@ -241,13 +242,13 @@ npx specshot generate --templates ./my-templates
 
 Templates use standard [Handlebars](https://handlebarsjs.com/) syntax. Key variables available:
 
-| Template         | Context variables                                                            |
-| ---------------- | --------------------------------------------------------------------------- |
-| `models.hbs`     | `schemas` (shared), `version`, `customCode`                                 |
-| `types.hbs`      | `tag`, `imports`, `specificSchemas`, `operations`, `customCode`             |
-| `service.hbs`    | `className`, `tagPrefix`, `exportsToReExport`, `operations`, `corePath`, `customCode` |
-| `index.hbs`      | `services`, `corePath`, `pluginsPath`, `customCode`                      |
-| `handlers.hbs`   | `tag`, `tagLowerCase`, `handlers`, `typeImports`, `usesFaker`, `typesImportPath` |
+| Template       | Context variables                                                                     |
+| -------------- | ------------------------------------------------------------------------------------- |
+| `models.hbs`   | `schemas` (shared), `version`, `customCode`                                           |
+| `types.hbs`    | `tag`, `imports`, `specificSchemas`, `operations`, `customCode`                       |
+| `service.hbs`  | `className`, `tagPrefix`, `exportsToReExport`, `operations`, `corePath`, `customCode` |
+| `index.hbs`    | `services`, `corePath`, `pluginsPath`, `customCode`                                   |
+| `handlers.hbs` | `tag`, `tagLowerCase`, `handlers`, `typeImports`, `usesFaker`, `typesImportPath`      |
 
 Each generated file preserves a `// --- CUSTOM CODE START ---` / `// --- CUSTOM CODE END ---` block so your hand-written code survives regeneration.
 
@@ -255,16 +256,16 @@ Each generated file preserves a `// --- CUSTOM CODE START ---` / `// --- CUSTOM 
 
 Custom templates can use built-in naming helpers:
 
-| Helper        | Example input  | Output         |
-| ------------- | -------------- | -------------- |
-| `capitalize`  | `pets`         | `Pets`         |
-| `camelCase`   | `pet-store`    | `petStore`     |
-| `pascalCase`  | `pet-store`    | `PetStore`     |
-| `kebabCase`   | `PetStore`     | `pet-store`    |
-| `snakeCase`   | `PetStore`     | `pet_store`    |
-| `toLowerCase` | `PetStore`     | `petstore`     |
-| `toUpperCase` | `petstore`     | `PETSTORE`     |
-| `ifEq`        | `{{#ifEq tag "pets"}}...{{/ifEq}}` | Conditional block |
+| Helper        | Example input                         | Output              |
+| ------------- | ------------------------------------- | ------------------- |
+| `capitalize`  | `pets`                                | `Pets`              |
+| `camelCase`   | `pet-store`                           | `petStore`          |
+| `pascalCase`  | `pet-store`                           | `PetStore`          |
+| `kebabCase`   | `PetStore`                            | `pet-store`         |
+| `snakeCase`   | `PetStore`                            | `pet_store`         |
+| `toLowerCase` | `PetStore`                            | `petstore`          |
+| `toUpperCase` | `petstore`                            | `PETSTORE`          |
+| `ifEq`        | `{{#ifEq tag "pets"}}...{{/ifEq}}`    | Conditional block   |
 | `ifNeq`       | `{{#ifNeq tag "users"}}...{{/ifNeq}}` | Negated conditional |
 
 #### File naming configuration
@@ -277,10 +278,10 @@ export default {
     petstore: {
       openapiUrl: "./openapi.json",
       fileNaming: {
-        models: "schemas",                          // → schemas.ts
-        service: "{{pascalCase tag}}Service",       // → PetsService.ts
-        types: "{{pascalCase tag}}Types",           // → PetsTypes.ts
-        index: "index",                             // → index.ts
+        models: "schemas", // → schemas.ts
+        service: "{{pascalCase tag}}Service", // → PetsService.ts
+        types: "{{pascalCase tag}}Types", // → PetsTypes.ts
+        index: "index", // → index.ts
       },
     },
   },
@@ -325,7 +326,7 @@ SpecShot provides autocompletion for both config files and templates:
 export default {
   // Autocompletion works in VS Code with the TypeScript language server
   preset: "functional",
-  apis: { /* ... */ },
+  apis: {/* ... */},
   templateData: {
     hook: "none",
     pluginNames: [],
@@ -410,8 +411,8 @@ export default {
 
   // Template data passed to all templates
   templateData: {
-    hook: "swr",                         // swr, react-query, or none
-    pluginNames: ["bearer", "logger"],   // interceptor plugins to generate
+    hook: "swr", // swr, react-query, or none
+    pluginNames: ["bearer", "logger"], // interceptor plugins to generate
   },
 
   // Define your APIs
@@ -433,11 +434,11 @@ export default {
 
 ## Examples
 
-| Example                                                | What it shows                                      |
-| ------------------------------------------------------ | -------------------------------------------------- |
-| [`examples/local-file`](examples/local-file)           | Generate from a `openapi.json` on disk             |
-| [`examples/remote-url`](examples/remote-url)           | Fetch from a running backend + mock server         |
-| [`examples/real-or-fake`](examples/real-or-fake)       | Full-stack usage with the mock server              |
+| Example                                                | What it shows                                          |
+| ------------------------------------------------------ | ------------------------------------------------------ |
+| [`examples/local-file`](examples/local-file)           | Generate from a `openapi.json` on disk                 |
+| [`examples/remote-url`](examples/remote-url)           | Fetch from a running backend + mock server             |
+| [`examples/real-or-fake`](examples/real-or-fake)       | Full-stack usage with the mock server                  |
 | [`examples/design-patterns`](examples/design-patterns) | Singleton, Factory, Observer, Builder service patterns |
 
 ---

@@ -160,11 +160,7 @@ export function handleUpgrade(
   });
 }
 
-function handleClose(
-  socket: Duplex,
-  client: WsClient,
-  path: string,
-): void {
+function handleClose(socket: Duplex, client: WsClient, path: string): void {
   sendFrame(socket, 0x8, Buffer.alloc(0));
   removeClient(client, path);
   socket.destroy();
@@ -236,10 +232,6 @@ function buildTextFrame(payload: Buffer): Buffer {
   return buildFrame(0x1, payload);
 }
 
-function sendFrame(
-  socket: Duplex,
-  opcode: number,
-  payload: Buffer,
-): void {
+function sendFrame(socket: Duplex, opcode: number, payload: Buffer): void {
   socket.write(buildFrame(opcode, payload));
 }

@@ -37,7 +37,8 @@ export function parseFrontmatter(content: string): TemplateFrontmatter | null {
 
     switch (key) {
       case "behavior":
-        if (value === "scaffold" || value === "generated") meta.behavior = value;
+        if (value === "scaffold" || value === "generated")
+          meta.behavior = value;
         break;
       case "target":
         meta.target = value;

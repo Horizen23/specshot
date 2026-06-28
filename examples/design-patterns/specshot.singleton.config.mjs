@@ -11,7 +11,7 @@
 export default {
   preset: "singleton",
   apis: {
-    "petstore": {
+    petstore: {
       openapiUrl: "./openapi.json",
     },
   },

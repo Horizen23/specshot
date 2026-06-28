@@ -147,7 +147,8 @@ export async function saveWebSocketEndpoint(payload: {
     body: JSON.stringify(payload),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Failed to save WebSocket endpoint");
+  if (!res.ok)
+    throw new Error(data.error || "Failed to save WebSocket endpoint");
   return data;
 }
 
@@ -158,7 +159,8 @@ export async function deleteWebSocketEndpoint(
     method: "DELETE",
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Failed to delete WebSocket endpoint");
+  if (!res.ok)
+    throw new Error(data.error || "Failed to delete WebSocket endpoint");
   return data;
 }
 

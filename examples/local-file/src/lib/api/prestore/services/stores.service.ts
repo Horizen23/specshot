@@ -4,9 +4,23 @@ import { ApiClient } from "../../core/api-client";
 import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
-import type { Store, CreateStoreRequest, StoresListStoresResponse, StoresCreateStorePayload, StoresCreateStoreResponse, StoresGetStoreResponse } from "./stores.types";
+import type {
+  Store,
+  CreateStoreRequest,
+  StoresListStoresResponse,
+  StoresCreateStorePayload,
+  StoresCreateStoreResponse,
+  StoresGetStoreResponse,
+} from "./stores.types";
 
-export type { Store, CreateStoreRequest, StoresListStoresResponse, StoresCreateStorePayload, StoresCreateStoreResponse, StoresGetStoreResponse };
+export type {
+  Store,
+  CreateStoreRequest,
+  StoresListStoresResponse,
+  StoresCreateStorePayload,
+  StoresCreateStoreResponse,
+  StoresGetStoreResponse,
+};
 
 export class StoresService extends BaseService<"stores"> {
   constructor(client: ApiClient) {
@@ -33,11 +47,11 @@ export class StoresService extends BaseService<"stores"> {
    * // use `data` safely here
    */
   public listStores(
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<StoresListStoresResponse, AppApiErrorData>> {
     return this.client.get<StoresListStoresResponse, AppApiErrorData>(
       `/stores`,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
 
@@ -64,12 +78,12 @@ export class StoresService extends BaseService<"stores"> {
    */
   public createStore(
     payload: StoresCreateStorePayload,
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<StoresCreateStoreResponse, AppApiErrorData>> {
     return this.client.post<StoresCreateStoreResponse, AppApiErrorData>(
       `/stores`,
       payload,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
 
@@ -95,14 +109,13 @@ export class StoresService extends BaseService<"stores"> {
    */
   public getStore(
     storeId: string | number,
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<StoresGetStoreResponse, AppApiErrorData>> {
     return this.client.get<StoresGetStoreResponse, AppApiErrorData>(
       `/stores/${storeId}`,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
-
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.

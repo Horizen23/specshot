@@ -6,41 +6,49 @@ the same OpenAPI spec — pick the one that fits your architecture.
 
 ## Patterns
 
-| Pattern | Template | Use Case |
-|---------|----------|----------|
-| **Singleton** | `singleton-service.hbs` | Single shared instance across app, with built-in caching |
-| **Factory** | `factory-service.hbs` | Multi-environment (prod/staging/test), per-tenant instances |
-| **Observer** | `observer-service.hbs` | Event-driven: subscribe to before/after/error lifecycle |
-| **Builder** | `builder-service.hbs` | Fluent API for complex requests with chained config |
+| Pattern       | Template                | Use Case                                                    |
+| ------------- | ----------------------- | ----------------------------------------------------------- |
+| **Singleton** | `singleton-service.hbs` | Single shared instance across app, with built-in caching    |
+| **Factory**   | `factory-service.hbs`   | Multi-environment (prod/staging/test), per-tenant instances |
+| **Observer**  | `observer-service.hbs`  | Event-driven: subscribe to before/after/error lifecycle     |
+| **Builder**   | `builder-service.hbs`   | Fluent API for complex requests with chained config         |
 
 ## Quick Comparison
 
 ### Singleton
+
 ```ts
 import { petsService } from "./services/pets.service";
 
 petsService.setBaseUrl("https://api.example.com");
-const pets = await petsService.listPets();      // cached
-const same = await petsService.listPets();      // cache hit
+const pets = await petsService.listPets(); // cached
+const same = await petsService.listPets(); // cache hit
 ```
 
 ### Factory
+
 ```ts
 import { PetsServiceFactory } from "./services/pets.service";
 
 const prod = PetsServiceFactory.createProduction();
 const staging = PetsServiceFactory.createStaging();
-const authed = PetsServiceFactory.createWithAuth("https://api.example.com", token);
+const authed = PetsServiceFactory.createWithAuth(
+  "https://api.example.com",
+  token,
+);
 
 const pets = await prod.listPets();
 ```
 
 ### Observer
+
 ```ts
 import { petsService } from "./services/pets.service";
 
 // Log all requests
-petsService.on((e) => console.log(`[${e.type}] ${e.method} ${e.url} (${e.durationMs}ms)`));
+petsService.on((e) =>
+  console.log(`[${e.type}] ${e.method} ${e.url} (${e.durationMs}ms)`),
+);
 
 // Loading indicators
 petsService.onBefore(() => setLoading(true));
@@ -53,16 +61,13 @@ const pets = await petsService.listPets();
 ```
 
 ### Builder
+
 ```ts
 import { listPets } from "./services/pets.service";
 
 setBaseUrl("https://api.example.com");
 
-const pets = await listPets()
-  .auth(token)
-  .timeout(5000)
-  .retries(3)
-  .execute();
+const pets = await listPets().auth(token).timeout(5000).retries(3).execute();
 ```
 
 ## Usage

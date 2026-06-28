@@ -2,7 +2,12 @@ import fs from "fs";
 import path from "path";
 import { renderTemplates } from "./renderer";
 import type { TemplateOverrides } from "./config-loader";
-import { getPresetTemplatesDir, getTemplateBehavior, getOutputTypes, getTemplateNames } from "./paths";
+import {
+  getPresetTemplatesDir,
+  getTemplateBehavior,
+  getOutputTypes,
+  getTemplateNames,
+} from "./paths";
 import { readSchemaDefaults } from "./template-registry";
 
 export interface InstallOptions {
@@ -85,12 +90,14 @@ export function scaffoldInfrastructure(params: {
   const scaffoldDirs = getScaffoldDirs(preset);
   if (scaffoldDirs.length === 0) return false;
 
-  const outDir = (apiConfig.templateData?.outDir as string)
-    || (templateData?.outDir as string)
-    || `src/lib/api/${apiName}`;
-  const coreOut = (apiConfig.templateData?.coreOut as string)
-    || (templateData?.coreOut as string)
-    || `${outDir}/../core`;
+  const outDir =
+    (apiConfig.templateData?.outDir as string) ||
+    (templateData?.outDir as string) ||
+    `src/lib/api/${apiName}`;
+  const coreOut =
+    (apiConfig.templateData?.coreOut as string) ||
+    (templateData?.coreOut as string) ||
+    `${outDir}/../core`;
 
   const schemaDefaults = readSchemaDefaults(preset);
   const mergedData: Record<string, unknown> = {

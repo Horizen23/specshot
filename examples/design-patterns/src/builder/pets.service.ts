@@ -2,8 +2,22 @@
 // Design Pattern: Builder — fluently build complex requests with chained configuration.
 // Use case: Complex queries with many optional params, custom headers per request, retry strategies.
 
-import type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
-export type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
+import type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
+export type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
 
 import { ApiError, RequestBuilder } from "./models";
 
@@ -27,8 +41,7 @@ export function getBaseUrl(): string {
  * @returns RequestBuilder for fluent configuration
  * @throws {ApiError} On non-2xx response (when executed)
  */
-export function listPets(
-): RequestBuilder<PetsListPetsResponse> {
+export function listPets(): RequestBuilder<PetsListPetsResponse> {
   let _url = `${_baseUrl}/pets`;
   const builder = new RequestBuilder<PetsListPetsResponse>("get", _url);
 
@@ -41,8 +54,7 @@ export function listPets(
  * @returns RequestBuilder for fluent configuration
  * @throws {ApiError} On non-2xx response (when executed)
  */
-export function createPet(
-): RequestBuilder<PetsCreatePetResponse> {
+export function createPet(): RequestBuilder<PetsCreatePetResponse> {
   let _url = `${_baseUrl}/pets`;
   const builder = new RequestBuilder<PetsCreatePetResponse>("post", _url);
 
@@ -64,7 +76,6 @@ export function getPet(
 
   return builder;
 }
-
 
 // --- CUSTOM CODE START ---
 // Add your custom code here. Do not remove these comments.

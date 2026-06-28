@@ -19,15 +19,13 @@
 export default {
   preset: "class",
   apis: {
-    "meme": {
+    meme: {
       openapiUrl: "../meme.json",
     },
   },
   templateData: {
-      "hook": "swr",
-      "pluginNames": [
-          "logger"
-      ]
+    hook: "swr",
+    pluginNames: ["logger"],
   },
 
   fakerPlugins: [
@@ -38,4 +36,5 @@ export default {
         ctx.schema.description?.includes("Meme image"),
       generate: (faker) => faker.image.urlLoremFlickr({ category: "meme" }),
     },
-  ],};
+  ],
+};

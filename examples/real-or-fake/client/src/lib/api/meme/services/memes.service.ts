@@ -4,9 +4,33 @@ import { ApiClient } from "../../core/api-client";
 import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
-import type { Meme, CreateMemeRequest, VoteRequest, VoteResult, MemesListMemesParams, MemesListMemesResponse, MemesCreateMemePayload, MemesCreateMemeResponse, MemesGetMemeResponse, MemesVoteMemePayload, MemesVoteMemeResponse } from "./memes.types";
+import type {
+  Meme,
+  CreateMemeRequest,
+  VoteRequest,
+  VoteResult,
+  MemesListMemesParams,
+  MemesListMemesResponse,
+  MemesCreateMemePayload,
+  MemesCreateMemeResponse,
+  MemesGetMemeResponse,
+  MemesVoteMemePayload,
+  MemesVoteMemeResponse,
+} from "./memes.types";
 
-export type { Meme, CreateMemeRequest, VoteRequest, VoteResult, MemesListMemesParams, MemesListMemesResponse, MemesCreateMemePayload, MemesCreateMemeResponse, MemesGetMemeResponse, MemesVoteMemePayload, MemesVoteMemeResponse };
+export type {
+  Meme,
+  CreateMemeRequest,
+  VoteRequest,
+  VoteResult,
+  MemesListMemesParams,
+  MemesListMemesResponse,
+  MemesCreateMemePayload,
+  MemesCreateMemeResponse,
+  MemesGetMemeResponse,
+  MemesVoteMemePayload,
+  MemesVoteMemeResponse,
+};
 
 export class MemesService extends BaseService<"memes"> {
   constructor(client: ApiClient) {
@@ -33,11 +57,13 @@ export class MemesService extends BaseService<"memes"> {
    * // use `data` safely here
    */
   public listMemes(
-    config?: Omit<AppRequestConfig, "params"> & { params?: MemesListMemesParams }
+    config?: Omit<AppRequestConfig, "params"> & {
+      params?: MemesListMemesParams;
+    },
   ): Promise<ApiResult<MemesListMemesResponse, AppApiErrorData>> {
     return this.client.get<MemesListMemesResponse, AppApiErrorData>(
       `/memes`,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
 
@@ -64,12 +90,12 @@ export class MemesService extends BaseService<"memes"> {
    */
   public createMeme(
     payload: MemesCreateMemePayload,
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<MemesCreateMemeResponse, AppApiErrorData>> {
     return this.client.post<MemesCreateMemeResponse, AppApiErrorData>(
       `/memes`,
       payload,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
 
@@ -95,11 +121,11 @@ export class MemesService extends BaseService<"memes"> {
    */
   public getMeme(
     memeId: string | number,
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<MemesGetMemeResponse, AppApiErrorData>> {
     return this.client.get<MemesGetMemeResponse, AppApiErrorData>(
       `/memes/${memeId}`,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
 
@@ -128,15 +154,14 @@ export class MemesService extends BaseService<"memes"> {
   public voteMeme(
     memeId: string | number,
     payload: MemesVoteMemePayload,
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<MemesVoteMemeResponse, AppApiErrorData>> {
     return this.client.post<MemesVoteMemeResponse, AppApiErrorData>(
       `/memes/${memeId}/vote`,
       payload,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
-
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.

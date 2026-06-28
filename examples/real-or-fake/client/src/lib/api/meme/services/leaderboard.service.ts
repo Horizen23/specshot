@@ -4,7 +4,10 @@ import { ApiClient } from "../../core/api-client";
 import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
-import type { LeaderboardEntry, LeaderboardGetLeaderboardResponse } from "./leaderboard.types";
+import type {
+  LeaderboardEntry,
+  LeaderboardGetLeaderboardResponse,
+} from "./leaderboard.types";
 
 export type { LeaderboardEntry, LeaderboardGetLeaderboardResponse };
 
@@ -33,14 +36,13 @@ export class LeaderboardService extends BaseService<"leaderboard"> {
    * // use `data` safely here
    */
   public getLeaderboard(
-    config?: AppRequestConfig
+    config?: AppRequestConfig,
   ): Promise<ApiResult<LeaderboardGetLeaderboardResponse, AppApiErrorData>> {
     return this.client.get<LeaderboardGetLeaderboardResponse, AppApiErrorData>(
       `/leaderboard`,
-      this.withSignal(config)
+      this.withSignal(config),
     );
   }
-
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.

@@ -26,7 +26,6 @@ useAllPlugins(browserClient);
 
 export const browserApi = createApi(browserClient);
 
-
 // --- CUSTOM CODE START ---
 // Add your custom exports here. Do not remove these comments.
 // --- CUSTOM CODE END ---

@@ -18,7 +18,12 @@ import {
   schemaToZod,
   resolveSchemaOwnership,
 } from "./schema-parser";
-import { toClassName, capitalize, toCamelCase, toMethodName } from "../utils/naming-utils";
+import {
+  toClassName,
+  capitalize,
+  toCamelCase,
+  toMethodName,
+} from "../utils/naming-utils";
 import { loadSpec } from "./spec-loader";
 import { loadUserConfig } from "./config-loader";
 import type { TemplateOverrides } from "./config-loader";
@@ -66,7 +71,7 @@ export async function generateApi(
   const tplConfig: TemplateOverrides =
     typeof templatesOverride === "string"
       ? { dir: templatesOverride }
-      : (templatesOverride || {});
+      : templatesOverride || {};
 
   const overrideDir = tplConfig.dir
     ? path.resolve(process.cwd(), tplConfig.dir)
@@ -78,21 +83,38 @@ export async function generateApi(
     let validatedCount = 0;
     const tplDir = overrideDir || defaultTemplatesDir;
     if (fs.existsSync(tplDir)) {
-      const entries = fs.readdirSync(tplDir, { recursive: true, withFileTypes: true });
+      const entries = fs.readdirSync(tplDir, {
+        recursive: true,
+        withFileTypes: true,
+      });
       for (const entry of entries) {
-        if (entry.isFile() && entry.name.endsWith(".hbs") && !entry.name.startsWith("_")) {
+        if (
+          entry.isFile() &&
+          entry.name.endsWith(".hbs") &&
+          !entry.name.startsWith("_")
+        ) {
           validatedCount++;
         }
       }
     }
     if (opts?.msw) {
       const mswTplDir = getOutputTypeDir(preset, "mocks");
-      const mswOverrideDir = overrideDir ? path.join(overrideDir, "msw") : undefined;
+      const mswOverrideDir = overrideDir
+        ? path.join(overrideDir, "msw")
+        : undefined;
       const checkDir = mswOverrideDir || mswTplDir;
       if (fs.existsSync(checkDir)) {
-        const entries = fs.readdirSync(checkDir, { recursive: true, withFileTypes: true });
+        const entries = fs.readdirSync(checkDir, {
+          recursive: true,
+          withFileTypes: true,
+        });
         for (const entry of entries) {
-          if (entry.isFile() && entry.name.endsWith(".hbs") && !entry.name.startsWith("_")) validatedCount++;
+          if (
+            entry.isFile() &&
+            entry.name.endsWith(".hbs") &&
+            !entry.name.startsWith("_")
+          )
+            validatedCount++;
         }
       }
     }
@@ -105,7 +127,10 @@ export async function generateApi(
 
   // ── Group paths by tags ──
   const services: Record<string, ServiceGroup> = {};
-  for (const [pathUrl, methods] of Object.entries(spec.paths) as [string, Record<string, OpenApiOperation>][]) {
+  for (const [pathUrl, methods] of Object.entries(spec.paths) as [
+    string,
+    Record<string, OpenApiOperation>,
+  ][]) {
     for (const [method, operation] of Object.entries(methods)) {
       if (!operation.tags || operation.tags.length === 0) continue;
       const tag = operation.tags[0];
@@ -120,7 +145,8 @@ export async function generateApi(
         hasBody: !!operation.requestBody,
         hasQuery: !!operation.parameters?.some((p) => p.in === "query"),
         hasPathParams: !!operation.parameters?.some((p) => p.in === "path"),
-        responseSchema: operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema,
+        responseSchema:
+          operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema,
         bodySchema: operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema,
       });
     }
@@ -129,7 +155,9 @@ export async function generateApi(
   // ── Build per-tag data and shared models data ──
   const sharedModelsData: { name: string; zod: string; tsType: string }[] = [];
   for (const name of sharedSchemas) {
-    const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
+    const schemaKey = Object.keys(schemas).find(
+      (k) => cleanRefName(k) === name,
+    );
     sharedModelsData.push({
       name,
       zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
@@ -144,12 +172,15 @@ export async function generateApi(
     const tagPrefix = tag.toLowerCase();
 
     const modelsToImport = new Set<string>();
-    const specificSchemasList: { name: string; zod: string; tsType: string }[] = [];
+    const specificSchemasList: { name: string; zod: string; tsType: string }[] =
+      [];
     const specificSchemas = tagSchemas.get(tag) || new Set();
 
     if (specificSchemas.size > 0) {
       for (const name of specificSchemas) {
-        const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
+        const schemaKey = Object.keys(schemas).find(
+          (k) => cleanRefName(k) === name,
+        );
         if (schemaKey) {
           const nested = extractRefs(schemas[schemaKey]);
           for (const n of nested)
@@ -186,7 +217,11 @@ export async function generateApi(
       }
 
       let typeNameParams: string | null = null;
-      const queryParamsList: { name: string; required: boolean | undefined; tsType: string }[] = [];
+      const queryParamsList: {
+        name: string;
+        required: boolean | undefined;
+        tsType: string;
+      }[] = [];
       if (op.hasQuery) {
         typeNameParams = `${capTag}${capMethod}Params`;
         typeNames.push(typeNameParams);
@@ -207,7 +242,9 @@ export async function generateApi(
         let refName = cleanRefName(op.responseSchema.$ref);
         if (refName !== RESPONSE_BODY_STRUCT) {
           if (refName.startsWith(RESPONSE_BODY_PREFIX)) {
-            const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === refName);
+            const schemaKey = Object.keys(schemas).find(
+              (k) => cleanRefName(k) === refName,
+            );
             const wrapperSchema = schemaKey ? schemas[schemaKey] : undefined;
             if (wrapperSchema?.properties?.data?.$ref) {
               refName = cleanRefName(wrapperSchema.properties.data.$ref);
@@ -215,7 +252,11 @@ export async function generateApi(
               refName = schemaToTsType(wrapperSchema.properties.data);
             }
           }
-          if (refName && !refName.includes("{") && !["string", "number", "boolean"].includes(refName)) {
+          if (
+            refName &&
+            !refName.includes("{") &&
+            !["string", "number", "boolean"].includes(refName)
+          ) {
             if (sharedSchemas.has(refName)) modelsToImport.add(refName);
           }
           resType = refName || "void";
@@ -281,9 +322,10 @@ export async function generateApi(
   }
 
   // ── Build template data ──
-  const coreOutRaw = (opts?.templateData?.coreOut as string)
-    || (userConfig.templateData?.coreOut as string)
-    || path.join(outputDir, "../../core");
+  const coreOutRaw =
+    (opts?.templateData?.coreOut as string) ||
+    (userConfig.templateData?.coreOut as string) ||
+    path.join(outputDir, "../../core");
   const coreAbs = path.isAbsolute(coreOutRaw)
     ? coreOutRaw
     : path.resolve(process.cwd(), coreOutRaw);
@@ -302,7 +344,10 @@ export async function generateApi(
   // ── Render templates ──
   let renderDir = overrideDir || defaultTemplatesDir;
   if (overrideDir) {
-    const entries = fs.readdirSync(overrideDir, { recursive: true, withFileTypes: true });
+    const entries = fs.readdirSync(overrideDir, {
+      recursive: true,
+      withFileTypes: true,
+    });
     const hasHbs = entries.some((e) => e.isFile() && e.name.endsWith(".hbs"));
     if (!hasHbs) renderDir = defaultTemplatesDir;
   }
@@ -316,12 +361,21 @@ export async function generateApi(
       const fileDir = path.dirname(outputPath);
       const coreRelPath = path.relative(fileDir, coreAbs);
       // types.ts at {outDir}/../types.ts (sibling of outDir)
-      const outDirRaw = (opts?.templateData?.outDir as string) || path.dirname(outputDir);
-      const outDirAbs = path.isAbsolute(outDirRaw) ? outDirRaw : path.resolve(process.cwd(), outDirRaw);
+      const outDirRaw =
+        (opts?.templateData?.outDir as string) || path.dirname(outputDir);
+      const outDirAbs = path.isAbsolute(outDirRaw)
+        ? outDirRaw
+        : path.resolve(process.cwd(), outDirRaw);
       const typesFile = path.join(path.dirname(outDirAbs), "types.ts");
-      const typesRelPath = path.relative(fileDir, typesFile).replace(/\.ts$/, "");
+      const typesRelPath = path
+        .relative(fileDir, typesFile)
+        .replace(/\.ts$/, "");
       const custom = extractCustomCode(outputPath);
-      return { coreRelPath, typesRelPath, ...(custom !== null ? { customCode: custom } : {}) };
+      return {
+        coreRelPath,
+        typesRelPath,
+        ...(custom !== null ? { customCode: custom } : {}),
+      };
     },
   });
 
@@ -330,22 +384,34 @@ export async function generateApi(
     const mswDir = path.join(path.dirname(outputDir), "msw", "handlers");
     const defaultMswTemplatesDir = getOutputTypeDir(preset, "mocks");
 
-    generateMswHandlers(spec, services, schemas, mswDir, defaultMswTemplatesDir, {
-      mswEndpointFilter: opts.mswEndpointFilter,
-      mswEndpointConfigs: opts.mswEndpointConfigs,
-      fakerPlugins: userConfig.fakerPlugins,
-      servicesDir: outputDir,
-      typesDir: outputDir,
-      templatesOverride: overrideDir ? path.join(overrideDir, "msw") : undefined,
-      perFile: Object.fromEntries(
-        getRegistry(preset)
-          .filter((t) => t.group === "msw" && t.configKey)
-          .map((t) => {
-            const override = tplConfig[t.configKey!];
-            return [t.file, override ? path.resolve(process.cwd(), override) : undefined];
-          })
-      ),
-    });
+    generateMswHandlers(
+      spec,
+      services,
+      schemas,
+      mswDir,
+      defaultMswTemplatesDir,
+      {
+        mswEndpointFilter: opts.mswEndpointFilter,
+        mswEndpointConfigs: opts.mswEndpointConfigs,
+        fakerPlugins: userConfig.fakerPlugins,
+        servicesDir: outputDir,
+        typesDir: outputDir,
+        templatesOverride: overrideDir
+          ? path.join(overrideDir, "msw")
+          : undefined,
+        perFile: Object.fromEntries(
+          getRegistry(preset)
+            .filter((t) => t.group === "msw" && t.configKey)
+            .map((t) => {
+              const override = tplConfig[t.configKey!];
+              return [
+                t.file,
+                override ? path.resolve(process.cwd(), override) : undefined,
+              ];
+            }),
+        ),
+      },
+    );
   }
 
   // ── Format generated files (scan outputDir tree for generated .ts files) ──
@@ -356,4 +422,3 @@ export async function generateApi(
 
   console.log(`\nSmart generation complete!`);
 }
-

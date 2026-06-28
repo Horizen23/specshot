@@ -64,9 +64,7 @@ describe("F4 Mocking Engine (mock command server)", () => {
       const timeout = setTimeout(() => {
         cp.kill("SIGKILL");
         reject(
-          new Error(
-            `Timeout waiting for mock engine to start on port ${port}`,
-          ),
+          new Error(`Timeout waiting for mock engine to start on port ${port}`),
         );
       }, 8000);
 

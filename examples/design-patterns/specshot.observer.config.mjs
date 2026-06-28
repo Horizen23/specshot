@@ -11,7 +11,7 @@
 export default {
   preset: "observer",
   apis: {
-    "petstore": {
+    petstore: {
       openapiUrl: "./openapi.json",
     },
   },

@@ -2,8 +2,22 @@
 // Design Pattern: Observer — subscribe to API lifecycle events (before/after/error).
 // Use case: Logging, analytics, caching, real-time UI updates on data changes.
 
-import type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
-export type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
+import type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
+export type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
 
 import { ApiError } from "./models";
 
@@ -103,7 +117,11 @@ export class PetsService {
 
       if (!_res.ok) {
         const _errBody = await _res.text().catch(() => "");
-        const _error = new ApiError(`${method} ${url} failed: ${_res.status}`, _res.status, _errBody);
+        const _error = new ApiError(
+          `${method} ${url} failed: ${_res.status}`,
+          _res.status,
+          _errBody,
+        );
         this._emit({
           type: "error",
           method,
@@ -116,7 +134,7 @@ export class PetsService {
         throw _error;
       }
 
-      const _data = await _res.json() as T;
+      const _data = (await _res.json()) as T;
       this._emit({
         type: "after",
         method,
@@ -147,8 +165,7 @@ export class PetsService {
    * List all pets
    * @throws {ApiError} On non-2xx response
    */
-  async listPets(
-  ): Promise<PetsListPetsResponse> {
+  async listPets(): Promise<PetsListPetsResponse> {
     let _url = `${this._baseUrl}/pets`;
     return this._request<PetsListPetsResponse>("get", _url);
   }
@@ -158,9 +175,7 @@ export class PetsService {
    * Create a pet
    * @throws {ApiError} On non-2xx response
    */
-  async createPet(
-    body: PetsCreatePetPayload,
-  ): Promise<PetsCreatePetResponse> {
+  async createPet(body: PetsCreatePetPayload): Promise<PetsCreatePetResponse> {
     let _url = `${this._baseUrl}/pets`;
     return this._request<PetsCreatePetResponse>("post", _url, body);
   }
@@ -170,13 +185,10 @@ export class PetsService {
    * Get a pet by ID
    * @throws {ApiError} On non-2xx response
    */
-  async getPet(
-    petId: string | number,
-  ): Promise<PetsGetPetResponse> {
+  async getPet(petId: string | number): Promise<PetsGetPetResponse> {
     let _url = `${this._baseUrl}/pets/${petId}`;
     return this._request<PetsGetPetResponse>("get", _url);
   }
-
 }
 
 // Convenience: shared instance

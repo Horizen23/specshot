@@ -2,8 +2,22 @@
 // Design Pattern: Singleton — single shared service instance with centralized config.
 // Use case: Single API client shared across the entire app (e.g. global state, shared cache).
 
-import type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
-export type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
+import type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
+export type {
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
 
 import { ApiError } from "./models";
 
@@ -74,7 +88,11 @@ export class PetsService {
     });
     if (!_res.ok) {
       const _errBody = await _res.text().catch(() => "");
-      throw new ApiError(`${method} ${url} failed: ${_res.status}`, _res.status, _errBody);
+      throw new ApiError(
+        `${method} ${url} failed: ${_res.status}`,
+        _res.status,
+        _errBody,
+      );
     }
     return _res.json() as Promise<T>;
   }
@@ -84,9 +102,7 @@ export class PetsService {
    * List all pets
    * @throws {ApiError} On non-2xx response
    */
-  async listPets(
-    init?: RequestInit
-  ): Promise<PetsListPetsResponse> {
+  async listPets(init?: RequestInit): Promise<PetsListPetsResponse> {
     let _url = `${this._baseUrl}/pets`;
     const _cacheKey = `${_url}`;
     const _cached = this._getCached<PetsListPetsResponse>(_cacheKey);
@@ -103,13 +119,18 @@ export class PetsService {
    */
   async createPet(
     body: PetsCreatePetPayload,
-    init?: RequestInit
+    init?: RequestInit,
   ): Promise<PetsCreatePetResponse> {
     let _url = `${this._baseUrl}/pets`;
     const _cacheKey = `${_url}`;
     const _cached = this._getCached<PetsCreatePetResponse>(_cacheKey);
     if (_cached) return _cached;
-    const _data = await this._request<PetsCreatePetResponse>("post", _url, body, init);
+    const _data = await this._request<PetsCreatePetResponse>(
+      "post",
+      _url,
+      body,
+      init,
+    );
     this._setCached(_cacheKey, _data);
     return _data;
   }
@@ -121,7 +142,7 @@ export class PetsService {
    */
   async getPet(
     petId: string | number,
-    init?: RequestInit
+    init?: RequestInit,
   ): Promise<PetsGetPetResponse> {
     let _url = `${this._baseUrl}/pets/${petId}`;
     const _cacheKey = `${_url}`;
@@ -131,7 +152,6 @@ export class PetsService {
     this._setCached(_cacheKey, _data);
     return _data;
   }
-
 }
 
 // Convenience: pre-exported singleton

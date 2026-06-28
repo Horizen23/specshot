@@ -453,19 +453,35 @@ describe("generateApi", () => {
     const customTplDir = path.join(tmpDir, "custom-templates");
 
     // Build metadata structure matching the default templates
-    function writeTpl(subdir: string, tplFile: string, meta: { target: string; name?: string; iterate?: string }, content: string) {
+    function writeTpl(
+      subdir: string,
+      tplFile: string,
+      meta: { target: string; name?: string; iterate?: string },
+      content: string,
+    ) {
       const d = path.join(customTplDir, subdir);
       fs.mkdirSync(d, { recursive: true });
       fs.writeFileSync(path.join(d, "_target.hbs"), meta.target);
       if (meta.name) fs.writeFileSync(path.join(d, "_name.hbs"), meta.name);
-      if (meta.iterate) fs.writeFileSync(path.join(d, "_iterate.hbs"), meta.iterate);
+      if (meta.iterate)
+        fs.writeFileSync(path.join(d, "_iterate.hbs"), meta.iterate);
       fs.writeFileSync(path.join(d, tplFile), content);
     }
 
-    writeTpl("models", "models.hbs", { target: "{{outputDir}}", name: "models.ts" }, `// CUSTOM-TPL models`);
     writeTpl(
-      "types-per-tag", "types.hbs",
-      { target: "{{outputDir}}", name: "{{tagPrefix}}.types.ts", iterate: "tags" },
+      "models",
+      "models.hbs",
+      { target: "{{outputDir}}", name: "models.ts" },
+      `// CUSTOM-TPL models`,
+    );
+    writeTpl(
+      "types-per-tag",
+      "types.hbs",
+      {
+        target: "{{outputDir}}",
+        name: "{{tagPrefix}}.types.ts",
+        iterate: "tags",
+      },
       `// CUSTOM-TPL {{tag}} types
 {{#each specificSchemas}}
 export const {{name}} = {};
@@ -475,16 +491,31 @@ export const {{name}} = {};
 // --- CUSTOM CODE END ---`,
     );
     writeTpl(
-      "service-per-tag", "service.hbs",
-      { target: "{{outputDir}}", name: "{{tagPrefix}}.service.ts", iterate: "tags" },
+      "service-per-tag",
+      "service.hbs",
+      {
+        target: "{{outputDir}}",
+        name: "{{tagPrefix}}.service.ts",
+        iterate: "tags",
+      },
       `// CUSTOM-TPL {{className}} service
 import { BaseService } from "{{corePath}}/base-service";
 // --- CUSTOM CODE START ---
 {{#if customCode}}{{{customCode}}}{{/if}}
 // --- CUSTOM CODE END ---`,
     );
-    writeTpl("index", "index.hbs", { target: "{{outputDir}}/..", name: "index.ts" }, `// CUSTOM-TPL index`);
-    writeTpl("plugins", "plugins-index.hbs", { target: "{{outputDir}}/../plugins", name: "index.ts" }, `// CUSTOM-TPL plugins`);
+    writeTpl(
+      "index",
+      "index.hbs",
+      { target: "{{outputDir}}/..", name: "index.ts" },
+      `// CUSTOM-TPL index`,
+    );
+    writeTpl(
+      "plugins",
+      "plugins-index.hbs",
+      { target: "{{outputDir}}/../plugins", name: "index.ts" },
+      `// CUSTOM-TPL plugins`,
+    );
 
     const tplOut = path.join(tmpDir, "tpl-output");
     await generateApi(
@@ -803,9 +834,9 @@ import { BaseService } from "{{corePath}}/base-service";
     // The parent dir gets plugins/ created by generateApi, but the
     // discovery loop handles empty/missing gracefully
     const parentDir = path.dirname(noIntDir);
-    expect(
-      fs.existsSync(path.join(parentDir, "plugins", "index.ts")),
-    ).toBe(true);
+    expect(fs.existsSync(path.join(parentDir, "plugins", "index.ts"))).toBe(
+      true,
+    );
   });
 
   it("falls back to built-in templates when override dir is empty", async () => {
@@ -980,7 +1011,12 @@ import { BaseService } from "{{corePath}}/base-service";
       },
     );
 
-    const handlerFile = path.join(path.dirname(mswOut), "msw", "handlers", "users.handlers.ts");
+    const handlerFile = path.join(
+      path.dirname(mswOut),
+      "msw",
+      "handlers",
+      "users.handlers.ts",
+    );
     expect(fs.existsSync(handlerFile)).toBe(true);
 
     const handlerContent = fs.readFileSync(handlerFile, "utf8");

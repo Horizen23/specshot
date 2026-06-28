@@ -18,7 +18,10 @@ function getBuiltInPresetNames(): Set<string> {
   const names = new Set<string>();
   for (const entry of fs.readdirSync(base)) {
     const dir = path.join(base, entry);
-    if (fs.statSync(dir).isDirectory() && fs.existsSync(path.join(dir, "_preset.json"))) {
+    if (
+      fs.statSync(dir).isDirectory() &&
+      fs.existsSync(path.join(dir, "_preset.json"))
+    ) {
       names.add(entry);
     }
   }
@@ -39,7 +42,10 @@ export function getAvailablePresets(): PresetInfo[] {
 
   // 2. Scan project-level custom presets (user's project templates/presets/)
   //    Project-level OVERRIDES package-level (ejected presets take priority)
-  const projectBase = path.resolve(process.cwd(), ".specshot/templates/presets");
+  const projectBase = path.resolve(
+    process.cwd(),
+    ".specshot/templates/presets",
+  );
   if (fs.existsSync(projectBase) && projectBase !== pkgBase) {
     for (const entry of fs.readdirSync(projectBase)) {
       const dir = path.join(projectBase, entry);
@@ -59,7 +65,11 @@ interface RawPresetManifest {
   deps?: unknown;
 }
 
-function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-in" | "community" | "custom"): PresetInfo | null {
+function loadPresetManifest(
+  name: string,
+  dir: string,
+  sourceOverride?: "built-in" | "community" | "custom",
+): PresetInfo | null {
   const builtInNames = getBuiltInPresetNames();
   const manifestPath = path.join(dir, "_preset.json");
   if (fs.existsSync(manifestPath)) {
@@ -68,10 +78,14 @@ function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-i
       const data = JSON.parse(raw) as RawPresetManifest;
       const warnings: string[] = [];
       if (typeof data.name !== "string" || !data.name) {
-        warnings.push(`"name" must be a non-empty string, using directory name "${name}"`);
+        warnings.push(
+          `"name" must be a non-empty string, using directory name "${name}"`,
+        );
       }
       if (typeof data.description !== "string" || !data.description) {
-        warnings.push(`"description" must be a non-empty string, using directory name "${name}"`);
+        warnings.push(
+          `"description" must be a non-empty string, using directory name "${name}"`,
+        );
       }
       if (data.features !== undefined && !Array.isArray(data.features)) {
         warnings.push(`"features" must be an array, ignoring`);
@@ -80,18 +94,27 @@ function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-i
         warnings.push(`"deps" must be an array, ignoring`);
       }
       if (warnings.length > 0) {
-        console.warn(`  [SpecShot] Preset "${name}" warnings at ${manifestPath}:`);
+        console.warn(
+          `  [SpecShot] Preset "${name}" warnings at ${manifestPath}:`,
+        );
         for (const w of warnings) {
           console.warn(`    - ${w}`);
         }
       }
-      const source = sourceOverride
-        || (builtInNames.has(name) ? "built-in" : "community");
+      const source =
+        sourceOverride || (builtInNames.has(name) ? "built-in" : "community");
       return {
-        name: (typeof data.name === "string" && data.name) ? data.name : name,
-        description: (typeof data.description === "string" && data.description) ? data.description : name,
-        features: Array.isArray(data.features) ? data.features.filter((f): f is string => typeof f === "string") : [],
-        deps: Array.isArray(data.deps) ? data.deps.filter((d): d is string => typeof d === "string") : [],
+        name: typeof data.name === "string" && data.name ? data.name : name,
+        description:
+          typeof data.description === "string" && data.description
+            ? data.description
+            : name,
+        features: Array.isArray(data.features)
+          ? data.features.filter((f): f is string => typeof f === "string")
+          : [],
+        deps: Array.isArray(data.deps)
+          ? data.deps.filter((d): d is string => typeof d === "string")
+          : [],
         source,
       };
     } catch (err) {
@@ -101,8 +124,8 @@ function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-i
   // If no manifest, still consider it a valid preset if it has templates/
   const hasTemplates = fs.existsSync(path.join(dir, "templates"));
   if (hasTemplates) {
-    const source = sourceOverride
-      || (builtInNames.has(name) ? "built-in" : "community");
+    const source =
+      sourceOverride || (builtInNames.has(name) ? "built-in" : "community");
     return { name, description: name, features: [], deps: [], source };
   }
   return null;
@@ -147,7 +170,9 @@ export function validatePresetStructure(preset: string): string[] {
       return stat.isDirectory();
     });
     if (outputTypes.length === 0) {
-      errors.push(`templates/: has no output type directories (e.g. api/, mocks/)`);
+      errors.push(
+        `templates/: has no output type directories (e.g. api/, mocks/)`,
+      );
     }
     for (const outputType of outputTypes) {
       const outputTypeDir = path.join(templatesDir, outputType);
@@ -165,23 +190,44 @@ export function validatePresetStructure(preset: string): string[] {
         const hasAnyHbs = files.some((f) => f.endsWith(".hbs"));
         if (!hasAnyHbs) continue;
 
-        const mainFile = files.find((f) => f.endsWith(".hbs") && !f.startsWith("_"));
+        const mainFile = files.find(
+          (f) => f.endsWith(".hbs") && !f.startsWith("_"),
+        );
         if (!mainFile) {
-          errors.push(`templates/${outputType}/${entry}/: has no .hbs template files`);
+          errors.push(
+            `templates/${outputType}/${entry}/: has no .hbs template files`,
+          );
         } else {
           const hasBehavior = files.includes("_behavior.hbs");
           if (hasBehavior) {
-            const behaviorContent = fs.readFileSync(path.join(tplDir, "_behavior.hbs"), "utf8").trim();
-            if (behaviorContent !== "scaffold" && behaviorContent !== "generated") {
-              errors.push(`templates/${outputType}/${entry}/_behavior.hbs: must contain 'scaffold' or 'generated' (got '${behaviorContent}')`);
+            const behaviorContent = fs
+              .readFileSync(path.join(tplDir, "_behavior.hbs"), "utf8")
+              .trim();
+            if (
+              behaviorContent !== "scaffold" &&
+              behaviorContent !== "generated"
+            ) {
+              errors.push(
+                `templates/${outputType}/${entry}/_behavior.hbs: must contain 'scaffold' or 'generated' (got '${behaviorContent}')`,
+              );
             }
           } else {
-            const content = fs.readFileSync(path.join(tplDir, mainFile), "utf8");
+            const content = fs.readFileSync(
+              path.join(tplDir, mainFile),
+              "utf8",
+            );
             const meta = parseFrontmatter(content);
             if (!meta?.behavior) {
-              errors.push(`templates/${outputType}/${entry}/${mainFile}: missing frontmatter 'behavior' (must be 'scaffold' or 'generated')`);
-            } else if (meta.behavior !== "scaffold" && meta.behavior !== "generated") {
-              errors.push(`templates/${outputType}/${entry}/${mainFile}: frontmatter 'behavior' must be 'scaffold' or 'generated' (got '${meta.behavior}')`);
+              errors.push(
+                `templates/${outputType}/${entry}/${mainFile}: missing frontmatter 'behavior' (must be 'scaffold' or 'generated')`,
+              );
+            } else if (
+              meta.behavior !== "scaffold" &&
+              meta.behavior !== "generated"
+            ) {
+              errors.push(
+                `templates/${outputType}/${entry}/${mainFile}: frontmatter 'behavior' must be 'scaffold' or 'generated' (got '${meta.behavior}')`,
+              );
             }
           }
         }

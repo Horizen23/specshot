@@ -19,15 +19,12 @@
 export default {
   preset: "class",
   apis: {
-    "prestore": {
+    prestore: {
       openapiUrl: "openapi.json",
     },
   },
   templateData: {
-      "hook": "none",
-      "pluginNames": [
-          "bearer",
-          "logger"
-      ]
+    hook: "none",
+    pluginNames: ["bearer", "logger"],
   },
 };

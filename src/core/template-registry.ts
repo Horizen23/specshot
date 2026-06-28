@@ -1,6 +1,12 @@
 import fs from "fs";
 import path from "path";
-import { getPresetDir, getPresetTemplatesDir, getOutputTypes, getTemplateNames, getTemplateBehavior } from "./paths";
+import {
+  getPresetDir,
+  getPresetTemplatesDir,
+  getOutputTypes,
+  getTemplateNames,
+  getTemplateBehavior,
+} from "./paths";
 import { toCamelCase } from "../utils/naming-utils";
 import { DEFAULT_PRESET } from "./presets";
 
@@ -44,7 +50,9 @@ function loadPresetTemplates(preset: string): TemplateInfo[] {
       const behavior = getTemplateBehavior(templateDir);
 
       const files = fs.readdirSync(templateDir);
-      const mainFile = files.find((f) => f.endsWith(".hbs") && !f.startsWith("_"));
+      const mainFile = files.find(
+        (f) => f.endsWith(".hbs") && !f.startsWith("_"),
+      );
       if (!mainFile) continue;
 
       templates.push({
@@ -71,7 +79,10 @@ function getRegistryForPreset(preset: string): TemplateInfo[] {
   return loaded;
 }
 
-export function getTemplateInfo(name: string, preset = DEFAULT_PRESET): TemplateInfo | undefined {
+export function getTemplateInfo(
+  name: string,
+  preset = DEFAULT_PRESET,
+): TemplateInfo | undefined {
   return getRegistryForPreset(preset).find(
     (t) => t.name === name || t.file === name || t.configKey === name,
   );
@@ -132,28 +143,40 @@ export function readSchemaDefaults(preset: string): Record<string, unknown> {
 
 function propItemsType(type?: string): string {
   switch (type) {
-    case "string": return "string";
-    case "number": return "number";
-    case "boolean": return "boolean";
-    default: return "unknown";
+    case "string":
+      return "string";
+    case "number":
+      return "number";
+    case "boolean":
+      return "boolean";
+    default:
+      return "unknown";
   }
 }
 
 function jsonSchemaToTs(type: string): string {
   switch (type) {
-    case "string": return "string";
-    case "number": return "number";
-    case "boolean": return "boolean";
-    case "array": return "unknown[]";
-    case "object": return "Record<string, unknown>";
-    default: return "unknown";
+    case "string":
+      return "string";
+    case "number":
+      return "number";
+    case "boolean":
+      return "boolean";
+    case "array":
+      return "unknown[]";
+    case "object":
+      return "Record<string, unknown>";
+    default:
+      return "unknown";
   }
 }
 
 export function generateTypeFile(preset = DEFAULT_PRESET): string {
   const schemas = readAllSchemas(preset);
-  const hasData = schemas.some(s => Object.keys(s.properties || {}).length > 0);
-  const hasOverrides = getRegistry(preset).some(t => t.configKey);
+  const hasData = schemas.some(
+    (s) => Object.keys(s.properties || {}).length > 0,
+  );
+  const hasOverrides = getRegistry(preset).some((t) => t.configKey);
 
   if (!hasData && !hasOverrides) {
     return `import('specshot').SpecshotConfig`;
@@ -204,7 +227,7 @@ export function generateJSDocTypeDef(preset = DEFAULT_PRESET): string {
     const keys = Array.from(configKeys).sort();
     lines.push("/**");
     lines.push(" * @typedef {Object} Overrides");
-    lines.push(' * @property {string} [dir]');
+    lines.push(" * @property {string} [dir]");
     for (const key of keys) {
       lines.push(` * @property {string} [${key}]`);
     }

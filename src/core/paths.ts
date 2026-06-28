@@ -50,12 +50,18 @@ export function getOutputTypeDir(preset: string, outputType: string): string {
 import { parseFrontmatter } from "./frontmatter";
 
 /** Returns a specific template directory (e.g. "api/service-per-tag") */
-export function getTemplateDir(preset: string, outputType: string, templateName: string): string {
+export function getTemplateDir(
+  preset: string,
+  outputType: string,
+  templateName: string,
+): string {
   return path.join(getOutputTypeDir(preset, outputType), templateName);
 }
 
 /** Returns the behavior content from the frontmatter of the main .hbs template file or _behavior.hbs fallback */
-export function getTemplateBehavior(templateDir: string): "scaffold" | "generated" | null {
+export function getTemplateBehavior(
+  templateDir: string,
+): "scaffold" | "generated" | null {
   if (!fs.existsSync(templateDir)) return null;
 
   const behaviorPath = path.join(templateDir, "_behavior.hbs");
@@ -79,10 +85,11 @@ export function getTemplateBehavior(templateDir: string): "scaffold" | "generate
 
   const mainFilePath = findFirstHbsFile(templateDir);
   if (!mainFilePath) return null;
-  
+
   const content = fs.readFileSync(mainFilePath, "utf8");
   const meta = parseFrontmatter(content);
-  if (meta?.behavior === "scaffold" || meta?.behavior === "generated") return meta.behavior;
+  if (meta?.behavior === "scaffold" || meta?.behavior === "generated")
+    return meta.behavior;
   return null;
 }
 
@@ -117,7 +124,7 @@ export function assertPresetExists(preset: string): void {
   if (!fs.existsSync(presetDir)) {
     throw new Error(
       `Preset "${preset}" not found at ${presetDir}\n` +
-      `Available presets can be listed with: npx specshot templates list`
+        `Available presets can be listed with: npx specshot templates list`,
     );
   }
 }
@@ -127,7 +134,7 @@ export function assertPresetHasTemplates(preset: string): void {
   if (!hasPresetTemplates(preset)) {
     throw new Error(
       `Preset "${preset}" has no templates/ directory\n` +
-      `Each preset must have a templates/ directory with output type subdirectories (api/, mocks/).`
+        `Each preset must have a templates/ directory with output type subdirectories (api/, mocks/).`,
     );
   }
 }

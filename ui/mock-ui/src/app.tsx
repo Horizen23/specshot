@@ -511,7 +511,10 @@ export function App() {
                 <>
                   <div class="ws-trigger-url">
                     <span class="form-label">Target</span>
-                    <code>ws://localhost:{mockServerPort}{triggerPath}</code>
+                    <code>
+                      ws://localhost:{mockServerPort}
+                      {triggerPath}
+                    </code>
                   </div>
                   <div class="form-row body-row">
                     <label class="form-label">Message</label>

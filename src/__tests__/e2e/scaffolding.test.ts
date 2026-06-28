@@ -118,9 +118,7 @@ describe("F1 Scaffolding (init command)", () => {
       true,
     );
     expect(
-      fs.existsSync(
-        path.join(tmpDir, "my-api-libs/provider-files/client.ts"),
-      ),
+      fs.existsSync(path.join(tmpDir, "my-api-libs/provider-files/client.ts")),
     ).toBe(true);
   });
 
@@ -225,19 +223,10 @@ describe("F1 Scaffolding (init command)", () => {
 
   // Test 11
   it("should copy custom Handlebars templates directory if provided", async () => {
-    await runCli(
-      [
-        "init",
-        "--templates",
-        "my-custom-templates",
-        "--url",
-        "",
-      ],
-      {
-        cwd: tmpDir,
-        stdinInputs: ["prov", "", "", "", ""],
-      },
-    );
+    await runCli(["init", "--templates", "my-custom-templates", "--url", ""], {
+      cwd: tmpDir,
+      stdinInputs: ["prov", "", "", "", ""],
+    });
 
     const configPath = path.join(tmpDir, "specshot.config.mjs");
     expect(fs.existsSync(configPath)).toBe(true);

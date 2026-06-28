@@ -25,13 +25,29 @@ export function registerNamingHelpers(): void {
   Handlebars.registerHelper("toLowerCase", toLowerCase);
   Handlebars.registerHelper("toUpperCase", toUpperCase);
 
-  Handlebars.registerHelper("ifEq", function (this: unknown, a: unknown, b: unknown, opts: { fn: (ctx: unknown) => string; inverse: (ctx: unknown) => string }) {
-    return a === b ? opts.fn(this) : opts.inverse(this);
-  });
+  Handlebars.registerHelper(
+    "ifEq",
+    function (
+      this: unknown,
+      a: unknown,
+      b: unknown,
+      opts: { fn: (ctx: unknown) => string; inverse: (ctx: unknown) => string },
+    ) {
+      return a === b ? opts.fn(this) : opts.inverse(this);
+    },
+  );
 
-  Handlebars.registerHelper("ifNeq", function (this: unknown, a: unknown, b: unknown, opts: { fn: (ctx: unknown) => string; inverse: (ctx: unknown) => string }) {
-    return a !== b ? opts.fn(this) : opts.inverse(this);
-  });
+  Handlebars.registerHelper(
+    "ifNeq",
+    function (
+      this: unknown,
+      a: unknown,
+      b: unknown,
+      opts: { fn: (ctx: unknown) => string; inverse: (ctx: unknown) => string },
+    ) {
+      return a !== b ? opts.fn(this) : opts.inverse(this);
+    },
+  );
 
   Handlebars.registerHelper("split", (str: string, sep: string) => {
     if (!str || typeof str !== "string") return [];
@@ -55,13 +71,23 @@ export function registerNamingHelpers(): void {
   });
 
   // ── File system discovery helpers (templates scan their own output dir) ──
-  Handlebars.registerHelper("hasFile", function (this: unknown, relPath: string, opts?: { fn: (ctx: unknown) => string; inverse: (ctx: unknown) => string }) {
-    const cwd = process.cwd();
-    const full = path.resolve(cwd, relPath);
-    const exists = fs.existsSync(full);
-    if (opts) return exists ? opts.fn(this) : opts.inverse(this);
-    return exists;
-  });
+  Handlebars.registerHelper(
+    "hasFile",
+    function (
+      this: unknown,
+      relPath: string,
+      opts?: {
+        fn: (ctx: unknown) => string;
+        inverse: (ctx: unknown) => string;
+      },
+    ) {
+      const cwd = process.cwd();
+      const full = path.resolve(cwd, relPath);
+      const exists = fs.existsSync(full);
+      if (opts) return exists ? opts.fn(this) : opts.inverse(this);
+      return exists;
+    },
+  );
 
   Handlebars.registerHelper("scanPlugins", (dirRelPath: string) => {
     const cwd = process.cwd();

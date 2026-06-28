@@ -9,7 +9,10 @@ import {
   type TemplateFrontmatter,
 } from "./frontmatter";
 
-function walkHbsFiles(dir: string, rootDir?: string): Array<{ relPath: string; absPath: string }> {
+function walkHbsFiles(
+  dir: string,
+  rootDir?: string,
+): Array<{ relPath: string; absPath: string }> {
   const root = rootDir ?? dir;
   const results: Array<{ relPath: string; absPath: string }> = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -42,7 +45,10 @@ function renderFilter(
   const templateContent = filterLines.join("\n");
   const compiled = Handlebars.compile(templateContent);
   const rendered = compiled(data);
-  const lines = rendered.split("\n").map((l) => l.trim()).filter(Boolean);
+  const lines = rendered
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
   return lines.length > 0 ? new Set(lines) : null;
 }
 
@@ -51,7 +57,11 @@ export interface TemplateRendererOptions {
   data: Record<string, unknown>;
   silent?: boolean;
   skipIfExists?: boolean;
-  enhanceData?: (info: { relPath: string; templateName: string; outputPath: string }) => Record<string, unknown>;
+  enhanceData?: (info: {
+    relPath: string;
+    templateName: string;
+    outputPath: string;
+  }) => Record<string, unknown>;
   defaultTarget?: string;
   behavior?: "scaffold" | "generated";
 }
@@ -68,11 +78,12 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
 
     const rawContent = fs.readFileSync(absPath, "utf8");
     const meta = parseFrontmatter(rawContent) || {};
-    
+
     const dir = path.dirname(absPath);
     if (meta.behavior === undefined) {
       const p = path.join(dir, "_behavior.hbs");
-      if (fs.existsSync(p)) meta.behavior = fs.readFileSync(p, "utf8").trim() as any;
+      if (fs.existsSync(p))
+        meta.behavior = fs.readFileSync(p, "utf8").trim() as any;
     }
     if (meta.target === undefined) {
       const p = path.join(dir, "_target.hbs");
@@ -93,7 +104,11 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
     if (meta.filter === undefined) {
       const p = path.join(dir, "_filter.hbs");
       if (fs.existsSync(p)) {
-        meta.filter = fs.readFileSync(p, "utf8").split("\n").map((l) => l.trim()).filter(Boolean);
+        meta.filter = fs
+          .readFileSync(p, "utf8")
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
       }
     }
 
@@ -102,7 +117,8 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
     if (meta.condition) {
       const renderedCondition = renderValue(meta.condition, data);
       if (renderedCondition === "skip") continue;
-      if (renderedCondition && !evaluateCondition(renderedCondition, data)) continue;
+      if (renderedCondition && !evaluateCondition(renderedCondition, data))
+        continue;
     }
 
     const filterList = renderFilter(meta.filter, data);
@@ -119,7 +135,9 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
       const itemCtx: Record<string, unknown> = {
         ...data,
         templateName,
-        ...(typeof item === "object" && !Array.isArray(item) ? (item as Record<string, unknown>) : {}),
+        ...(typeof item === "object" && !Array.isArray(item)
+          ? (item as Record<string, unknown>)
+          : {}),
         item,
         itemIndex: idx,
       };
@@ -132,14 +150,19 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
         } else if (options.defaultTarget) {
           target = options.defaultTarget;
         } else {
-          if (!silent) console.warn(`  Skipping ${relPath}: no target in frontmatter`);
+          if (!silent)
+            console.warn(`  Skipping ${relPath}: no target in frontmatter`);
           continue;
         }
       }
 
       const namePattern = renderValue(meta?.name, itemCtx);
       const outputFileName = namePattern || `${templateName}.ts`;
-      const outputFullPath = path.resolve(process.cwd(), target, outputFileName);
+      const outputFullPath = path.resolve(
+        process.cwd(),
+        target,
+        outputFileName,
+      );
 
       if (options.skipIfExists && fs.existsSync(outputFullPath)) continue;
 
