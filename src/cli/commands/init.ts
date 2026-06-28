@@ -155,17 +155,27 @@ export async function initCommand(options: InitOptions = {}) {
           choices: prop.enum,
         });
       } else if (prop.type === "array") {
-        questions.push({
-          type: "input",
-          name: key,
-          message: `${prop.description || key} (comma-separated)`,
-          default: Array.isArray(prop.default) ? prop.default.join(", ") : "",
-          filter: (input: string) =>
-            input
-              .split(",")
-              .map((s: string) => s.trim())
-              .filter(Boolean),
-        });
+        if (prop.items?.enum) {
+          questions.push({
+            type: "checkbox",
+            name: key,
+            message: prop.description || key,
+            default: prop.default as string[],
+            choices: prop.items.enum,
+          });
+        } else {
+          questions.push({
+            type: "input",
+            name: key,
+            message: `${prop.description || key} (comma-separated)`,
+            default: Array.isArray(prop.default) ? prop.default.join(", ") : "",
+            filter: (input: string) =>
+              input
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter(Boolean),
+          });
+        }
       } else if (prop.type === "boolean") {
         questions.push({
           type: "confirm",

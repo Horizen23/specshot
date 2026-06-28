@@ -2,7 +2,14 @@
 import { z } from "zod";
 
 {{#if imports.length}}
-import { {{#each imports}}{{this}}, {{this}}Schema{{#unless @last}}, {{/unless}}{{/each}} } from "./models";
+// -- Shared Models --
+{{#each ../schemas}}
+{{#if (includes ../imports name)}}
+export const {{name}} = {{{zod}}};
+export type {{name}} = z.infer<typeof {{name}}>;
+{{/if}}
+{{/each}}
+
 {{/if}}
 
 {{#if specificSchemas.length}}

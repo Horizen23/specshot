@@ -1,10 +1,10 @@
 /**
- * @typedef {Object} SpecshotTemplateData
+ * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Which hooks framework to scaffold: 'react-query', 'swr', or 'none'
  * @property {("bearer" | "logger")[]} [pluginNames] - List of interceptor plugins to generate
  */
 /**
- * @typedef {Object} SpecshotTemplateOverrides
+ * @typedef {Object} Overrides
  * @property {string} [dir]
  * @property {string} [msw-handlers]
  * @property {string} [plugins-index]
@@ -15,12 +15,15 @@
 export default {
   preset: "class",
   apis: {
-    "petstore": {
-      openapiUrl: "./openapi.json",
+    "prestore": {
+      openapiUrl: "openapi.json",
     },
   },
   templateData: {
       "hook": "none",
-      "pluginNames": []
+      "pluginNames": [
+          "bearer",
+          "logger"
+      ]
   },
 };
