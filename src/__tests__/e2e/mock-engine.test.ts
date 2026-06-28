@@ -262,7 +262,7 @@ describe("F4 Mocking Engine (mock command server)", () => {
       true,
     );
     expect(
-      fs.existsSync(path.join(tmpDir, "src/prov/services/models.ts")),
+      fs.existsSync(path.join(tmpDir, "src/prov/services/pets.types.ts")),
     ).toBe(true);
   });
 

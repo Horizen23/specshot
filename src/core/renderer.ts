@@ -92,7 +92,6 @@ export interface TemplateRendererOptions {
   data: Record<string, unknown>;
   silent?: boolean;
   skipIfExists?: boolean;
-  beforeResolve?: (info: { relPath: string; templateName: string }) => Record<string, unknown>;
   enhanceData?: (info: { relPath: string; templateName: string; outputPath: string }) => Record<string, unknown>;
   defaultTarget?: string;
 }

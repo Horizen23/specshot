@@ -24,6 +24,7 @@ import { loadSpec } from "./spec-loader";
 import { loadUserConfig } from "./config-loader";
 import type { TemplateOverrides } from "./config-loader";
 import { getRegistry } from "./template-registry";
+import { getGeneratorDir, getMswDir, assertPresetHasGenerator } from "./paths";
 import { formatGeneratedFiles } from "../utils/formatter";
 import { renderTemplates } from "./renderer";
 import { extractCustomCode } from "../utils/file-writer";
@@ -62,10 +63,8 @@ export async function generateApi(
   const { sharedSchemas, tagSchemas } = resolveSchemaOwnership(spec);
 
   const preset = opts?.preset || userConfig.preset || "class";
-  let defaultTemplatesDir = path.join(__dirname, `../../templates/presets/${preset}/repeatable/generator`);
-  if (!fs.existsSync(defaultTemplatesDir)) {
-    defaultTemplatesDir = path.join(__dirname, `../templates/presets/${preset}/repeatable/generator`);
-  }
+  assertPresetHasGenerator(preset);
+  const defaultTemplatesDir = getGeneratorDir(preset);
 
   const tplConfig: TemplateOverrides =
     typeof templatesOverride === "string"
@@ -90,10 +89,7 @@ export async function generateApi(
       }
     }
     if (opts?.msw) {
-      let mswTplDir = path.join(__dirname, `../../templates/presets/${preset}/repeatable/msw`);
-      if (!fs.existsSync(mswTplDir)) {
-        mswTplDir = path.join(__dirname, `../templates/presets/${preset}/repeatable/msw`);
-      }
+      const mswTplDir = getMswDir(preset);
       const mswOverrideDir = overrideDir ? path.join(overrideDir, "msw") : undefined;
       const checkDir = mswOverrideDir || mswTplDir;
       if (fs.existsSync(checkDir)) {
@@ -301,7 +297,6 @@ export async function generateApi(
     sharedSchemas: sharedModelsData,
     outputDir: path.relative(process.cwd(), outputDir),
     importAlias,
-    modelImports: [] as string[],
     schemas: sharedModelsData,
   };
 
@@ -333,10 +328,7 @@ export async function generateApi(
   // -- MSW handler generation --
   if (opts?.msw) {
     const mswDir = path.join(path.dirname(outputDir), "msw", "handlers");
-    let defaultMswTemplatesDir = path.join(__dirname, `../../templates/presets/${preset}/repeatable/msw`);
-    if (!fs.existsSync(defaultMswTemplatesDir)) {
-      defaultMswTemplatesDir = path.join(__dirname, `../templates/presets/${preset}/repeatable/msw`);
-    }
+    const defaultMswTemplatesDir = getMswDir(preset);
 
     generateMswHandlers(spec, services, schemas, mswDir, defaultMswTemplatesDir, {
       mswEndpointFilter: opts.mswEndpointFilter,

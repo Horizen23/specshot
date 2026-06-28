@@ -33,17 +33,10 @@ describe("generateApi", () => {
   it("generates service files from an OpenAPI spec", async () => {
     await generateApi("https://example.com/openapi.json", outputDir);
 
-    expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "pets.service.ts"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "pets.types.ts"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "stores.service.ts"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "stores.types.ts"))).toBe(true);
-
-    const modelsContent = fs.readFileSync(
-      path.join(outputDir, "models.ts"),
-      "utf8",
-    );
-    expect(modelsContent).toContain("export const Pet");
 
     const storesTypes = fs.readFileSync(
       path.join(outputDir, "stores.types.ts"),
@@ -126,7 +119,6 @@ describe("generateApi", () => {
     const localOutput = path.join(tmpDir, "from-file");
     await generateApi(fixtureFile, localOutput);
 
-    expect(fs.existsSync(path.join(localOutput, "models.ts"))).toBe(true);
     expect(fs.existsSync(path.join(localOutput, "pets.service.ts"))).toBe(true);
     expect(fs.existsSync(path.join(localOutput, "pets.types.ts"))).toBe(true);
   });
@@ -171,7 +163,6 @@ describe("generateApi", () => {
     const noSchemaDir = path.join(tmpDir, "no-schemas");
     await generateApi("https://example.com/no-schemas.json", noSchemaDir);
 
-    expect(fs.existsSync(path.join(noSchemaDir, "models.ts"))).toBe(true);
     expect(fs.existsSync(path.join(noSchemaDir, "greetings.service.ts"))).toBe(
       true,
     );
@@ -298,18 +289,18 @@ describe("generateApi", () => {
     const nestedDir = path.join(tmpDir, "nested");
     await generateApi("https://example.com/nested.json", nestedDir);
 
-    // Item is used by both orders (via Order) and items tags → shared (models.ts)
-    const modelsContent = fs.readFileSync(
-      path.join(nestedDir, "models.ts"),
-      "utf8",
-    );
-    expect(modelsContent).toContain("export const Item");
-
-    const orderTypes = fs.readFileSync(
+    // Item is used by both orders (via Order) and items tags → shared (imported in types-per-tag)
+    const ordersTypes = fs.readFileSync(
       path.join(nestedDir, "orders.types.ts"),
       "utf8",
     );
-    expect(orderTypes).toContain("Item"); // shared ref imported
+    expect(ordersTypes).toContain("Item"); // shared ref imported
+
+    const itemsTypes = fs.readFileSync(
+      path.join(nestedDir, "items.types.ts"),
+      "utf8",
+    );
+    expect(itemsTypes).toContain("Item");
   });
 
   it("resolves nested $ref through wrapper schemas", async () => {
@@ -847,7 +838,6 @@ import { BaseService } from "{{corePath}}/base-service";
       undefined,
       emptyTplDir,
     );
-    expect(fs.existsSync(path.join(tplErrDir, "models.ts"))).toBe(true);
     expect(fs.existsSync(path.join(tplErrDir, "items.types.ts"))).toBe(true);
     expect(fs.existsSync(path.join(tplErrDir, "items.service.ts"))).toBe(true);
   });

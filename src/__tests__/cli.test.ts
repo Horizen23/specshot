@@ -104,10 +104,8 @@ describe("CLI", () => {
         configPath,
       ]);
 
-      // Should prefer explicit --output over config
       const logs = consoleLogSpy.mock.calls.map((c: any) => c[0]).join("\n");
       expect(logs).toContain("Generated pets.service.ts");
-      expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
@@ -150,7 +148,6 @@ describe("CLI", () => {
       const logs = consoleLogSpy.mock.calls.map((c: any) => c[0]).join("\n");
       expect(logs).toContain("Generated pets.service.ts");
       expect(logs).toContain("Generated stores.service.ts");
-      expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
@@ -368,8 +365,10 @@ describe("CLI", () => {
         configPath,
       ]);
 
-      expect(fs.existsSync(path.join(apiDir, "models.ts"))).toBe(true);
       expect(fs.existsSync(path.join(apiDir, "pets.service.ts"))).toBe(
+        true,
+      );
+      expect(fs.existsSync(path.join(apiDir, "pets.types.ts"))).toBe(
         true,
       );
 
@@ -549,7 +548,7 @@ describe("CLI", () => {
 
       // Should generate services normally despite missing config
       expect(fs.existsSync(path.join(outputDir, "ping.service.ts"))).toBe(true);
-      expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
+      expect(fs.existsSync(path.join(outputDir, "ping.types.ts"))).toBe(true);
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });

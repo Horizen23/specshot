@@ -1,26 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { renderTemplates } from "./renderer";
 import type { TemplateOverrides } from "./config-loader";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export function getTemplatesBaseDir(): string {
-  const devPath = path.join(__dirname, "../../templates/presets");
-  if (fs.existsSync(devPath)) return devPath;
-  const prodPath = path.join(__dirname, "../templates/presets");
-  if (fs.existsSync(prodPath)) return prodPath;
-  throw new Error("Could not locate templates/presets directory.");
-}
-
-function getOneTimeDir(preset: string): string {
-  const base = getTemplatesBaseDir();
-  const dir = path.join(base, preset, "one-time");
-  if (fs.existsSync(dir)) return dir;
-  throw new Error(`Could not locate one-time templates for preset '${preset}'.`);
-}
+import { getTemplatesBaseDir, getOneTimeDir, hasOneTimeDir } from "./paths";
+import { readSchemaDefaults } from "./template-registry";
 
 export interface InstallOptions {
   preset: string;
@@ -29,6 +12,7 @@ export interface InstallOptions {
 }
 
 export function installScaffold(options: InstallOptions): boolean {
+  if (!hasOneTimeDir(options.preset)) return false;
   const oneTimeDir = getOneTimeDir(options.preset);
 
   let serverUrl = "";
@@ -74,12 +58,7 @@ export function scaffoldInfrastructure(params: {
 }): boolean {
   const { preset, apiConfig, apiName, templateData } = params;
 
-  let oneTimeExists = false;
-  try {
-    const base = getTemplatesBaseDir();
-    oneTimeExists = fs.existsSync(path.join(base, preset, "one-time"));
-  } catch {}
-  if (!oneTimeExists) return false;
+  if (!hasOneTimeDir(preset)) return false;
 
   const outDir = (apiConfig.templateData?.outDir as string)
     || (templateData?.outDir as string)
@@ -88,7 +67,9 @@ export function scaffoldInfrastructure(params: {
     || (templateData?.coreOut as string)
     || `${outDir}/../core`;
 
+  const schemaDefaults = readSchemaDefaults(preset);
   const mergedData: Record<string, unknown> = {
+    ...schemaDefaults,
     outDir,
     coreOut,
     ...templateData,
@@ -98,10 +79,6 @@ export function scaffoldInfrastructure(params: {
   return installScaffold({
     preset,
     openapiUrl: apiConfig.openapiUrl,
-    data: {
-      hook: "none",
-      pluginNames: [],
-      ...mergedData,
-    },
+    data: mergedData,
   });
 }

@@ -1,37 +1,11 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import chalk from "chalk";
 import { loadUserConfig } from "../../core/config-loader";
 import type { TemplateOverrides } from "../../core/config-loader";
 import { getRegistry, getTemplateInfo, generateTypeFile, generateJSDocTypeDef } from "../../core/template-registry";
-import { PRESETS, getPresetInfo, isValidPreset, DEFAULT_PRESET } from "../../core/presets";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-interface TemplatesOptions {
-  output?: string;
-  generatorOnly?: boolean;
-  mswOnly?: boolean;
-  preset?: string;
-  repeatableOnly?: boolean;
-}
-
-function getBuiltInTemplatesDir(): string {
-  let dir = path.join(__dirname, "../../../templates/presets");
-  if (fs.existsSync(dir)) return dir;
-  dir = path.join(__dirname, "../../templates/presets");
-  if (fs.existsSync(dir)) return dir;
-  throw new Error("Could not locate built-in templates directory.");
-}
-
-function getPresetDir(preset: string): string {
-  const base = getBuiltInTemplatesDir();
-  const presetDir = path.join(base, preset);
-  if (fs.existsSync(presetDir)) return presetDir;
-  throw new Error(`Preset '${preset}' not found at ${presetDir}`);
-}
+import { getAvailablePresets, getPresetInfo, isValidPreset, validatePresetStructure, DEFAULT_PRESET } from "../../core/presets";
+import { getTemplatesBaseDir, getPresetDir as getPresetDirFromPaths } from "../../core/paths";
 
 function countHbsFiles(dir: string): number {
   let count = 0;
@@ -62,84 +36,65 @@ function copyDir(src: string, dest: string): string[] {
   return copied;
 }
 
-export async function templatesCommand(options: TemplatesOptions): Promise<void> {
-  const config = await loadUserConfig(process.cwd());
-  const preset = options.preset || config.preset || DEFAULT_PRESET;
+export async function templatesEjectPresetCommand(presetName: string): Promise<void> {
+  console.log(chalk.cyan(`\n  Ejecting preset: ${presetName}\n`));
 
-  if (!isValidPreset(preset)) {
-    console.error(chalk.red(`Unknown preset: ${preset}`));
-    console.log(chalk.gray("\nAvailable presets:"));
-    for (const p of PRESETS) {
-      console.log(chalk.gray(`  ${p.name.padEnd(16)} ${p.description}`));
+  // Validate source exists
+  if (!isValidPreset(presetName)) {
+    console.error(chalk.red(`  Preset "${presetName}" not found`));
+    console.log(chalk.gray("\n  Available presets:"));
+    for (const p of getAvailablePresets()) {
+      const tag = p.source === "built-in" ? chalk.blue(" [built-in]") :
+        p.source === "community" ? chalk.yellow(" [community]") :
+        chalk.magenta(" [custom]");
+      console.log(chalk.gray(`    ${p.name.padEnd(16)} ${p.description}${tag}`));
     }
+    console.log();
     return;
   }
 
-  const info = getPresetInfo(preset)!;
-  const outputDir = path.resolve(process.cwd(), options.output || "./templates");
-  const presetDir = getPresetDir(preset);
+  const info = getPresetInfo(presetName)!;
 
-  const copyGenerator = !options.mswOnly;
-  const copyMsw = !options.generatorOnly;
+  // Determine source dir (from package dir — built-in or community)
+  const srcDir = getPresetDirFromPaths(presetName);
 
-  if (!copyGenerator && !copyMsw) {
-    console.error("Nothing to eject — specify --generator-only, --msw-only, or neither.");
+  // Destination: project's templates/presets/<presetName>/
+  const projectPresetsDir = path.resolve(process.cwd(), "templates/presets");
+  const destDir = path.join(projectPresetsDir, presetName);
+
+  if (fs.existsSync(destDir)) {
+    console.error(chalk.red(`  Preset "${presetName}" already exists at templates/presets/${presetName}/`));
+    console.log(chalk.gray(`  Remove it first or choose a different name.\n`));
     return;
   }
 
-  console.log(chalk.cyan(`\n  Preset: ${preset}`));
-  console.log(chalk.gray(`  ${info.description}\n`));
-  console.log(`  Ejecting to ${path.relative(process.cwd(), outputDir)}/\n`);
-
-  const allCopied: string[] = [];
-
-  // Eject from repeatable/ (generator + msw)
-  const repeatableDir = path.join(presetDir, "repeatable");
-
-  if (copyGenerator) {
-    const generatorSrc = path.join(repeatableDir, "generator");
-    if (fs.existsSync(generatorSrc)) {
-      const copied = copyDir(generatorSrc, outputDir);
-      allCopied.push(...copied);
-      console.log(`  generator/  → ${copied.length} files`);
-    }
+  // Ensure parent dir exists
+  if (!fs.existsSync(projectPresetsDir)) {
+    fs.mkdirSync(projectPresetsDir, { recursive: true });
   }
 
-  if (copyMsw) {
-    const mswSrc = path.join(repeatableDir, "msw");
-    const mswDest = path.join(outputDir, "msw");
-    if (fs.existsSync(mswSrc)) {
-      const copied = copyDir(mswSrc, mswDest);
-      allCopied.push(...copied);
-      console.log(`  msw/        → ${copied.length} files`);
-    }
+  // Copy entire preset directory
+  const copied = copyDir(srcDir, destDir);
+
+  console.log(chalk.green(`  ✔ Ejected preset "${presetName}" to templates/presets/${presetName}/\n`));
+  console.log(chalk.gray(`  ${copied.length} files copied\n`));
+
+  // Show info
+  console.log(chalk.gray("  Preset info:"));
+  console.log(chalk.gray(`    name:        ${info.name}`));
+  console.log(chalk.gray(`    description: ${info.description}`));
+  if (info.deps.length > 0) {
+    console.log(chalk.gray(`    deps:        ${info.deps.join(", ")}`));
   }
 
-  // Also eject one-time/ scaffold templates if present
-  const oneTimeDir = path.join(presetDir, "one-time");
-  if (fs.existsSync(oneTimeDir) && !options.repeatableOnly) {
-    const scaffoldDest = path.join(outputDir, "one-time");
-    const copied = copyDir(oneTimeDir, scaffoldDest);
-    allCopied.push(...copied);
-    console.log(`  one-time/   → ${copied.length} files (scaffold templates)`);
-  }
-
-  console.log(`\nDone! ${allCopied.length} template files ejected.\n`);
-  console.log("Next steps:");
-  console.log("  1. Edit any .hbs file in the ejected directory");
-  console.log("  2. Run generate with --templates:");
-  if (options.output) {
-    console.log(`     specshot generate --templates ${options.output}`);
-  } else {
-    console.log(`     specshot generate --templates ./templates`);
-  }
-  console.log("\nTip: Only the templates you edit will override the built-ins.");
-  console.log("     Missing templates automatically fall back to defaults.\n");
+  console.log(chalk.cyan(`\n  The preset is now [custom] — edit any .hbs file in:`));
+  console.log(`    templates/presets/${presetName}/\n`);
+  console.log(chalk.gray("  It will appear in 'specshot templates list' as [custom] automatically.\n"));
 }
 
 export async function templatesListCommand(): Promise<void> {
   const config = await loadUserConfig(process.cwd());
-  const builtInDir = getBuiltInTemplatesDir();
+  const builtInDir = getTemplatesBaseDir();
   const activePreset = config.preset || DEFAULT_PRESET;
 
   const tplConfig: TemplateOverrides =
@@ -162,9 +117,13 @@ export async function templatesListCommand(): Promise<void> {
 
   // List all presets
   console.log(chalk.gray("  Available presets:"));
-  for (const p of PRESETS) {
+  for (const p of getAvailablePresets()) {
     const marker = p.name === activePreset ? chalk.green(" ← active") : "";
-    console.log(`    ${chalk.bold(p.name.padEnd(16))} ${chalk.gray(p.description)}${marker}`);
+    const sourceTag =
+      p.source === "built-in" ? chalk.blue(" [built-in]") :
+      p.source === "community" ? chalk.yellow(" [community]") :
+      chalk.magenta(" [custom]");
+    console.log(`    ${chalk.bold(p.name.padEnd(16))} ${chalk.gray(p.description)}${sourceTag}${marker}`);
   }
   console.log();
 
@@ -190,10 +149,16 @@ export async function templatesListCommand(): Promise<void> {
   console.log(chalk.gray("  Repeatable (regenerated on every 'generate'):"));
 
   const allTemplates = getRegistry(activePreset);
-  const groups: Array<{ label: string; templates: typeof allTemplates }> = [
-    { label: "Generator", templates: allTemplates.filter((t) => t.group === "generator") },
-    { label: "MSW", templates: allTemplates.filter((t) => t.group === "msw") },
-  ];
+  const groupMap = new Map<string, typeof allTemplates>();
+  for (const tpl of allTemplates) {
+    const list = groupMap.get(tpl.group) || [];
+    list.push(tpl);
+    groupMap.set(tpl.group, list);
+  }
+  const groups: Array<{ label: string; templates: typeof allTemplates }> = [];
+  for (const [group, templates] of groupMap) {
+    groups.push({ label: group, templates });
+  }
 
   for (const group of groups) {
     console.log(chalk.gray(`  ${group.label}:`));
@@ -299,4 +264,232 @@ export async function templatesTypegenCommand(options: { preset?: string; output
     console.log(fullOutput);
     console.log();
   }
+}
+
+export async function templatesValidateCommand(options: { preset?: string }): Promise<void> {
+  const config = await loadUserConfig(process.cwd());
+  const preset = options.preset || config.preset || DEFAULT_PRESET;
+
+  console.log(chalk.cyan(`\n  Validating preset: ${preset}\n`));
+
+  const errors = validatePresetStructure(preset);
+
+  if (errors.length === 0) {
+    console.log(chalk.green("  ✔ Preset structure is valid\n"));
+  } else {
+    console.log(chalk.red(`  ✘ Found ${errors.length} issue(s):\n`));
+    for (const err of errors) {
+      console.log(chalk.red(`    - ${err}`));
+    }
+    console.log();
+  }
+
+  const info = getPresetInfo(preset);
+  if (info) {
+    console.log(chalk.gray("  Preset info:"));
+    console.log(chalk.gray(`    name:        ${info.name}`));
+    console.log(chalk.gray(`    description: ${info.description}`));
+    if (info.features.length > 0) {
+      console.log(chalk.gray(`    features:    ${info.features.join(", ")}`));
+    }
+    if (info.deps.length > 0) {
+      console.log(chalk.gray(`    deps:        ${info.deps.join(", ")}`));
+    }
+    console.log();
+  }
+}
+
+export async function templatesInstallCommand(packageName: string): Promise<void> {
+  console.log(chalk.cyan(`\n  Installing preset from: ${packageName}\n`));
+
+  let srcDir: string;
+  let presetName: string;
+  let tempDir: string | null = null;
+
+  // Detect GitHub references
+  const githubMatch = parseGithubRef(packageName);
+
+  if (githubMatch) {
+    // Clone from GitHub
+    tempDir = path.join(process.cwd(), `.specshot-tmp-${Date.now()}`);
+    const cloneUrl = `https://github.com/${githubMatch.owner}/${githubMatch.repo}.git`;
+    console.log(chalk.gray(`  Cloning ${cloneUrl}...`));
+
+    try {
+      const { execSync } = await import("child_process");
+      execSync(`git clone --depth 1 ${cloneUrl} "${tempDir}"`, {
+        stdio: "pipe",
+        timeout: 30000,
+      });
+    } catch {
+      console.error(chalk.red(`  Failed to clone from GitHub`));
+      console.log(chalk.gray(`  Make the repo public, or check the URL.\n`));
+      return;
+    }
+
+    srcDir = tempDir;
+    presetName = githubMatch.repo
+      .replace(/^specshot-preset-/, "")
+      .replace(/^specshot-/, "");
+  } else {
+    // Try npm package from node_modules
+    const resolvedPath = path.resolve(process.cwd(), "node_modules", packageName);
+    if (!fs.existsSync(resolvedPath)) {
+      console.error(chalk.red(`  Package "${packageName}" not found in node_modules`));
+      console.log(chalk.gray(`\n  Try one of:`));
+      console.log(chalk.gray(`    npm install ${packageName}  &&  specshot templates install ${packageName}`));
+      console.log(chalk.gray(`    specshot templates install github:user/repo`));
+      console.log(chalk.gray(`    specshot templates install https://github.com/user/repo\n`));
+      return;
+    }
+    srcDir = resolvedPath;
+    presetName = packageName
+      .replace(/^@[^/]+\//, "")
+      .replace(/^specshot-preset-/, "")
+      .replace(/^specshot-/, "");
+  }
+
+  // Validate source has preset structure
+  const hasPresetJson = fs.existsSync(path.join(srcDir, "_preset.json"));
+  const hasOneTime = fs.existsSync(path.join(srcDir, "one-time"));
+  const hasRepeatable = fs.existsSync(path.join(srcDir, "repeatable"));
+
+  if (!hasPresetJson && !hasOneTime && !hasRepeatable) {
+    // Maybe it's nested — look for preset dir inside
+    const innerDirs = fs.readdirSync(srcDir, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+    const presetInner = innerDirs.find((d) => {
+      const innerPath = path.join(srcDir, d);
+      return fs.existsSync(path.join(innerPath, "_preset.json")) ||
+        fs.existsSync(path.join(innerPath, "repeatable")) ||
+        fs.existsSync(path.join(innerPath, "one-time"));
+    });
+    if (presetInner) {
+      srcDir = path.join(srcDir, presetInner);
+    } else {
+      console.error(chalk.red(`  Source does not look like a specshot preset`));
+      console.log(chalk.gray(`  Expected _preset.json, repeatable/, or one-time/ directory\n`));
+      cleanupTemp(tempDir);
+      return;
+    }
+  }
+
+  const destDir = path.join(getTemplatesBaseDir(), presetName);
+  if (fs.existsSync(destDir)) {
+    console.error(chalk.red(`  Preset "${presetName}" already exists at ${destDir}`));
+    console.log(chalk.gray(`  Remove it first or choose a different name.\n`));
+    cleanupTemp(tempDir);
+    return;
+  }
+
+  // Copy the preset
+  copyDir(srcDir, destDir);
+  cleanupTemp(tempDir);
+
+  console.log(chalk.green(`  ✔ Installed preset "${presetName}" to templates/presets/${presetName}/\n`));
+
+  // Validate
+  const errors = validatePresetStructure(presetName);
+  if (errors.length > 0) {
+    console.log(chalk.yellow(`  ⚠ Warnings:`));
+    for (const err of errors) {
+      console.log(chalk.yellow(`    - ${err}`));
+    }
+    console.log();
+  }
+
+  // Show info
+  const info = getPresetInfo(presetName);
+  if (info) {
+    console.log(chalk.gray(`  name:        ${info.name}`));
+    console.log(chalk.gray(`  description: ${info.description}`));
+    if (info.deps.length > 0) {
+      console.log(chalk.gray(`  deps:        ${info.deps.join(", ")}`));
+    }
+  }
+
+  console.log(chalk.cyan(`\n  Use it with:`));
+  console.log(`    specshot init --preset ${presetName}`);
+  console.log(`    specshot generate --preset ${presetName}\n`);
+}
+
+interface GithubRef {
+  owner: string;
+  repo: string;
+}
+
+function parseGithubRef(input: string): GithubRef | null {
+  // https://github.com/owner/repo
+  // https://github.com/owner/repo.git
+  // https://github.com/owner/repo/tree/main/preset-dir
+  const httpsMatch = input.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)/);
+  if (httpsMatch) {
+    return { owner: httpsMatch[1], repo: httpsMatch[2].replace(/\.git$/, "") };
+  }
+
+  // github:owner/repo
+  const shorthandMatch = input.match(/^github:([^/]+)\/([^/]+)/);
+  if (shorthandMatch) {
+    return { owner: shorthandMatch[1], repo: shorthandMatch[2] };
+  }
+
+  // owner/repo (only if it looks like GitHub — contains slash, no dots before slash)
+  const slashMatch = input.match(/^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)$/);
+  if (slashMatch && !input.includes("@")) {
+    return { owner: slashMatch[1], repo: slashMatch[2] };
+  }
+
+  return null;
+}
+
+function cleanupTemp(dir: string | null): void {
+  if (dir && fs.existsSync(dir)) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+  }
+}
+
+export async function templatesUninstallCommand(presetName: string): Promise<void> {
+  console.log(chalk.cyan(`\n  Uninstalling preset: ${presetName}\n`));
+
+  const presetDir = path.join(getTemplatesBaseDir(), presetName);
+
+  if (!fs.existsSync(presetDir)) {
+    console.error(chalk.red(`  Preset "${presetName}" not found at ${presetDir}`));
+    console.log(chalk.gray(`\n  Available presets:`));
+    for (const p of getAvailablePresets()) {
+      console.log(chalk.gray(`    ${p.name}`));
+    }
+    console.log();
+    return;
+  }
+
+  // Check if it's a built-in preset (has no _preset.json or is one of the originals)
+  const hasPresetJson = fs.existsSync(path.join(presetDir, "_preset.json"));
+  const builtInPresets = ["class", "functional", "zod-functional"];
+  if (builtInPresets.includes(presetName) && !hasPresetJson) {
+    console.error(chalk.red(`  Cannot uninstall built-in preset "${presetName}"`));
+    console.log(chalk.gray(`  Built-in presets are part of specshot and cannot be removed.\n`));
+    return;
+  }
+
+  // Confirm
+  console.log(chalk.gray(`  This will remove:`));
+  console.log(chalk.gray(`    ${presetDir}\n`));
+
+  const { default: inquirer } = await import("inquirer");
+  const { confirm } = await inquirer.prompt([{
+    type: "confirm",
+    name: "confirm",
+    message: `Remove preset "${presetName}"?`,
+    default: false,
+  }]);
+
+  if (!confirm) {
+    console.log(chalk.gray("  Cancelled.\n"));
+    return;
+  }
+
+  fs.rmSync(presetDir, { recursive: true, force: true });
+  console.log(chalk.green(`  ✔ Removed preset "${presetName}"\n`));
 }

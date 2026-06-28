@@ -1,0 +1,12 @@
+{
+  "name": "class",
+  "description": "Class-based services with Zod validation, ApiClient, and plugin system",
+  "features": [
+    "BaseService + ApiClient class architecture",
+    "Zod runtime validation",
+    "Plugin system (bearer auth, logger, etc.)",
+    "SWR or React Query hooks support",
+    "Promise<{ data, error, ok }> result pattern"
+  ],
+  "deps": ["zod"]
+}

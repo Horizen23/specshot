@@ -138,7 +138,6 @@ describe("F2 Code Generation (generate command)", () => {
     );
 
     expect(result.code).toBe(0);
-    expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "pets.service.ts"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "pets.types.ts"))).toBe(true);
   });
@@ -158,7 +157,6 @@ describe("F2 Code Generation (generate command)", () => {
     );
 
     expect(result.code).toBe(0);
-    expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
     expect(fs.existsSync(path.join(outputDir, "pets.service.ts"))).toBe(true);
   });
 
@@ -250,7 +248,7 @@ describe("F2 Code Generation (generate command)", () => {
     });
 
     const modelsContent = fs.readFileSync(
-      path.join(outputDir, "models.ts"),
+      path.join(outputDir, "pets.types.ts"),
       "utf-8",
     );
     expect(modelsContent).not.toContain(";;");
@@ -314,6 +312,6 @@ describe("F2 Code Generation (generate command)", () => {
     );
 
     expect(result.code).toBe(0);
-    expect(fs.existsSync(path.join(outputDir, "models.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(outputDir, "pets.types.ts"))).toBe(true);
   });
 });

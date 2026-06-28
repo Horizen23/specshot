@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import { initCommand } from "./commands/init";
 import { generateCommand } from "./commands/generate";
 import { mockCommand } from "./commands/mock";
-import { templatesCommand, templatesListCommand, templatesContextCommand, templatesTypegenCommand } from "./commands/templates";
+import { templatesEjectPresetCommand, templatesListCommand, templatesContextCommand, templatesValidateCommand, templatesInstallCommand, templatesUninstallCommand } from "./commands/templates";
 
 // Export types for JS/TS config autocomplete
 export type { SpecshotUserConfig as SpecshotConfig } from "../core/config-loader";
@@ -96,22 +96,11 @@ const templatesCmd = program
   .description("Manage Handlebars templates (eject, list, inspect)");
 
 templatesCmd
-  .command("eject")
-  .description("Copy built-in templates to a local directory for customization")
-  .option("-o, --output <dir>", "Output directory (default: ./templates)")
-  .option("--generator-only", "Eject only generator templates")
-  .option("--msw-only", "Eject only MSW templates")
-  .option("--preset <name>", "Preset to eject: class, functional, or zod-functional")
-  .option("--repeatable-only", "Skip one-time scaffold templates")
-  .action(async (options) => {
+  .command("eject <preset>")
+  .description("Copy a built-in or community preset to your project as a custom preset")
+  .action(async (preset) => {
     try {
-      await templatesCommand({
-        output: options.output,
-        generatorOnly: options.generatorOnly,
-        mswOnly: options.mswOnly,
-        preset: options.preset,
-        repeatableOnly: options.repeatableOnly,
-      });
+      await templatesEjectPresetCommand(preset);
     } catch (err) {
       const chalk = (await import("chalk")).default;
       console.error(chalk.red("Templates eject failed"));
@@ -146,16 +135,41 @@ templatesCmd
   });
 
 templatesCmd
-  .command("typegen")
-  .description("Generate TypeScript type from _template-data.schema.json files")
-  .option("--preset <name>", "Preset to generate types for")
-  .option("-o, --output <path>", "Write to file instead of stdout")
+  .command("validate")
+  .description("Validate preset structure and _preset.json for community templates")
+  .option("--preset <name>", "Preset to validate")
   .action(async (options) => {
     try {
-      await templatesTypegenCommand(options);
+      await templatesValidateCommand(options);
     } catch (err) {
       const chalk = (await import("chalk")).default;
-      console.error(chalk.red("Typegen failed"));
+      console.error(chalk.red("Validation failed"));
+      console.error(err);
+    }
+  });
+
+templatesCmd
+  .command("install <package>")
+  .description("Install a community preset from npm or GitHub")
+  .action(async (packageName: string) => {
+    try {
+      await templatesInstallCommand(packageName);
+    } catch (err) {
+      const chalk = (await import("chalk")).default;
+      console.error(chalk.red("Install failed"));
+      console.error(err);
+    }
+  });
+
+templatesCmd
+  .command("uninstall <preset>")
+  .description("Remove an installed community preset")
+  .action(async (presetName: string) => {
+    try {
+      await templatesUninstallCommand(presetName);
+    } catch (err) {
+      const chalk = (await import("chalk")).default;
+      console.error(chalk.red("Uninstall failed"));
       console.error(err);
     }
   });
@@ -164,11 +178,16 @@ templatesCmd.action(async () => {
   const chalk = (await import("chalk")).default;
   console.log(chalk.cyan("\n  Templates\n  ---------\n"));
   console.log("  Commands:");
-  console.log("    specshot templates eject            Copy built-in templates for editing");
-  console.log("    specshot templates eject --preset functional  Eject a specific preset");
+  console.log("    specshot templates eject <preset>   Copy built-in/community preset to project as custom");
   console.log("    specshot templates list             Show all templates + preset status");
   console.log("    specshot templates context <name>   Show variables for a template");
-  console.log("    specshot templates typegen          Generate TemplateData TypeScript type\n");
+  console.log("    specshot templates validate         Validate preset structure for community templates");
+  console.log("    specshot templates install <pkg>    Install preset from npm or GitHub");
+  console.log("    specshot templates uninstall <name>  Remove an installed preset\n");
+  console.log(chalk.gray("  Install sources:"));
+  console.log(chalk.gray("    specshot templates install specshot-preset-xxx   from npm"));
+  console.log(chalk.gray("    specshot templates install github:user/repo      from GitHub"));
+  console.log(chalk.gray("    specshot templates install owner/repo            shorthand\n"));
   console.log(chalk.gray("  Presets: class (default), functional, zod-functional\n"));
 });
 

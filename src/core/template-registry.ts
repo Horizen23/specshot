@@ -1,9 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { getPresetDir } from "./paths";
+import { toCamelCase } from "../utils/naming-utils";
 
 export interface TemplateVariable {
   name: string;
@@ -13,7 +11,7 @@ export interface TemplateVariable {
 
 export interface TemplateInfo {
   name: string;
-  group: "generator" | "msw";
+  group: string;
   file: string;
   description: string;
   variables: TemplateVariable[];
@@ -34,21 +32,12 @@ interface TemplateDataProp {
   default?: unknown;
 }
 
-const CONFIG_KEY_MAP: Record<string, string> = {
-  "types-per-tag": "types",
-  "service-per-tag": "service",
-  "plugins": "plugins-index",
-  "handler-per-tag": "msw-handlers",
-  "msw-index": "msw-index",
-  "msw-browser": "msw-browser",
-};
-
 function loadPresetTemplates(preset: string): TemplateInfo[] {
   const templates: TemplateInfo[] = [];
-  const baseDir = findPresetDir(preset);
-  if (!baseDir) return [];
+  const presetDir = getPresetDir(preset);
+  if (!fs.existsSync(presetDir)) return templates;
 
-  const repeatableDir = path.join(baseDir, "repeatable");
+  const repeatableDir = path.join(presetDir, "repeatable");
   if (!fs.existsSync(repeatableDir)) return templates;
 
   for (const group of fs.readdirSync(repeatableDir)) {
@@ -65,11 +54,11 @@ function loadPresetTemplates(preset: string): TemplateInfo[] {
 
       templates.push({
         name: entry,
-        group: group as "generator" | "msw",
+        group,
         file: path.join(entry, mainFile),
         description: entry,
         variables: [],
-        configKey: CONFIG_KEY_MAP[entry],
+        configKey: toCamelCase(entry),
       });
     }
   }
@@ -77,41 +66,30 @@ function loadPresetTemplates(preset: string): TemplateInfo[] {
   return templates;
 }
 
-function findPresetDir(preset: string): string | undefined {
-  const candidates = [
-    path.join(__dirname, `../../templates/presets/${preset}`),
-    path.join(__dirname, `../templates/presets/${preset}`),
-  ];
-  for (const dir of candidates) {
-    if (fs.existsSync(dir)) return dir;
-  }
-  return undefined;
-}
+let registryCache: Map<string, TemplateInfo[]> = new Map();
 
-let cachedTemplates: TemplateInfo[] | null = null;
-
-function getDefaultRegistry(): TemplateInfo[] {
-  if (cachedTemplates) return cachedTemplates;
-  cachedTemplates = loadPresetTemplates("class");
-  return cachedTemplates;
+function getRegistryForPreset(preset: string): TemplateInfo[] {
+  const cached = registryCache.get(preset);
+  if (cached) return cached;
+  const loaded = loadPresetTemplates(preset);
+  registryCache.set(preset, loaded);
+  return loaded;
 }
 
 export function getTemplateInfo(name: string, preset = "class"): TemplateInfo | undefined {
-  const registry = preset === "class" ? getDefaultRegistry() : loadPresetTemplates(preset);
-  return registry.find((t) => t.name === name || t.file === name || t.configKey === name);
+  return getRegistryForPreset(preset).find(
+    (t) => t.name === name || t.file === name || t.configKey === name,
+  );
 }
 
 export function getAllTemplateNames(preset = "class"): string[] {
-  const registry = preset === "class" ? getDefaultRegistry() : loadPresetTemplates(preset);
-  return registry.map((t) => t.name);
+  return getRegistryForPreset(preset).map((t) => t.name);
 }
 
 export function getRegistry(preset = "class"): TemplateInfo[] {
-  return preset === "class" ? getDefaultRegistry() : loadPresetTemplates(preset);
+  return getRegistryForPreset(preset);
 }
 
-/** Build an inline TS type string for TemplateOverrides from registry configKeys.
- *  Returns e.g. `{ dir?: string; types?: string; service?: string; msw-handlers?: string }` */
 export function generateTemplateOverridesType(preset = "class"): string {
   const registry = getRegistry(preset);
   const configKeys = new Set<string>();
@@ -145,8 +123,8 @@ export function readTemplateDataSchema(dir: string): TemplateDataSchema | null {
 
 export function readAllSchemas(preset = "class"): TemplateDataSchema[] {
   const schemas: TemplateDataSchema[] = [];
-  const baseDir = findPresetDir(preset);
-  if (!baseDir) return schemas;
+  const presetDir = getPresetDir(preset);
+  if (!fs.existsSync(presetDir)) return schemas;
 
   function scanDir(dir: string) {
     if (!fs.existsSync(dir)) return;
@@ -161,10 +139,23 @@ export function readAllSchemas(preset = "class"): TemplateDataSchema[] {
     }
   }
 
-  scanDir(path.join(baseDir, "repeatable"));
-  scanDir(path.join(baseDir, "one-time"));
+  scanDir(path.join(presetDir, "repeatable"));
+  scanDir(path.join(presetDir, "one-time"));
 
   return schemas;
+}
+
+export function readSchemaDefaults(preset: string): Record<string, unknown> {
+  const schemas = readAllSchemas(preset);
+  const defaults: Record<string, unknown> = {};
+  for (const schema of schemas) {
+    for (const [key, prop] of Object.entries(schema.properties || {})) {
+      if (prop.default !== undefined) {
+        defaults[key] = prop.default;
+      }
+    }
+  }
+  return defaults;
 }
 
 export function mergeSchemasToType(schemas: TemplateDataSchema[]): string {
@@ -234,15 +225,6 @@ export function generateTypeFile(preset = "class"): string {
   return `import('specshot').SpecshotConfig<${tdParam}, ${ovParam}>`;
 }
 
-/** Generate a multi-line JSDoc typedef block for TemplateData and Overrides.
- *  Returns a string like:
- *  /**
- *   * @typedef {Object} TemplateData
- *   * @property {string} [hook] - ...
- *   * @typedef {Object} Overrides
- *   * @property {string} [dir] - ...
- *   \/
- */
 export function generateJSDocTypeDef(preset = "class"): string {
   const schemas = readAllSchemas(preset);
   const merged: Record<string, { tsType: string; description: string }> = {};

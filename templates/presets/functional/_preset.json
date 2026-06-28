@@ -1,0 +1,13 @@
+{
+  "name": "functional",
+  "description": "Standalone async functions with native fetch(). No dependencies, no classes.",
+  "features": [
+    "Standalone export async functions (no class)",
+    "Native fetch() — zero runtime dependencies",
+    "Plain TypeScript types (no Zod)",
+    "setBaseUrl() / getBaseUrl() configuration",
+    "Promise<T> with throws on error (try/catch pattern)",
+    "Custom ApiError class"
+  ],
+  "deps": []
+}

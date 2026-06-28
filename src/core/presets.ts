@@ -1,58 +1,183 @@
+import fs from "fs";
+import path from "path";
+import { getTemplatesBaseDir } from "./paths";
+
 export interface PresetInfo {
   name: string;
   description: string;
   features: string[];
   deps: string[];
+  source: "built-in" | "community" | "custom";
 }
-
-export const PRESETS: PresetInfo[] = [
-  {
-    name: "class",
-    description: "Class-based services with Zod validation, ApiClient, and plugin system",
-    features: [
-      "BaseService + ApiClient class architecture",
-      "Zod runtime validation",
-      "Plugin system (bearer auth, logger, etc.)",
-      "SWR or React Query hooks support",
-      "Promise<{ data, error, ok }> result pattern",
-    ],
-    deps: ["zod"],
-  },
-  {
-    name: "functional",
-    description: "Standalone async functions with native fetch(). No dependencies, no classes.",
-    features: [
-      "Standalone export async functions (no class)",
-      "Native fetch() — zero runtime dependencies",
-      "Plain TypeScript types (no Zod)",
-      "setBaseUrl() / getBaseUrl() configuration",
-      "Promise<T> with throws on error (try/catch pattern)",
-      "Custom ApiError class",
-    ],
-    deps: [],
-  },
-  {
-    name: "zod-functional",
-    description: "Standalone async functions with Zod schemas. No classes, but runtime validation included.",
-    features: [
-      "Standalone export async functions (no class)",
-      "Native fetch() — no ApiClient dependency",
-      "Zod schemas + inferred types",
-      "Schema registry for runtime validation",
-      "setBaseUrl() / getBaseUrl() configuration",
-      "Promise<T> with throws on error (try/catch pattern)",
-      "Custom ApiError class",
-    ],
-    deps: ["zod"],
-  },
-];
 
 export const DEFAULT_PRESET = "class";
 
+function getBuiltInPresetNames(): Set<string> {
+  const base = getTemplatesBaseDir();
+  const names = new Set<string>();
+  for (const entry of fs.readdirSync(base)) {
+    const dir = path.join(base, entry);
+    if (fs.statSync(dir).isDirectory() && fs.existsSync(path.join(dir, "_preset.json"))) {
+      names.add(entry);
+    }
+  }
+  return names;
+}
+
+export function getAvailablePresets(): PresetInfo[] {
+  const seen = new Map<string, PresetInfo>();
+
+  // 1. Scan built-in + installed community presets (specshot package dir)
+  const pkgBase = getTemplatesBaseDir();
+  for (const entry of fs.readdirSync(pkgBase)) {
+    const dir = path.join(pkgBase, entry);
+    if (!fs.statSync(dir).isDirectory()) continue;
+    const info = loadPresetManifest(entry, dir);
+    if (info) seen.set(entry, info);
+  }
+
+  // 2. Scan project-level custom presets (user's project templates/presets/)
+  //    Project-level OVERRIDES package-level (ejected presets take priority)
+  const projectBase = path.resolve(process.cwd(), "templates/presets");
+  if (fs.existsSync(projectBase) && projectBase !== pkgBase) {
+    for (const entry of fs.readdirSync(projectBase)) {
+      const dir = path.join(projectBase, entry);
+      if (!fs.statSync(dir).isDirectory()) continue;
+      const info = loadPresetManifest(entry, dir, "custom");
+      if (info) seen.set(entry, info); // overwrites package-level entry
+    }
+  }
+
+  return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+interface RawPresetManifest {
+  name?: unknown;
+  description?: unknown;
+  features?: unknown;
+  deps?: unknown;
+}
+
+function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-in" | "community" | "custom"): PresetInfo {
+  const builtInNames = getBuiltInPresetNames();
+  const manifestPath = path.join(dir, "_preset.json");
+  if (fs.existsSync(manifestPath)) {
+    try {
+      const raw = fs.readFileSync(manifestPath, "utf8");
+      const data = JSON.parse(raw) as RawPresetManifest;
+      const warnings: string[] = [];
+      if (typeof data.name !== "string" || !data.name) {
+        warnings.push(`"name" must be a non-empty string, using directory name "${name}"`);
+      }
+      if (typeof data.description !== "string" || !data.description) {
+        warnings.push(`"description" must be a non-empty string, using directory name "${name}"`);
+      }
+      if (data.features !== undefined && !Array.isArray(data.features)) {
+        warnings.push(`"features" must be an array, ignoring`);
+      }
+      if (data.deps !== undefined && !Array.isArray(data.deps)) {
+        warnings.push(`"deps" must be an array, ignoring`);
+      }
+      if (warnings.length > 0) {
+        console.warn(`  [SpecShot] Preset "${name}" warnings at ${manifestPath}:`);
+        for (const w of warnings) {
+          console.warn(`    - ${w}`);
+        }
+      }
+      const source = sourceOverride
+        || (builtInNames.has(name) ? "built-in" : "community");
+      return {
+        name: (typeof data.name === "string" && data.name) ? data.name : name,
+        description: (typeof data.description === "string" && data.description) ? data.description : name,
+        features: Array.isArray(data.features) ? data.features.filter((f): f is string => typeof f === "string") : [],
+        deps: Array.isArray(data.deps) ? data.deps.filter((d): d is string => typeof d === "string") : [],
+        source,
+      };
+    } catch (err) {
+      console.warn(`  [SpecShot] Failed to parse ${manifestPath}: ${err}`);
+    }
+  }
+  // If no manifest, still consider it a valid preset if it has one-time/ or repeatable/
+  const hasOneTime = fs.existsSync(path.join(dir, "one-time"));
+  const hasRepeatable = fs.existsSync(path.join(dir, "repeatable"));
+  if (hasOneTime || hasRepeatable) {
+    const source = sourceOverride
+      || (builtInNames.has(name) ? "built-in" : "community");
+    return { name, description: name, features: [], deps: [], source };
+  }
+  return { name, description: name, features: [], deps: [], source: "custom" };
+}
+
+export function validatePresetStructure(preset: string): string[] {
+  const errors: string[] = [];
+  const base = getTemplatesBaseDir();
+  const presetDir = path.join(base, preset);
+
+  if (!fs.existsSync(presetDir)) {
+    errors.push(`Preset directory "${preset}" does not exist at ${presetDir}`);
+    return errors;
+  }
+
+  const hasOneTime = fs.existsSync(path.join(presetDir, "one-time"));
+  const hasRepeatable = fs.existsSync(path.join(presetDir, "repeatable"));
+  if (!hasOneTime && !hasRepeatable) {
+    errors.push(`Preset "${preset}" must have at least one of: one-time/, repeatable/`);
+  }
+
+  const manifestPath = path.join(presetDir, "_preset.json");
+  if (fs.existsSync(manifestPath)) {
+    try {
+      const raw = fs.readFileSync(manifestPath, "utf8");
+      const data = JSON.parse(raw);
+      if (!data.name || typeof data.name !== "string") {
+        errors.push(`_preset.json: "name" must be a non-empty string`);
+      }
+      if (!data.description || typeof data.description !== "string") {
+        errors.push(`_preset.json: "description" must be a non-empty string`);
+      }
+    } catch {
+      errors.push(`_preset.json: failed to parse JSON`);
+    }
+  } else {
+    errors.push(`_preset.json: not found (recommended for community presets)`);
+  }
+
+  if (hasRepeatable) {
+    const repeatableDir = path.join(presetDir, "repeatable");
+    const groups = fs.readdirSync(repeatableDir).filter((e) => {
+      const stat = fs.statSync(path.join(repeatableDir, e));
+      return stat.isDirectory();
+    });
+    if (groups.length === 0) {
+      errors.push(`repeatable/: has no group directories (e.g. generator/, msw/)`);
+    }
+    for (const group of groups) {
+      const groupDir = path.join(repeatableDir, group);
+      const entries = fs.readdirSync(groupDir).filter((e) => {
+        const stat = fs.statSync(path.join(groupDir, e));
+        return stat.isDirectory();
+      });
+      if (entries.length === 0) {
+        errors.push(`repeatable/${group}/: has no template directories`);
+      }
+      for (const entry of entries) {
+        const tplDir = path.join(groupDir, entry);
+        const files = fs.readdirSync(tplDir);
+        const hasHbs = files.some((f) => f.endsWith(".hbs") && !f.startsWith("_"));
+        if (!hasHbs) {
+          errors.push(`repeatable/${group}/${entry}/: has no .hbs template files`);
+        }
+      }
+    }
+  }
+
+  return errors;
+}
+
 export function getPresetInfo(name: string): PresetInfo | undefined {
-  return PRESETS.find((p) => p.name === name);
+  return getAvailablePresets().find((p) => p.name === name);
 }
 
 export function isValidPreset(name: string): boolean {
-  return PRESETS.some((p) => p.name === name);
+  return getAvailablePresets().some((p) => p.name === name);
 }

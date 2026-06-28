@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { DEFAULT_CONFIG_FILE, loadUserConfig } from "../../core/config-loader";
 import { readAllSchemas, generateTypeFile, generateJSDocTypeDef } from "../../core/template-registry";
-import { PRESETS, isValidPreset, DEFAULT_PRESET } from "../../core/presets";
+import { getAvailablePresets, isValidPreset, DEFAULT_PRESET } from "../../core/presets";
 
 import { showBanner } from "../ui/banner";
 
@@ -120,7 +120,7 @@ export async function initCommand(options: InitOptions = {}) {
       name: "preset",
       message: "Which template preset would you like to use?",
       default: DEFAULT_PRESET,
-      choices: PRESETS.map((p) => ({
+      choices: getAvailablePresets().map((p) => ({
         name: `${p.name.padEnd(18)} ${chalk.gray(p.description)}`,
         value: p.name,
       })),
@@ -132,7 +132,7 @@ export async function initCommand(options: InitOptions = {}) {
   const schemas = readAllSchemas(selectedPreset);
   const mergedProps: Record<
     string,
-    { type: string; description?: string; enum?: string[]; default?: unknown }
+    { type: string; description?: string; enum?: string[]; items?: { type: string; enum?: string[] }; default?: unknown }
   > = {};
   for (const schema of schemas) {
     for (const [key, prop] of Object.entries(schema.properties || {})) {
