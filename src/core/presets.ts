@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getTemplatesBaseDir } from "./paths";
+import { getTemplatesBaseDir, getPresetDir } from "./paths";
 
 export interface PresetInfo {
   name: string;
@@ -58,7 +58,7 @@ interface RawPresetManifest {
   deps?: unknown;
 }
 
-function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-in" | "community" | "custom"): PresetInfo {
+function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-in" | "community" | "custom"): PresetInfo | null {
   const builtInNames = getBuiltInPresetNames();
   const manifestPath = path.join(dir, "_preset.json");
   if (fs.existsSync(manifestPath)) {
@@ -105,13 +105,12 @@ function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-i
       || (builtInNames.has(name) ? "built-in" : "community");
     return { name, description: name, features: [], deps: [], source };
   }
-  return { name, description: name, features: [], deps: [], source: "custom" };
+  return null;
 }
 
 export function validatePresetStructure(preset: string): string[] {
   const errors: string[] = [];
-  const base = getTemplatesBaseDir();
-  const presetDir = path.join(base, preset);
+  const presetDir = getPresetDir(preset);
 
   if (!fs.existsSync(presetDir)) {
     errors.push(`Preset directory "${preset}" does not exist at ${presetDir}`);

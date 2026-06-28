@@ -1,7 +1,6 @@
 import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
-import Handlebars from "handlebars";
 import type { Faker } from "@faker-js/faker";
 import type { OpenApiSchema } from "../types/types";
 
@@ -88,30 +87,4 @@ export async function loadUserConfig<TemplateData extends Record<string, unknown
     }
   }
   return {};
-}
-
-export function relModulePath(
-  fromDir: string,
-  toDir: string,
-  toFileNoExt: string,
-): string {
-  let rel = path.relative(fromDir, toDir).replace(/\\/g, "/");
-  if (!rel) rel = ".";
-  if (!rel.startsWith(".")) rel = "./" + rel;
-  return toFileNoExt ? `${rel}/${toFileNoExt}` : rel;
-}
-
-export function renderFileName(
-  template: string | undefined,
-  defaultName: string,
-  context: Record<string, unknown>,
-): string {
-  if (!template) return defaultName;
-  try {
-    const compiled = Handlebars.compile(template);
-    const result = compiled(context);
-    return result || defaultName;
-  } catch {
-    return defaultName;
-  }
 }

@@ -23,7 +23,18 @@ export function getTemplatesBaseDir(): string {
   throw new Error("Could not locate templates/presets directory.");
 }
 
+export function getProjectPresetsDir(): string | null {
+  const dir = path.resolve(process.cwd(), "templates/presets");
+  return fs.existsSync(dir) ? dir : null;
+}
+
 export function getPresetDir(preset: string): string {
+  // Project-level custom presets take priority over package-level
+  const projectDir = getProjectPresetsDir();
+  if (projectDir) {
+    const projectPreset = path.join(projectDir, preset);
+    if (fs.existsSync(projectPreset)) return projectPreset;
+  }
   return path.join(getTemplatesBaseDir(), preset);
 }
 

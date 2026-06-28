@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import {
   JSON_CONTENT_TYPE,
   HTTP_OK,
@@ -25,14 +24,12 @@ import { loadUserConfig } from "./config-loader";
 import type { TemplateOverrides } from "./config-loader";
 import { getRegistry } from "./template-registry";
 import { getGeneratorDir, getMswDir, assertPresetHasGenerator } from "./paths";
+import { DEFAULT_PRESET } from "./presets";
 import { formatGeneratedFiles } from "../utils/formatter";
 import { renderTemplates } from "./renderer";
 import { extractCustomCode } from "../utils/file-writer";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { generateMswHandlers } from "./msw-generator";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export async function generateApi(
   specSource: string,
@@ -50,7 +47,7 @@ export async function generateApi(
     templateData?: Record<string, unknown>;
   },
 ) {
-  const userConfig = await loadUserConfig(process.cwd());
+  const userConfig = await loadUserConfig(process.cwd(), opts?.configPath);
   const spec = await loadSpec(specSource);
 
   if (!spec.paths || Object.keys(spec.paths).length === 0) {
@@ -62,7 +59,7 @@ export async function generateApi(
   const schemas = spec.components?.schemas || {};
   const { sharedSchemas, tagSchemas } = resolveSchemaOwnership(spec);
 
-  const preset = opts?.preset || userConfig.preset || "class";
+  const preset = opts?.preset || userConfig.preset || DEFAULT_PRESET;
   assertPresetHasGenerator(preset);
   const defaultTemplatesDir = getGeneratorDir(preset);
 

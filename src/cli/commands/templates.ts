@@ -94,7 +94,6 @@ export async function templatesEjectPresetCommand(presetName: string): Promise<v
 
 export async function templatesListCommand(): Promise<void> {
   const config = await loadUserConfig(process.cwd());
-  const builtInDir = getTemplatesBaseDir();
   const activePreset = config.preset || DEFAULT_PRESET;
 
   const tplConfig: TemplateOverrides =
@@ -127,7 +126,7 @@ export async function templatesListCommand(): Promise<void> {
   }
   console.log();
 
-  const presetDir = path.join(builtInDir, activePreset);
+  const presetDir = getPresetDirFromPaths(activePreset);
   const repeatableDir = path.join(presetDir, "repeatable");
   const oneTimeDir = path.join(presetDir, "one-time");
 
@@ -330,7 +329,10 @@ export async function templatesInstallCommand(packageName: string): Promise<void
     srcDir = tempDir;
     presetName = githubMatch.repo
       .replace(/^specshot-preset-/, "")
-      .replace(/^specshot-/, "");
+      .replace(/^specshot-/, "")
+      .replace(/[^a-zA-Z0-9_-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
   } else {
     // Try npm package from node_modules
     const resolvedPath = path.resolve(process.cwd(), "node_modules", packageName);
@@ -346,7 +348,17 @@ export async function templatesInstallCommand(packageName: string): Promise<void
     presetName = packageName
       .replace(/^@[^/]+\//, "")
       .replace(/^specshot-preset-/, "")
-      .replace(/^specshot-/, "");
+      .replace(/^specshot-/, "")
+      .replace(/[^a-zA-Z0-9_-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  if (!presetName) {
+    console.error(chalk.red(`  Could not determine preset name from "${packageName}"`));
+    console.log(chalk.gray(`  Use: specshot templates install <npm-package> --name <preset-name>\n`));
+    cleanupTemp(tempDir);
+    return;
   }
 
   // Validate source has preset structure
@@ -375,7 +387,13 @@ export async function templatesInstallCommand(packageName: string): Promise<void
     }
   }
 
-  const destDir = path.join(getTemplatesBaseDir(), presetName);
+  const projectPresetsDir = path.resolve(process.cwd(), "templates/presets");
+  const destDir = path.join(projectPresetsDir, presetName);
+
+  if (!fs.existsSync(projectPresetsDir)) {
+    fs.mkdirSync(projectPresetsDir, { recursive: true });
+  }
+
   if (fs.existsSync(destDir)) {
     console.error(chalk.red(`  Preset "${presetName}" already exists at ${destDir}`));
     console.log(chalk.gray(`  Remove it first or choose a different name.\n`));
@@ -452,10 +470,10 @@ function cleanupTemp(dir: string | null): void {
 export async function templatesUninstallCommand(presetName: string): Promise<void> {
   console.log(chalk.cyan(`\n  Uninstalling preset: ${presetName}\n`));
 
-  const presetDir = path.join(getTemplatesBaseDir(), presetName);
+  const presetDir = getPresetDirFromPaths(presetName);
 
   if (!fs.existsSync(presetDir)) {
-    console.error(chalk.red(`  Preset "${presetName}" not found at ${presetDir}`));
+    console.error(chalk.red(`  Preset "${presetName}" not found`));
     console.log(chalk.gray(`\n  Available presets:`));
     for (const p of getAvailablePresets()) {
       console.log(chalk.gray(`    ${p.name}`));
@@ -464,10 +482,9 @@ export async function templatesUninstallCommand(presetName: string): Promise<voi
     return;
   }
 
-  // Check if it's a built-in preset (has no _preset.json or is one of the originals)
-  const hasPresetJson = fs.existsSync(path.join(presetDir, "_preset.json"));
-  const builtInPresets = ["class", "functional", "zod-functional"];
-  if (builtInPresets.includes(presetName) && !hasPresetJson) {
+  // Check if it's a built-in preset (exists in the package dir)
+  const pkgPresetDir = path.join(getTemplatesBaseDir(), presetName);
+  if (fs.existsSync(pkgPresetDir) && !fs.existsSync(path.join(presetDir, "_preset.json"))) {
     console.error(chalk.red(`  Cannot uninstall built-in preset "${presetName}"`));
     console.log(chalk.gray(`  Built-in presets are part of specshot and cannot be removed.\n`));
     return;

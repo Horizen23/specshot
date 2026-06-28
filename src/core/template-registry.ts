@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getPresetDir } from "./paths";
 import { toCamelCase } from "../utils/naming-utils";
+import { DEFAULT_PRESET } from "./presets";
 
 export interface TemplateVariable {
   name: string;
@@ -76,36 +77,14 @@ function getRegistryForPreset(preset: string): TemplateInfo[] {
   return loaded;
 }
 
-export function getTemplateInfo(name: string, preset = "class"): TemplateInfo | undefined {
+export function getTemplateInfo(name: string, preset = DEFAULT_PRESET): TemplateInfo | undefined {
   return getRegistryForPreset(preset).find(
     (t) => t.name === name || t.file === name || t.configKey === name,
   );
 }
 
-export function getAllTemplateNames(preset = "class"): string[] {
-  return getRegistryForPreset(preset).map((t) => t.name);
-}
-
-export function getRegistry(preset = "class"): TemplateInfo[] {
+export function getRegistry(preset = DEFAULT_PRESET): TemplateInfo[] {
   return getRegistryForPreset(preset);
-}
-
-export function generateTemplateOverridesType(preset = "class"): string {
-  const registry = getRegistry(preset);
-  const configKeys = new Set<string>();
-  for (const tpl of registry) {
-    if (tpl.configKey) configKeys.add(tpl.configKey);
-  }
-  if (configKeys.size === 0) return "";
-  const keys = Array.from(configKeys).sort();
-  let out = "{ ";
-  out += "dir?: string; ";
-  for (let i = 0; i < keys.length; i++) {
-    out += `${keys[i]}?: string`;
-    if (i < keys.length - 1) out += "; ";
-  }
-  out += " }";
-  return out;
 }
 
 // ── Template Data Schema ──
@@ -121,7 +100,7 @@ export function readTemplateDataSchema(dir: string): TemplateDataSchema | null {
   }
 }
 
-export function readAllSchemas(preset = "class"): TemplateDataSchema[] {
+export function readAllSchemas(preset = DEFAULT_PRESET): TemplateDataSchema[] {
   const schemas: TemplateDataSchema[] = [];
   const presetDir = getPresetDir(preset);
   if (!fs.existsSync(presetDir)) return schemas;
@@ -158,40 +137,6 @@ export function readSchemaDefaults(preset: string): Record<string, unknown> {
   return defaults;
 }
 
-export function mergeSchemasToType(schemas: TemplateDataSchema[]): string {
-  const merged: Record<string, { tsType: string; description: string }> = {};
-
-  for (const schema of schemas) {
-    for (const [key, prop] of Object.entries(schema.properties || {})) {
-      let tsType: string;
-      if (prop.enum) {
-        tsType = prop.enum.map((v) => JSON.stringify(v)).join(" | ");
-      } else if (prop.type === "array" && prop.items) {
-        if (prop.items.enum) {
-          tsType = `(${prop.items.enum.map((v: string) => JSON.stringify(v)).join(" | ")})[]`;
-        } else {
-          tsType = `${propItemsType(prop.items.type)}[]`;
-        }
-      } else {
-        tsType = jsonSchemaToTs(prop.type);
-      }
-      merged[key] = { tsType, description: prop.description || "" };
-    }
-  }
-
-  if (Object.keys(merged).length === 0) return "";
-
-  const entries = Object.entries(merged);
-  let output = "{ ";
-  for (let i = 0; i < entries.length; i++) {
-    const [key, { tsType }] = entries[i];
-    output += `${key}?: ${tsType}`;
-    if (i < entries.length - 1) output += "; ";
-  }
-  output += " }";
-  return output;
-}
-
 function propItemsType(type?: string): string {
   switch (type) {
     case "string": return "string";
@@ -212,7 +157,7 @@ function jsonSchemaToTs(type: string): string {
   }
 }
 
-export function generateTypeFile(preset = "class"): string {
+export function generateTypeFile(preset = DEFAULT_PRESET): string {
   const schemas = readAllSchemas(preset);
   const hasData = schemas.some(s => Object.keys(s.properties || {}).length > 0);
   const hasOverrides = getRegistry(preset).some(t => t.configKey);
@@ -225,7 +170,7 @@ export function generateTypeFile(preset = "class"): string {
   return `import('specshot').SpecshotConfig<${tdParam}, ${ovParam}>`;
 }
 
-export function generateJSDocTypeDef(preset = "class"): string {
+export function generateJSDocTypeDef(preset = DEFAULT_PRESET): string {
   const schemas = readAllSchemas(preset);
   const merged: Record<string, { tsType: string; description: string }> = {};
   for (const schema of schemas) {

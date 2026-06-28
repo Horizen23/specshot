@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
 import inquirer from "inquirer";
-import ora from "ora";
 import chalk from "chalk";
 import { generateApi } from "../../core/generate";
 import { loadUserConfig } from "../../core/config-loader";
 import { scaffoldInfrastructure, hasCustomTemplateConfig } from "../../core/installer";
+import { DEFAULT_PRESET } from "../../core/presets";
 import { showBanner } from "../ui/banner";
 
 interface GenerateOptions {
@@ -42,7 +42,7 @@ export async function generateCommand(options: GenerateOptions) {
 
       if (!hasCustomTemplateConfig(mergedTemplates)) {
         const installed = scaffoldInfrastructure({
-          preset: options.preset || config.preset || "class",
+          preset: options.preset || config.preset || DEFAULT_PRESET,
           apiConfig,
           apiName,
           templateData: config.templateData,
@@ -122,7 +122,7 @@ export async function generateCommand(options: GenerateOptions) {
 
   if (firstApi && !hasCustomTemplateConfig(mergedTemplates)) {
     const installed = scaffoldInfrastructure({
-      preset: options.preset || config.preset || "class",
+      preset: options.preset || config.preset || DEFAULT_PRESET,
       apiConfig: firstApi,
       apiName: firstApiName || "api",
       templateData: config.templateData,
@@ -159,13 +159,15 @@ export async function generateCommand(options: GenerateOptions) {
     outputDir = outputDir || answers.outputDir;
   }
 
+  if (!outputDir) {
+    console.error(chalk.red("Output directory is required."));
+    return;
+  }
+
   const sourceLabel = file ? file : url!;
   const targetDir = path.resolve(process.cwd(), outputDir!);
-  const spinner = ora("Generating API services...").start();
 
   try {
-    // Pause spinner because generateApi uses console.log internally
-    spinner.stop();
     const runGenerate = async () => {
       try {
         if (options.dryRun) {
@@ -178,7 +180,7 @@ export async function generateCommand(options: GenerateOptions) {
             chalk.gray("  Templates: ") + (mergedTemplates || "built-in"),
           );
           console.log(chalk.gray("  Alias:     ") + (alias || "none"));
-          console.log(chalk.gray("  Preset:    ") + (options.preset || config.preset || "class"));
+          console.log(chalk.gray("  Preset:    ") + (options.preset || config.preset || DEFAULT_PRESET));
           const spec = await generateApi(
             sourceLabel,
             targetDir,
@@ -244,7 +246,7 @@ export async function generateCommand(options: GenerateOptions) {
       }
     }
   } catch (err) {
-    spinner.fail(chalk.red("Failed to setup code generation"));
+    console.error(chalk.red("Failed to setup code generation"));
     console.error(err);
   }
 }

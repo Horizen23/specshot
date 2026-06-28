@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { renderTemplates } from "./renderer";
 import type { TemplateOverrides } from "./config-loader";
-import { getTemplatesBaseDir, getOneTimeDir, hasOneTimeDir } from "./paths";
+import { getOneTimeDir, hasOneTimeDir } from "./paths";
 import { readSchemaDefaults } from "./template-registry";
 
 export interface InstallOptions {
@@ -20,7 +20,9 @@ export function installScaffold(options: InstallOptions): boolean {
     try {
       const parsedUrl = new URL(options.openapiUrl);
       serverUrl = parsedUrl.origin;
-    } catch {}
+    } catch {
+      console.warn(`  [SpecShot] Invalid openapiUrl: ${options.openapiUrl}`);
+    }
   }
 
   const data: Record<string, unknown> = {

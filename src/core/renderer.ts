@@ -124,11 +124,6 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
         itemIndex: idx,
       };
 
-      if (options.enhanceData) {
-        const extra = options.enhanceData({ relPath, templateName, outputPath: "" });
-        if (extra) Object.assign(itemCtx, extra);
-      }
-
       let target = resolveTarget(relPath, templateDir, itemCtx);
       if (!target) {
         if (options.defaultTarget) {

@@ -9,8 +9,7 @@ import { mockCommand } from "./commands/mock";
 import { templatesEjectPresetCommand, templatesListCommand, templatesContextCommand, templatesValidateCommand, templatesInstallCommand, templatesUninstallCommand } from "./commands/templates";
 
 // Export types for JS/TS config autocomplete
-export type { SpecshotUserConfig as SpecshotConfig } from "../core/config-loader";
-export type { SpecshotUserConfig, SpecshotTemplateData } from "../core/config-loader";
+export type { SpecshotUserConfig as SpecshotConfig, SpecshotUserConfig, SpecshotTemplateData } from "../core/config-loader";
 export type { FakerPlugin, FakerPluginContext } from "../core/config-loader";
 
 const __filename = fileURLToPath(import.meta.url);

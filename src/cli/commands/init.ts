@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { DEFAULT_CONFIG_FILE, loadUserConfig } from "../../core/config-loader";
 import { readAllSchemas, generateTypeFile, generateJSDocTypeDef } from "../../core/template-registry";
-import { getAvailablePresets, isValidPreset, DEFAULT_PRESET } from "../../core/presets";
+import { getAvailablePresets, DEFAULT_PRESET } from "../../core/presets";
 
 import { showBanner } from "../ui/banner";
 
@@ -119,7 +119,7 @@ export async function initCommand(options: InitOptions = {}) {
       type: "list",
       name: "preset",
       message: "Which template preset would you like to use?",
-      default: DEFAULT_PRESET,
+      default: config.preset || DEFAULT_PRESET,
       choices: getAvailablePresets().map((p) => ({
         name: `${p.name.padEnd(18)} ${chalk.gray(p.description)}`,
         value: p.name,
@@ -243,10 +243,21 @@ ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : "
 };
 `;
 
-  fs.writeFileSync(
-    path.resolve(cwd, DEFAULT_CONFIG_FILE),
-    configContent,
-  );
+  const configPath = path.resolve(cwd, DEFAULT_CONFIG_FILE);
+  if (fs.existsSync(configPath)) {
+    const { overwrite } = await inquirer.prompt([{
+      type: "confirm",
+      name: "overwrite",
+      message: `${DEFAULT_CONFIG_FILE} already exists. Overwrite?`,
+      default: false,
+    }]);
+    if (!overwrite) {
+      console.log(chalk.gray("  Cancelled.\n"));
+      return;
+    }
+  }
+
+  fs.writeFileSync(configPath, configContent);
   console.log(chalk.green(`\n✔ Config written to ${DEFAULT_CONFIG_FILE}`));
 
   console.log(chalk.cyan(`\nNext steps:`));
