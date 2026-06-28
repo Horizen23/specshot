@@ -79,7 +79,7 @@ npx specshot init \
 
 | Flag                    | Description                                                          |
 | ----------------------- | -------------------------------------------------------------------- |
-| `--preset <name>`       | Preset: `class`, `functional`, `zod-functional`, or community/custom |
+| `--preset <name>`       | Preset: `class`, `functional`, or community/custom                   |
 | `--templates, -t <dir>` | Custom Handlebars templates directory                                |
 | `--url, -u <url>`       | OpenAPI JSON URL to save in config for later generation              |
 
@@ -95,11 +95,9 @@ Choose a built-in code style with `--preset`:
 |--------|-------|-------------|----------------|
 | `class` (default) | `BaseService` + `ApiClient` + Zod | `zod` | `Promise<{ data, error, ok }>` |
 | `functional` | Standalone `async function` + native `fetch()` | none | `Promise<T>` (throws on error) |
-| `zod-functional` | Standalone `async function` + Zod schemas | `zod` | `Promise<T>` (throws on error) |
 
 ```bash
 npx specshot generate --preset functional
-npx specshot generate --preset zod-functional
 ```
 
 Or set it in config:
@@ -136,7 +134,7 @@ npx specshot generate --url http://localhost:8080/openapi.json
 | `--alias, -a <alias>`                   | Import alias (e.g. `@/lib/api`)                          |
 | `--config, -c <path>`                   | Custom config file path                                  |
 | `--templates, -t <dir>`                 | Custom Handlebars templates (partial override)           |
-| `--preset <name>`                       | Built-in preset: `class`, `functional`, `zod-functional` |
+| `--preset <name>`                       | Built-in preset: `class`, `functional`                   |
 | `-w, --watch`                           | Watch for changes and auto-regenerate                    |
 | `--dry-run`                             | Preview without writing files                            |
 | `--msw`                                 | Generate MSW mock handlers                               |
@@ -398,7 +396,7 @@ _(Mock configurations and overrides are automatically saved to `.specshot/mocks.
  */
 /** @type {import('specshot').SpecshotConfig<TemplateData, Overrides>} */
 export default {
-  preset: "class", // class, functional, or zod-functional
+  preset: "class", // class or functional
   templates: "src/lib/api/templates", // string (dir) or object (per-file)
 
   // Custom Faker.js plugins for mock generation

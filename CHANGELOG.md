@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `templates eject` command to copy built-in Handlebars templates for local customization.
 - `templates list` command to show all templates and their override status.
 - `templates context <name>` command to show available variables for a template.
-- Built-in template presets: `class` (default), `functional`, `zod-functional`.
+- Built-in template presets: `class` (default), `functional`.
 - `--preset` flag on `init`, `generate`, and `templates eject` commands.
 - `preset` field in `specshot.config.mjs`.
 - Partial template override: only edited templates override built-ins, missing files fall back to defaults.

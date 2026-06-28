@@ -14,7 +14,7 @@ SpecShot supports 3 types of presets. Run `specshot templates list` to see all a
 
 ### Built-in
 
-The 3 default presets that come with specshot: `class`, `functional`, `zod-functional`. Cannot be removed.
+The 2 default presets that come with specshot: `class`, `functional`. Cannot be removed.
 
 ### Community
 
@@ -38,7 +38,6 @@ Create your own preset from scratch, or eject an existing preset to customize:
 ```bash
 # Eject a built-in/community preset into your project
 specshot templates eject functional    # copies to .specshot/templates/presets/functional/
-specshot templates eject zod-functional
 specshot templates eject my-community-preset
 ```
 

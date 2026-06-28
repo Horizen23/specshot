@@ -38,7 +38,7 @@ program
     "OpenAPI JSON URL to auto-generate services after init",
   )
   .option("-t, --templates <dir>", "Custom Handlebars templates directory")
-  .option("--preset <name>", "Preset name (built-in: class, functional, zod-functional; or community/custom)")
+  .option("--preset <name>", "Preset name (built-in: class, functional; or community/custom)")
   .action(initCommand);
 
 program
@@ -52,7 +52,7 @@ program
   .option("-a, --alias <alias>", "Import alias prefix (e.g. @/lib/api)")
   .option("-c, --config <path>", "Path to specshot.json config file")
   .option("-t, --templates <dir>", "Custom templates directory")
-  .option("--preset <name>", "Preset name (built-in: class, functional, zod-functional; or community/custom)")
+  .option("--preset <name>", "Preset name (built-in: class, functional; or community/custom)")
   .option("-w, --watch", "Watch for changes and auto-regenerate")
   .option("--dry-run", "Run without writing any files")
   .option("--msw", "Generate MSW mock handlers")
@@ -204,7 +204,7 @@ templatesCmd.action(async () => {
   console.log(chalk.gray("    specshot templates install specshot-preset-xxx           from npm"));
   console.log(chalk.gray("    specshot templates install github:user/repo              from GitHub"));
   console.log(chalk.gray("    specshot templates install github:user/repo --name foo   override preset name\n"));
-  console.log(chalk.gray("  Presets: class (default), functional, zod-functional; or custom/community\n"));
+  console.log(chalk.gray("  Presets: class (default), functional; or custom/community\n"));
 });
 
 export { program };

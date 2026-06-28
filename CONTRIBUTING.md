@@ -28,7 +28,7 @@ src/
   types/          TypeScript type definitions
   utils/          Helper utilities
   __tests__/      Tests & fixtures
-templates/        Built-in template presets (class, functional, zod-functional)
+templates/        Built-in template presets (class, functional)
 ```
 
 ## Before Submitting a PR
