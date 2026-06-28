@@ -82,6 +82,84 @@
           }
         }
       }
+    },
+    "/stores": {
+      "get": {
+        "tags": ["stores"],
+        "operationId": "listStores",
+        "summary": "List all stores",
+        "responses": {
+          "200": {
+            "description": "A list of stores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Store"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["stores"],
+        "operationId": "createStore",
+        "summary": "Create a store",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Store"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stores/{storeId}": {
+      "get": {
+        "tags": ["stores"],
+        "operationId": "getStore",
+        "summary": "Get a store by ID",
+        "parameters": [
+          {
+            "name": "storeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A single store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Store"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -101,6 +179,23 @@
         "properties": {
           "name": { "type": "string" },
           "species": { "type": "string" }
+        }
+      },
+      "Store": {
+        "type": "object",
+        "required": ["id", "name", "address"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "address": { "type": "string" }
+        }
+      },
+      "CreateStoreRequest": {
+        "type": "object",
+        "required": ["name", "address"],
+        "properties": {
+          "name": { "type": "string" },
+          "address": { "type": "string" }
         }
       }
     }
