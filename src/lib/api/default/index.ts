@@ -6,11 +6,14 @@ export * from "./plugins";
 
 export * from "./services/pets.service";
 import { PetsService } from "./services/pets.service";
+export * from "./services/stores.service";
+import { StoresService } from "./services/stores.service";
 
 export function createApi(client: ApiClient) {
   return {
     client,
     pets: new PetsService(client),
+    stores: new StoresService(client),
   } as const;
 }
 

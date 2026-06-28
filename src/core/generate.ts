@@ -16,6 +16,7 @@ import {
   cleanRefName,
   extractRefs,
   schemaToTsType,
+  schemaToZod,
   resolveSchemaOwnership,
 } from "./schema-parser";
 import { toClassName, capitalize, toCamelCase, toMethodName } from "../utils/naming-utils";
@@ -138,7 +139,7 @@ export async function generateApi(
     const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
     sharedModelsData.push({
       name,
-      zod: schemaKey ? schemaToTsType(schemas[schemaKey]) : "z.any()",
+      zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
       tsType: schemaKey ? schemaToTsType(schemas[schemaKey]) : "unknown",
     });
   }
@@ -162,7 +163,7 @@ export async function generateApi(
             if (sharedSchemas.has(n)) modelsToImport.add(n);
           specificSchemasList.push({
             name,
-            zod: schemaToTsType(schemas[schemaKey]),
+            zod: schemaToZod(schemas[schemaKey]),
             tsType: schemaToTsType(schemas[schemaKey]),
           });
         }
@@ -287,6 +288,12 @@ export async function generateApi(
   }
 
   // ── Build template data ──
+  const coreOutRaw = (opts?.templateData?.coreOut as string)
+    || (userConfig.templateData?.coreOut as string)
+    || path.join(outputDir, "../../core");
+  const coreAbs = path.isAbsolute(coreOutRaw)
+    ? coreOutRaw
+    : path.resolve(process.cwd(), coreOutRaw);
   const renderData: Record<string, unknown> = {
     ...userConfig.templateData,
     ...opts?.templateData,
@@ -310,8 +317,16 @@ export async function generateApi(
     data: renderData,
     defaultTarget: path.relative(process.cwd(), outputDir),
     enhanceData: ({ outputPath }) => {
+      if (!outputPath) return {};
+      const fileDir = path.dirname(outputPath);
+      const coreRelPath = path.relative(fileDir, coreAbs);
+      // types.ts at {outDir}/../types.ts (sibling of outDir)
+      const outDirRaw = (opts?.templateData?.outDir as string) || path.dirname(outputDir);
+      const outDirAbs = path.isAbsolute(outDirRaw) ? outDirRaw : path.resolve(process.cwd(), outDirRaw);
+      const typesFile = path.join(path.dirname(outDirAbs), "types.ts");
+      const typesRelPath = path.relative(fileDir, typesFile).replace(/\.ts$/, "");
       const custom = extractCustomCode(outputPath);
-      return custom !== null ? { customCode: custom } : {};
+      return { coreRelPath, typesRelPath, ...(custom !== null ? { customCode: custom } : {}) };
     },
   });
 

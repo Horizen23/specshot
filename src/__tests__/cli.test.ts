@@ -338,7 +338,7 @@ describe("CLI", () => {
       )._optionValues = {};
     });
 
-    it("should read openapiUrl and outputPaths from config", async () => {
+    it("should read openapiUrl and outDir from config", async () => {
       const tmpDir = path.join(
         os.tmpdir(),
         `specshot-cli-config-url-${Date.now()}`,
@@ -350,10 +350,10 @@ describe("CLI", () => {
         configPath,
         JSON.stringify({
           apis: {
-            default: {
+            api: {
               openapiUrl: fixturePath,
               templateData: {
-                outputDir: apiDir,
+                outDir: apiDir,
               },
             },
           },

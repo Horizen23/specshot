@@ -65,8 +65,10 @@ export async function generateCommand(options: GenerateOptions) {
       };
 
       const specSource = apiSpecUrl;
-      const tdOutput = (apiConfig.templateData?.outputDir as string) || (config.templateData?.outputDir as string);
-      const targetDir = path.resolve(process.cwd(), mergedOptions.output || tdOutput || `src/lib/api/${apiName}/services`);
+      const tdOutput = (apiConfig.templateData?.outDir as string)
+        || (config.templateData?.outDir as string)
+        || `src/lib/api/${apiName}/services`;
+      const targetDir = path.resolve(process.cwd(), mergedOptions.output || tdOutput);
 
       try {
         await generateApi(
@@ -82,6 +84,12 @@ export async function generateCommand(options: GenerateOptions) {
             templateData: {
               ...config.templateData,
               ...apiConfig.templateData,
+              outDir: (apiConfig.templateData?.outDir as string)
+                || (config.templateData?.outDir as string)
+                || `src/lib/api/${apiName}/services`,
+              coreOut: (apiConfig.templateData?.coreOut as string)
+                || (config.templateData?.coreOut as string)
+                || `src/lib/api/core`,
             },
           },
         );

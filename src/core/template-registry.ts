@@ -267,7 +267,7 @@ export function generateJSDocTypeDef(preset = "class"): string {
   const lines: string[] = [];
   if (Object.keys(merged).length > 0) {
     lines.push("/**");
-    lines.push(" * @typedef {Object} SpecshotTemplateData");
+    lines.push(" * @typedef {Object} TemplateData");
     for (const [key, { tsType, description }] of Object.entries(merged)) {
       const desc = description ? ` - ${description}` : "";
       lines.push(` * @property {${tsType}} [${key}]${desc}`);
@@ -283,7 +283,7 @@ export function generateJSDocTypeDef(preset = "class"): string {
   if (configKeys.size > 0) {
     const keys = Array.from(configKeys).sort();
     lines.push("/**");
-    lines.push(" * @typedef {Object} SpecshotTemplateOverrides");
+    lines.push(" * @typedef {Object} Overrides");
     lines.push(' * @property {string} [dir]');
     for (const key of keys) {
       lines.push(` * @property {string} [${key}]`);

@@ -769,17 +769,17 @@ import { BaseService } from "{{corePath}}/base-service";
       }) as Response) as typeof fetch;
 
     const provDir = path.join(tmpDir, "plugin-prov");
-    const pluginsDir = path.join(provDir, "plugins");
-    fs.mkdirSync(pluginsDir, { recursive: true });
+    const interceptorsDir = path.join(provDir, "interceptors");
+    fs.mkdirSync(interceptorsDir, { recursive: true });
     fs.writeFileSync(
-      path.join(pluginsDir, "custom.ts"),
+      path.join(interceptorsDir, "custom.ts"),
       `export function installCustom(client: any) { return client; }\n`,
     );
 
     const svcDir = path.join(provDir, "services");
     await generateApi("https://example.com/interceptor.json", svcDir);
 
-    const indexPath = path.join(pluginsDir, "index.ts");
+    const indexPath = path.join(provDir, "plugins", "index.ts");
     expect(fs.existsSync(indexPath)).toBe(true);
     const indexContent = fs.readFileSync(indexPath, "utf8");
     expect(indexContent).toContain("installCustom");

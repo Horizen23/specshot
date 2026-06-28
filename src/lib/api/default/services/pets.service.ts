@@ -4,9 +4,9 @@ import { ApiClient } from "../../core/api-client";
 import { ApiResult } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
-import type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
+import type { CreatePetRequest, PetsListPetsParams, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse } from "./pets.types";
 
-export type { Pet, CreatePetRequest, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse };
+export type { CreatePetRequest, PetsListPetsParams, PetsListPetsResponse, PetsCreatePetPayload, PetsCreatePetResponse, PetsGetPetResponse };
 
 export class PetsService extends BaseService<"pets"> {
   constructor(client: ApiClient) {
@@ -33,7 +33,7 @@ export class PetsService extends BaseService<"pets"> {
    * // use `data` safely here
    */
   public listPets(
-    config?: AppRequestConfig
+    config?: Omit<AppRequestConfig, "params"> & { params?: PetsListPetsParams }
   ): Promise<ApiResult<PetsListPetsResponse, AppApiErrorData>> {
     return this.client.get<PetsListPetsResponse, AppApiErrorData>(
       `/pets`,
@@ -106,18 +106,5 @@ export class PetsService extends BaseService<"pets"> {
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   // --- CUSTOM CODE END ---
 }
