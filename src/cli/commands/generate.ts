@@ -48,6 +48,8 @@ export async function generateCommand(options: GenerateOptions) {
           templateData: config.templateData,
         });
         if (installed) console.log(chalk.green(`✔ Scaffold installed`));
+      } else {
+        console.log(chalk.gray(`  Skipping scaffold (custom templates configured)`));
       }
 
       if (!apiSpecUrl) {

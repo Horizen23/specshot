@@ -68,6 +68,19 @@ export async function templatesEjectPresetCommand(presetName: string): Promise<v
     return;
   }
 
+  // Confirm before ejecting
+  const { default: inquirer } = await import("inquirer");
+  const { confirm } = await inquirer.prompt([{
+    type: "confirm",
+    name: "confirm",
+    message: `Eject preset "${presetName}" to templates/presets/${presetName}/?`,
+    default: true,
+  }]);
+  if (!confirm) {
+    console.log(chalk.gray("  Cancelled.\n"));
+    return;
+  }
+
   // Ensure parent dir exists
   if (!fs.existsSync(projectPresetsDir)) {
     fs.mkdirSync(projectPresetsDir, { recursive: true });
@@ -298,7 +311,7 @@ export async function templatesValidateCommand(options: { preset?: string }): Pr
   }
 }
 
-export async function templatesInstallCommand(packageName: string): Promise<void> {
+export async function templatesInstallCommand(packageName: string, nameOverride?: string): Promise<void> {
   console.log(chalk.cyan(`\n  Installing preset from: ${packageName}\n`));
 
   let srcDir: string;
@@ -320,9 +333,14 @@ export async function templatesInstallCommand(packageName: string): Promise<void
         stdio: "pipe",
         timeout: 30000,
       });
-    } catch {
+    } catch (err) {
       console.error(chalk.red(`  Failed to clone from GitHub`));
-      console.log(chalk.gray(`  Make the repo public, or check the URL.\n`));
+      const stderr = err instanceof Error && 'stderr' in err ? (err as { stderr: Buffer }).stderr?.toString() : "";
+      if (stderr) {
+        console.log(chalk.gray(`  ${stderr.trim().split("\n")[0]}`));
+      }
+      console.log(chalk.gray(`  Check the URL, or make sure the repo is public.\n`));
+      cleanupTemp(tempDir);
       return;
     }
 
@@ -359,6 +377,11 @@ export async function templatesInstallCommand(packageName: string): Promise<void
     console.log(chalk.gray(`  Use: specshot templates install <npm-package> --name <preset-name>\n`));
     cleanupTemp(tempDir);
     return;
+  }
+
+  // Apply name override if provided
+  if (nameOverride) {
+    presetName = nameOverride.replace(/[^a-zA-Z0-9_-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
   }
 
   // Validate source has preset structure

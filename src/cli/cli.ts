@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import { initCommand } from "./commands/init";
 import { generateCommand } from "./commands/generate";
 import { mockCommand } from "./commands/mock";
-import { templatesEjectPresetCommand, templatesListCommand, templatesContextCommand, templatesValidateCommand, templatesInstallCommand, templatesUninstallCommand } from "./commands/templates";
+import { templatesEjectPresetCommand, templatesListCommand, templatesContextCommand, templatesTypegenCommand, templatesValidateCommand, templatesInstallCommand, templatesUninstallCommand } from "./commands/templates";
 
 // Export types for JS/TS config autocomplete
 export type { SpecshotUserConfig as SpecshotConfig, SpecshotUserConfig, SpecshotTemplateData } from "../core/config-loader";
@@ -38,7 +38,7 @@ program
     "OpenAPI JSON URL to auto-generate services after init",
   )
   .option("-t, --templates <dir>", "Custom Handlebars templates directory")
-  .option("--preset <name>", "Built-in template preset: class, functional, or zod-functional")
+  .option("--preset <name>", "Preset name (built-in: class, functional, zod-functional; or community/custom)")
   .action(initCommand);
 
 program
@@ -52,7 +52,7 @@ program
   .option("-a, --alias <alias>", "Import alias prefix (e.g. @/lib/api)")
   .option("-c, --config <path>", "Path to specshot.json config file")
   .option("-t, --templates <dir>", "Custom templates directory")
-  .option("--preset <name>", "Built-in template preset: class, functional, or zod-functional")
+  .option("--preset <name>", "Preset name (built-in: class, functional, zod-functional; or community/custom)")
   .option("-w, --watch", "Watch for changes and auto-regenerate")
   .option("--dry-run", "Run without writing any files")
   .option("--msw", "Generate MSW mock handlers")
@@ -148,11 +148,27 @@ templatesCmd
   });
 
 templatesCmd
+  .command("typegen")
+  .description("Generate TypeScript type definitions from template data schemas")
+  .option("--preset <name>", "Preset to generate types for")
+  .option("--output <path>", "Output file path (prints to stdout if omitted)")
+  .action(async (options) => {
+    try {
+      await templatesTypegenCommand(options);
+    } catch (err) {
+      const chalk = (await import("chalk")).default;
+      console.error(chalk.red("Typegen failed"));
+      console.error(err);
+    }
+  });
+
+templatesCmd
   .command("install <package>")
   .description("Install a community preset from npm or GitHub")
-  .action(async (packageName: string) => {
+  .option("--name <name>", "Override preset name (default: derived from package/repo name)")
+  .action(async (packageName: string, options: { name?: string }) => {
     try {
-      await templatesInstallCommand(packageName);
+      await templatesInstallCommand(packageName, options.name);
     } catch (err) {
       const chalk = (await import("chalk")).default;
       console.error(chalk.red("Install failed"));
@@ -180,14 +196,15 @@ templatesCmd.action(async () => {
   console.log("    specshot templates eject <preset>   Copy built-in/community preset to project as custom");
   console.log("    specshot templates list             Show all templates + preset status");
   console.log("    specshot templates context <name>   Show variables for a template");
-  console.log("    specshot templates validate         Validate preset structure for community templates");
+  console.log("    specshot templates validate         Validate preset structure");
+  console.log("    specshot templates typegen          Generate TypeScript types from template schemas");
   console.log("    specshot templates install <pkg>    Install preset from npm or GitHub");
-  console.log("    specshot templates uninstall <name>  Remove an installed preset\n");
+  console.log("    specshot templates uninstall <name> Remove an installed preset\n");
   console.log(chalk.gray("  Install sources:"));
-  console.log(chalk.gray("    specshot templates install specshot-preset-xxx   from npm"));
-  console.log(chalk.gray("    specshot templates install github:user/repo      from GitHub"));
-  console.log(chalk.gray("    specshot templates install owner/repo            shorthand\n"));
-  console.log(chalk.gray("  Presets: class (default), functional, zod-functional\n"));
+  console.log(chalk.gray("    specshot templates install specshot-preset-xxx           from npm"));
+  console.log(chalk.gray("    specshot templates install github:user/repo              from GitHub"));
+  console.log(chalk.gray("    specshot templates install github:user/repo --name foo   override preset name\n"));
+  console.log(chalk.gray("  Presets: class (default), functional, zod-functional; or custom/community\n"));
 });
 
 export { program };

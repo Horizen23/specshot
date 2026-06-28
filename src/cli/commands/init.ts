@@ -128,6 +128,17 @@ export async function initCommand(options: InitOptions = {}) {
   ]);
   const selectedPreset = presetAnswer.preset;
 
+  // Validate preset has required structure
+  const errors = (await import("../../core/presets")).validatePresetStructure(selectedPreset);
+  if (errors.length > 0) {
+    console.error(chalk.red(`\n  Preset "${selectedPreset}" has issues:`));
+    for (const err of errors) {
+      console.error(chalk.red(`    - ${err}`));
+    }
+    console.log(chalk.gray("\n  Choose a different preset or fix the issues above.\n"));
+    return;
+  }
+
   // ── Prompt templateData from schemas ──
   const schemas = readAllSchemas(selectedPreset);
   const mergedProps: Record<

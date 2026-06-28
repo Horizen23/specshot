@@ -76,6 +76,20 @@ templates/presets/my-preset/
     └── msw/                        #   MSW mock handler templates (optional)
 ```
 
+## Directory Structure
+
+### `repeatable/` — Generated on every `specshot generate`
+
+Contains template directories that are rendered once per matching data item. Each template directory produces one output file. The subdirectories under `repeatable/` are called **groups** — use `generator/` for API code and `msw/` for mock handlers.
+
+### `one-time/` — Installed once via `specshot generate`
+
+Contains scaffold templates that are copied to the project **only once** (first run). These are files the user will own and modify directly — base classes, type definitions, API client setup, etc.
+
+- Files use the same `.hbs` template syntax as `repeatable/`
+- Use `skipIfExists: true` — existing files are never overwritten
+- Run `specshot generate` again to install (skips existing files)
+
 ## `_preset.json`
 
 ```json
@@ -94,6 +108,24 @@ templates/presets/my-preset/
 | `features` | string[] | No | List of features for marketplace listing |
 | `deps` | string[] | No | npm dependencies this preset requires |
 
+## Template Data Schema
+
+Place `_template-data.schema.json` in any template directory to define variables that users configure during `specshot init`. Multiple schema files across directories are **merged** — properties with the same key are overwritten by the later file.
+
+```json
+{
+  "title": "Template Configuration",
+  "description": "Options for this preset",
+  "properties": {
+    "outDir": {
+      "type": "string",
+      "description": "Output directory for generated services",
+      "default": "src/lib/api/services"
+    }
+  }
+}
+```
+
 ## Template Meta Files
 
 Every template directory uses meta files to control output:
@@ -105,6 +137,18 @@ Every template directory uses meta files to control output:
 | `_iterate.hbs` | Array key to iterate | `tags` |
 | `_condition.hbs` | Skip condition | `skip` (returns "skip" to skip) |
 | `_filter.hbs` | Allowed filenames | `service.hbs\ntypes.hbs` |
+
+## Custom Code Markers
+
+Templates can preserve user-written code across regenerations using markers:
+
+```
+// --- CUSTOM CODE START ---
+const myCustomLogic = () => { ... };
+// --- CUSTOM CODE END ---
+```
+
+The markers must be exactly `--- CUSTOM CODE START ---` and `--- CUSTOM CODE END ---` (any comment syntax is fine). On regeneration, code between these markers is preserved and injected back into the new output.
 
 ### `_target.hbs`
 
@@ -330,6 +374,54 @@ This checks:
 - `_preset.json` format
 - Required directories exist
 - Template files are present
+
+## Testing Your Preset
+
+### 1. Validate structure
+
+```bash
+npx specshot templates validate --preset my-preset
+```
+
+### 2. Dry-run generate
+
+Create a minimal test spec and run:
+
+```bash
+# Create a minimal OpenAPI spec
+cat > test-spec.json << 'EOF'
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Test API", "version": "1.0.0" },
+  "paths": {
+    "/items": {
+      "get": {
+        "tags": ["items"],
+        "operationId": "listItems",
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  }
+}
+EOF
+
+# Dry-run with your preset
+npx specshot generate --preset my-preset -f test-spec.json --dry-run
+```
+
+### 3. Full generate
+
+```bash
+npx specshot generate --preset my-preset -f test-spec.json -o ./test-output
+```
+
+### 4. Verify output
+
+Check that generated files match your expectations. Clean up test output when done:
+
+```bash
+rm -rf test-output test-spec.json
+```
 
 ## Example: Minimal Preset
 
