@@ -5,7 +5,7 @@ import { loadUserConfig } from "../../core/config-loader";
 import type { TemplateOverrides } from "../../core/config-loader";
 import { getRegistry, getTemplateInfo, generateTypeFile, generateJSDocTypeDef } from "../../core/template-registry";
 import { getAvailablePresets, getPresetInfo, isValidPreset, validatePresetStructure, DEFAULT_PRESET } from "../../core/presets";
-import { getTemplatesBaseDir, getPresetDir as getPresetDirFromPaths } from "../../core/paths";
+import { getTemplatesBaseDir, getPresetDir as getPresetDirFromPaths, getPresetTemplatesDir, getOutputTypes, getTemplateNames, getTemplateBehavior } from "../../core/paths";
 
 function countHbsFiles(dir: string): number {
   let count = 0;
@@ -140,29 +140,32 @@ export async function templatesListCommand(): Promise<void> {
   console.log();
 
   const presetDir = getPresetDirFromPaths(activePreset);
-  const repeatableDir = path.join(presetDir, "repeatable");
-  const oneTimeDir = path.join(presetDir, "one-time");
+  const templatesDir = getPresetTemplatesDir(activePreset);
 
-  // Show one-time (scaffold) templates
-  if (fs.existsSync(oneTimeDir)) {
-    console.log(chalk.gray("  One-time (scaffold — installed once, user-owned):"));
-    const scaffoldDirs = fs.readdirSync(oneTimeDir, { withFileTypes: true })
-      .filter((e) => e.isDirectory())
-      .map((e) => e.name);
-    for (const dir of scaffoldDirs) {
-      const dirPath = path.join(oneTimeDir, dir);
-      const fileCount = countHbsFiles(dirPath);
-      console.log(`    ${chalk.bold(dir.padEnd(22))} ${fileCount} file${fileCount !== 1 ? "s" : ""}`);
+
+  // Show scaffold templates (behavior: scaffold)
+  const allTemplates = getRegistry(activePreset);
+  const scaffoldTpls = allTemplates.filter((tpl) => {
+    const tplDir = path.join(templatesDir, tpl.group, tpl.name);
+    return getTemplateBehavior(tplDir) === "scaffold";
+  });
+  const generatedTpls = allTemplates.filter((tpl) => !scaffoldTpls.includes(tpl));
+
+  if (scaffoldTpls.length > 0) {
+    console.log(chalk.gray("  Scaffold (installed once, user-owned):"));
+    for (const tpl of scaffoldTpls) {
+      const tplDir = path.join(templatesDir, tpl.group, tpl.name);
+      const fileCount = countHbsFiles(tplDir);
+      console.log(`    ${chalk.bold(tpl.name.padEnd(22))} ${chalk.gray(tpl.group)} ${fileCount} file${fileCount !== 1 ? "s" : ""}`);
     }
     console.log();
   }
 
-  // Show repeatable (generated) templates
-  console.log(chalk.gray("  Repeatable (regenerated on every 'generate'):"));
+  // Show generated templates (behavior: generated)
+  console.log(chalk.gray("  Generated (regenerated on every 'generate'):"));
 
-  const allTemplates = getRegistry(activePreset);
   const groupMap = new Map<string, typeof allTemplates>();
-  for (const tpl of allTemplates) {
+  for (const tpl of generatedTpls) {
     const list = groupMap.get(tpl.group) || [];
     list.push(tpl);
     groupMap.set(tpl.group, list);
@@ -175,7 +178,7 @@ export async function templatesListCommand(): Promise<void> {
   for (const group of groups) {
     console.log(chalk.gray(`  ${group.label}:`));
     for (const tpl of group.templates) {
-      const builtInPath = path.join(repeatableDir, tpl.group, tpl.file);
+      const builtInPath = path.join(templatesDir, tpl.group, tpl.name);
       let status = "built-in";
       let resolvedPath = builtInPath;
 
@@ -386,10 +389,9 @@ export async function templatesInstallCommand(packageName: string, nameOverride?
 
   // Validate source has preset structure
   const hasPresetJson = fs.existsSync(path.join(srcDir, "_preset.json"));
-  const hasOneTime = fs.existsSync(path.join(srcDir, "one-time"));
-  const hasRepeatable = fs.existsSync(path.join(srcDir, "repeatable"));
+  const hasTemplates = fs.existsSync(path.join(srcDir, "templates"));
 
-  if (!hasPresetJson && !hasOneTime && !hasRepeatable) {
+  if (!hasPresetJson && !hasTemplates) {
     // Maybe it's nested — look for preset dir inside
     const innerDirs = fs.readdirSync(srcDir, { withFileTypes: true })
       .filter((e) => e.isDirectory())
@@ -397,14 +399,13 @@ export async function templatesInstallCommand(packageName: string, nameOverride?
     const presetInner = innerDirs.find((d) => {
       const innerPath = path.join(srcDir, d);
       return fs.existsSync(path.join(innerPath, "_preset.json")) ||
-        fs.existsSync(path.join(innerPath, "repeatable")) ||
-        fs.existsSync(path.join(innerPath, "one-time"));
+        fs.existsSync(path.join(innerPath, "templates"));
     });
     if (presetInner) {
       srcDir = path.join(srcDir, presetInner);
     } else {
       console.error(chalk.red(`  Source does not look like a specshot preset`));
-      console.log(chalk.gray(`  Expected _preset.json, repeatable/, or one-time/ directory\n`));
+      console.log(chalk.gray(`  Expected _preset.json or templates/ directory\n`));
       cleanupTemp(tempDir);
       return;
     }

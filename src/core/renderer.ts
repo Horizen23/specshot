@@ -1,6 +1,13 @@
 import fs from "fs";
 import path from "path";
-import { compileTemplate } from "../utils/file-writer";
+import Handlebars from "handlebars";
+import { compileTemplate, registerNamingHelpers } from "../utils/file-writer";
+import {
+  parseFrontmatter,
+  stripFrontmatter,
+  evaluateCondition,
+  type TemplateFrontmatter,
+} from "./frontmatter";
 
 function walkHbsFiles(dir: string, rootDir?: string): Array<{ relPath: string; absPath: string }> {
   const root = rootDir ?? dir;
@@ -16,75 +23,27 @@ function walkHbsFiles(dir: string, rootDir?: string): Array<{ relPath: string; a
   return results;
 }
 
-function resolveNearestMeta(
-  fileRelPath: string,
-  templateDir: string,
-  metaFile: string,
+function renderValue(
+  value: string | undefined,
   data: Record<string, unknown>,
-): string | null {
-  const parts = fileRelPath.split(path.sep);
-  for (let i = parts.length; i > 0; i--) {
-    const subParts = parts.slice(0, i - 1);
-    const dir = subParts.length > 0 ? path.join(templateDir, ...subParts) : templateDir;
-    const metaPath = path.join(dir, metaFile);
-    if (fs.existsSync(metaPath)) {
-      const compiled = compileTemplate(metaPath);
-      const rendered = compiled(data).trim();
-      if (rendered) return rendered;
-    }
+): string | undefined {
+  if (!value) return undefined;
+  if (value.includes("{{")) {
+    return Handlebars.compile(value)(data).trim();
   }
-  return null;
+  return value;
 }
 
-function getIterationList(
-  fileRelPath: string,
-  templateDir: string,
-  data: Record<string, unknown>,
-): unknown[] | null {
-  const result = resolveNearestMeta(fileRelPath, templateDir, "_iterate.hbs", data);
-  if (!result) return null;
-  const list = data[result];
-  return Array.isArray(list) ? list : null;
-}
-
-function shouldSkip(
-  fileRelPath: string,
-  templateDir: string,
-  data: Record<string, unknown>,
-): boolean {
-  const result = resolveNearestMeta(fileRelPath, templateDir, "_condition.hbs", data);
-  return result === "skip";
-}
-
-function getFilterList(
-  fileRelPath: string,
-  templateDir: string,
+function renderFilter(
+  filterLines: string[] | undefined,
   data: Record<string, unknown>,
 ): Set<string> | null {
-  const result = resolveNearestMeta(fileRelPath, templateDir, "_filter.hbs", data);
-  if (!result) return null;
-  const lines = result.split("\n").map((l) => l.trim()).filter(Boolean);
-  return new Set(lines);
-}
-
-function resolveTarget(
-  fileRelPath: string,
-  templateDir: string,
-  data: Record<string, unknown>,
-): string | null {
-  const meta = resolveNearestMeta(fileRelPath, templateDir, "_target.hbs", data);
-  if (meta) return meta;
-  const fromData = data["_target"];
-  if (typeof fromData === "string") return fromData;
-  return null;
-}
-
-function resolveName(
-  fileRelPath: string,
-  templateDir: string,
-  data: Record<string, unknown>,
-): string | null {
-  return resolveNearestMeta(fileRelPath, templateDir, "_name.hbs", data);
+  if (!filterLines || filterLines.length === 0) return null;
+  const templateContent = filterLines.join("\n");
+  const compiled = Handlebars.compile(templateContent);
+  const rendered = compiled(data);
+  const lines = rendered.split("\n").map((l) => l.trim()).filter(Boolean);
+  return lines.length > 0 ? new Set(lines) : null;
 }
 
 export interface TemplateRendererOptions {
@@ -94,24 +53,65 @@ export interface TemplateRendererOptions {
   skipIfExists?: boolean;
   enhanceData?: (info: { relPath: string; templateName: string; outputPath: string }) => Record<string, unknown>;
   defaultTarget?: string;
+  behavior?: "scaffold" | "generated";
 }
 
 export function renderTemplates(options: TemplateRendererOptions): string[] {
-  const { templateDir, data, silent } = options;
+  registerNamingHelpers();
+  const { templateDir, data, silent, behavior } = options;
   const hbsFiles = walkHbsFiles(templateDir);
-  const generated: string[] = []
+  const generated: string[] = [];
 
   for (const { relPath, absPath } of hbsFiles) {
     const basename = path.basename(relPath);
     if (basename.startsWith("_")) continue;
 
-    if (shouldSkip(relPath, templateDir, data)) continue;
+    const rawContent = fs.readFileSync(absPath, "utf8");
+    const meta = parseFrontmatter(rawContent) || {};
+    
+    const dir = path.dirname(absPath);
+    if (meta.behavior === undefined) {
+      const p = path.join(dir, "_behavior.hbs");
+      if (fs.existsSync(p)) meta.behavior = fs.readFileSync(p, "utf8").trim() as any;
+    }
+    if (meta.target === undefined) {
+      const p = path.join(dir, "_target.hbs");
+      if (fs.existsSync(p)) meta.target = fs.readFileSync(p, "utf8").trim();
+    }
+    if (meta.name === undefined) {
+      const p = path.join(dir, "_name.hbs");
+      if (fs.existsSync(p)) meta.name = fs.readFileSync(p, "utf8").trim();
+    }
+    if (meta.iterate === undefined) {
+      const p = path.join(dir, "_iterate.hbs");
+      if (fs.existsSync(p)) meta.iterate = fs.readFileSync(p, "utf8").trim();
+    }
+    if (meta.condition === undefined) {
+      const p = path.join(dir, "_condition.hbs");
+      if (fs.existsSync(p)) meta.condition = fs.readFileSync(p, "utf8").trim();
+    }
+    if (meta.filter === undefined) {
+      const p = path.join(dir, "_filter.hbs");
+      if (fs.existsSync(p)) {
+        meta.filter = fs.readFileSync(p, "utf8").split("\n").map((l) => l.trim()).filter(Boolean);
+      }
+    }
 
-    const filterList = getFilterList(relPath, templateDir, data);
+    if (meta.behavior && behavior && meta.behavior !== behavior) continue;
+
+    if (meta.condition) {
+      const renderedCondition = renderValue(meta.condition, data);
+      if (renderedCondition === "skip") continue;
+      if (renderedCondition && !evaluateCondition(renderedCondition, data)) continue;
+    }
+
+    const filterList = renderFilter(meta.filter, data);
     if (filterList !== null && !filterList.has(basename)) continue;
 
     const templateName = basename.replace(/\.hbs$/, "");
-    const iterationList = getIterationList(relPath, templateDir, data);
+
+    const iterateKey = meta?.iterate;
+    const iterationList = iterateKey ? (data[iterateKey] as unknown[]) : null;
     const items = iterationList ?? [null];
 
     for (let idx = 0; idx < items.length; idx++) {
@@ -124,19 +124,22 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
         itemIndex: idx,
       };
 
-      let target = resolveTarget(relPath, templateDir, itemCtx);
+      let target = renderValue(meta?.target, itemCtx);
       if (!target) {
-        if (options.defaultTarget) {
+        const fromData = itemCtx["_target"];
+        if (typeof fromData === "string") {
+          target = fromData;
+        } else if (options.defaultTarget) {
           target = options.defaultTarget;
         } else {
-          if (!silent) console.warn(`  Skipping ${relPath}: no _target.hbs found`);
+          if (!silent) console.warn(`  Skipping ${relPath}: no target in frontmatter`);
           continue;
         }
       }
 
-      const namePattern = resolveName(relPath, templateDir, itemCtx);
+      const namePattern = renderValue(meta?.name, itemCtx);
       const outputFileName = namePattern || `${templateName}.ts`;
-      const outputFullPath = path.resolve(process.cwd(), target!, outputFileName);
+      const outputFullPath = path.resolve(process.cwd(), target, outputFileName);
 
       if (options.skipIfExists && fs.existsSync(outputFullPath)) continue;
 
@@ -149,7 +152,8 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
         if (extra) Object.assign(itemCtx, extra);
       }
 
-      const compiled = compileTemplate(absPath);
+      const stripped = stripFrontmatter(rawContent);
+      const compiled = Handlebars.compile(stripped);
       const content = compiled(itemCtx);
       if (!content.trim()) continue;
 

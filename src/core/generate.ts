@@ -23,7 +23,7 @@ import { loadSpec } from "./spec-loader";
 import { loadUserConfig } from "./config-loader";
 import type { TemplateOverrides } from "./config-loader";
 import { getRegistry } from "./template-registry";
-import { getGeneratorDir, getMswDir, assertPresetHasGenerator } from "./paths";
+import { getOutputTypeDir, assertPresetHasTemplates } from "./paths";
 import { DEFAULT_PRESET } from "./presets";
 import { formatGeneratedFiles } from "../utils/formatter";
 import { renderTemplates } from "./renderer";
@@ -60,8 +60,8 @@ export async function generateApi(
   const { sharedSchemas, tagSchemas } = resolveSchemaOwnership(spec);
 
   const preset = opts?.preset || userConfig.preset || DEFAULT_PRESET;
-  assertPresetHasGenerator(preset);
-  const defaultTemplatesDir = getGeneratorDir(preset);
+  assertPresetHasTemplates(preset);
+  const defaultTemplatesDir = getOutputTypeDir(preset, "api");
 
   const tplConfig: TemplateOverrides =
     typeof templatesOverride === "string"
@@ -86,7 +86,7 @@ export async function generateApi(
       }
     }
     if (opts?.msw) {
-      const mswTplDir = getMswDir(preset);
+      const mswTplDir = getOutputTypeDir(preset, "mocks");
       const mswOverrideDir = overrideDir ? path.join(overrideDir, "msw") : undefined;
       const checkDir = mswOverrideDir || mswTplDir;
       if (fs.existsSync(checkDir)) {
@@ -293,6 +293,8 @@ export async function generateApi(
     tags: tagsData,
     sharedSchemas: sharedModelsData,
     outputDir: path.relative(process.cwd(), outputDir),
+    outDir: path.relative(process.cwd(), path.dirname(outputDir)),
+    coreOut: path.relative(process.cwd(), coreAbs),
     importAlias,
     schemas: sharedModelsData,
   };
@@ -308,6 +310,7 @@ export async function generateApi(
     templateDir: renderDir,
     data: renderData,
     defaultTarget: path.relative(process.cwd(), outputDir),
+    behavior: "generated",
     enhanceData: ({ outputPath }) => {
       if (!outputPath) return {};
       const fileDir = path.dirname(outputPath);
@@ -325,7 +328,7 @@ export async function generateApi(
   // -- MSW handler generation --
   if (opts?.msw) {
     const mswDir = path.join(path.dirname(outputDir), "msw", "handlers");
-    const defaultMswTemplatesDir = getMswDir(preset);
+    const defaultMswTemplatesDir = getOutputTypeDir(preset, "mocks");
 
     generateMswHandlers(spec, services, schemas, mswDir, defaultMswTemplatesDir, {
       mswEndpointFilter: opts.mswEndpointFilter,

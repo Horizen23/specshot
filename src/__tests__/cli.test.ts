@@ -558,7 +558,7 @@ describe("CLI", () => {
     it("should have react-query hooks template", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/templates/api/integrations/react-query/hooks.hbs",
       );
       expect(fs.existsSync(tplPath)).toBe(true);
     });
@@ -566,7 +566,7 @@ describe("CLI", () => {
     it("should compile react-query hooks template to valid TypeScript", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/templates/api/integrations/react-query/hooks.hbs",
       );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
@@ -606,7 +606,7 @@ describe("CLI", () => {
     it("should generate queryKey and invalidate helpers on hook methods", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/templates/api/integrations/react-query/hooks.hbs",
       );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
@@ -622,7 +622,7 @@ describe("CLI", () => {
     it("should exclude abort/getSignal/withSignal from proxy mapping (same as SWR)", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/templates/api/integrations/react-query/hooks.hbs",
       );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);

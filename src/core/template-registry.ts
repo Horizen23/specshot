@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getPresetDir } from "./paths";
+import { getPresetDir, getPresetTemplatesDir, getOutputTypes, getTemplateNames, getTemplateBehavior } from "./paths";
 import { toCamelCase } from "../utils/naming-utils";
 import { DEFAULT_PRESET } from "./presets";
 
@@ -35,31 +35,25 @@ interface TemplateDataProp {
 
 function loadPresetTemplates(preset: string): TemplateInfo[] {
   const templates: TemplateInfo[] = [];
-  const presetDir = getPresetDir(preset);
-  if (!fs.existsSync(presetDir)) return templates;
+  const templatesDir = getPresetTemplatesDir(preset);
+  if (!fs.existsSync(templatesDir)) return templates;
 
-  const repeatableDir = path.join(presetDir, "repeatable");
-  if (!fs.existsSync(repeatableDir)) return templates;
+  for (const outputType of getOutputTypes(preset)) {
+    for (const templateName of getTemplateNames(preset, outputType)) {
+      const templateDir = path.join(templatesDir, outputType, templateName);
+      const behavior = getTemplateBehavior(templateDir);
 
-  for (const group of fs.readdirSync(repeatableDir)) {
-    const groupDir = path.join(repeatableDir, group);
-    if (!fs.statSync(groupDir).isDirectory()) continue;
-
-    for (const entry of fs.readdirSync(groupDir)) {
-      const tplDir = path.join(groupDir, entry);
-      if (!fs.statSync(tplDir).isDirectory()) continue;
-
-      const files = fs.readdirSync(tplDir);
+      const files = fs.readdirSync(templateDir);
       const mainFile = files.find((f) => f.endsWith(".hbs") && !f.startsWith("_"));
       if (!mainFile) continue;
 
       templates.push({
-        name: entry,
-        group,
-        file: path.join(entry, mainFile),
-        description: entry,
+        name: templateName,
+        group: outputType,
+        file: path.join(outputType, templateName, mainFile),
+        description: templateName,
         variables: [],
-        configKey: toCamelCase(entry),
+        configKey: toCamelCase(templateName),
       });
     }
   }
@@ -118,8 +112,7 @@ export function readAllSchemas(preset = DEFAULT_PRESET): TemplateDataSchema[] {
     }
   }
 
-  scanDir(path.join(presetDir, "repeatable"));
-  scanDir(path.join(presetDir, "one-time"));
+  scanDir(getPresetTemplatesDir(preset));
 
   return schemas;
 }

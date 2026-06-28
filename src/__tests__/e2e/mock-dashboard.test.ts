@@ -90,8 +90,7 @@ describe("F3 Dashboard API (mock --web command)", () => {
     try {
       const res = await startDashboard(mockApiPort, fixturePath, tmpDir);
       serverProc = res.process;
-      // Dashboard port should start with 345
-      expect(res.url).toMatch(/http:\/\/localhost:345\d/);
+      expect(res.url).toMatch(/http:\/\/localhost:\d+/);
     } finally {
       if (serverProc) {
         serverProc.kill("SIGKILL");

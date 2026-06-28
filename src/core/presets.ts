@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { getTemplatesBaseDir, getPresetDir } from "./paths";
+import { parseFrontmatter } from "./frontmatter";
 
 export interface PresetInfo {
   name: string;
@@ -97,10 +98,9 @@ function loadPresetManifest(name: string, dir: string, sourceOverride?: "built-i
       console.warn(`  [SpecShot] Failed to parse ${manifestPath}: ${err}`);
     }
   }
-  // If no manifest, still consider it a valid preset if it has one-time/ or repeatable/
-  const hasOneTime = fs.existsSync(path.join(dir, "one-time"));
-  const hasRepeatable = fs.existsSync(path.join(dir, "repeatable"));
-  if (hasOneTime || hasRepeatable) {
+  // If no manifest, still consider it a valid preset if it has templates/
+  const hasTemplates = fs.existsSync(path.join(dir, "templates"));
+  if (hasTemplates) {
     const source = sourceOverride
       || (builtInNames.has(name) ? "built-in" : "community");
     return { name, description: name, features: [], deps: [], source };
@@ -117,10 +117,9 @@ export function validatePresetStructure(preset: string): string[] {
     return errors;
   }
 
-  const hasOneTime = fs.existsSync(path.join(presetDir, "one-time"));
-  const hasRepeatable = fs.existsSync(path.join(presetDir, "repeatable"));
-  if (!hasOneTime && !hasRepeatable) {
-    errors.push(`Preset "${preset}" must have at least one of: one-time/, repeatable/`);
+  const hasTemplates = fs.existsSync(path.join(presetDir, "templates"));
+  if (!hasTemplates) {
+    errors.push(`Preset "${preset}" must have a templates/ directory`);
   }
 
   const manifestPath = path.join(presetDir, "_preset.json");
@@ -141,30 +140,50 @@ export function validatePresetStructure(preset: string): string[] {
     errors.push(`_preset.json: not found (recommended for community presets)`);
   }
 
-  if (hasRepeatable) {
-    const repeatableDir = path.join(presetDir, "repeatable");
-    const groups = fs.readdirSync(repeatableDir).filter((e) => {
-      const stat = fs.statSync(path.join(repeatableDir, e));
+  if (hasTemplates) {
+    const templatesDir = path.join(presetDir, "templates");
+    const outputTypes = fs.readdirSync(templatesDir).filter((e) => {
+      const stat = fs.statSync(path.join(templatesDir, e));
       return stat.isDirectory();
     });
-    if (groups.length === 0) {
-      errors.push(`repeatable/: has no group directories (e.g. generator/, msw/)`);
+    if (outputTypes.length === 0) {
+      errors.push(`templates/: has no output type directories (e.g. api/, mocks/)`);
     }
-    for (const group of groups) {
-      const groupDir = path.join(repeatableDir, group);
-      const entries = fs.readdirSync(groupDir).filter((e) => {
-        const stat = fs.statSync(path.join(groupDir, e));
+    for (const outputType of outputTypes) {
+      const outputTypeDir = path.join(templatesDir, outputType);
+      const entries = fs.readdirSync(outputTypeDir).filter((e) => {
+        const stat = fs.statSync(path.join(outputTypeDir, e));
         return stat.isDirectory();
       });
       if (entries.length === 0) {
-        errors.push(`repeatable/${group}/: has no template directories`);
+        errors.push(`templates/${outputType}/: has no template directories`);
       }
       for (const entry of entries) {
-        const tplDir = path.join(groupDir, entry);
+        const tplDir = path.join(outputTypeDir, entry);
         const files = fs.readdirSync(tplDir);
-        const hasHbs = files.some((f) => f.endsWith(".hbs") && !f.startsWith("_"));
-        if (!hasHbs) {
-          errors.push(`repeatable/${group}/${entry}/: has no .hbs template files`);
+
+        const hasAnyHbs = files.some((f) => f.endsWith(".hbs"));
+        if (!hasAnyHbs) continue;
+
+        const mainFile = files.find((f) => f.endsWith(".hbs") && !f.startsWith("_"));
+        if (!mainFile) {
+          errors.push(`templates/${outputType}/${entry}/: has no .hbs template files`);
+        } else {
+          const hasBehavior = files.includes("_behavior.hbs");
+          if (hasBehavior) {
+            const behaviorContent = fs.readFileSync(path.join(tplDir, "_behavior.hbs"), "utf8").trim();
+            if (behaviorContent !== "scaffold" && behaviorContent !== "generated") {
+              errors.push(`templates/${outputType}/${entry}/_behavior.hbs: must contain 'scaffold' or 'generated' (got '${behaviorContent}')`);
+            }
+          } else {
+            const content = fs.readFileSync(path.join(tplDir, mainFile), "utf8");
+            const meta = parseFrontmatter(content);
+            if (!meta?.behavior) {
+              errors.push(`templates/${outputType}/${entry}/${mainFile}: missing frontmatter 'behavior' (must be 'scaffold' or 'generated')`);
+            } else if (meta.behavior !== "scaffold" && meta.behavior !== "generated") {
+              errors.push(`templates/${outputType}/${entry}/${mainFile}: frontmatter 'behavior' must be 'scaffold' or 'generated' (got '${meta.behavior}')`);
+            }
+          }
         }
       }
     }

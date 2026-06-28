@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { renderTemplates } from "./renderer";
 import type { TemplateOverrides } from "./config-loader";
-import { getOneTimeDir, hasOneTimeDir } from "./paths";
+import { getPresetTemplatesDir, getTemplateBehavior, getOutputTypes, getTemplateNames } from "./paths";
 import { readSchemaDefaults } from "./template-registry";
 
 export interface InstallOptions {
@@ -11,9 +11,25 @@ export interface InstallOptions {
   data?: Record<string, unknown>;
 }
 
+function getScaffoldDirs(preset: string): string[] {
+  const dirs: string[] = [];
+  const templatesDir = getPresetTemplatesDir(preset);
+  if (!fs.existsSync(templatesDir)) return dirs;
+
+  for (const outputType of getOutputTypes(preset)) {
+    for (const templateName of getTemplateNames(preset, outputType)) {
+      const templateDir = path.join(templatesDir, outputType, templateName);
+      if (getTemplateBehavior(templateDir) === "scaffold") {
+        dirs.push(templateDir);
+      }
+    }
+  }
+  return dirs;
+}
+
 export function installScaffold(options: InstallOptions): boolean {
-  if (!hasOneTimeDir(options.preset)) return false;
-  const oneTimeDir = getOneTimeDir(options.preset);
+  const scaffoldDirs = getScaffoldDirs(options.preset);
+  if (scaffoldDirs.length === 0) return false;
 
   let serverUrl = "";
   if (options.openapiUrl) {
@@ -30,15 +46,21 @@ export function installScaffold(options: InstallOptions): boolean {
     serverUrl,
   };
 
-  const generated = renderTemplates({
-    templateDir: oneTimeDir,
-    data,
-    skipIfExists: true,
-  });
-  if (generated.length > 0) {
-    console.log(`  one-time: ${generated.length} files installed`);
+  let totalGenerated = 0;
+  for (const scaffoldDir of scaffoldDirs) {
+    const generated = renderTemplates({
+      templateDir: scaffoldDir,
+      data,
+      skipIfExists: true,
+      behavior: "scaffold",
+    });
+    totalGenerated += generated.length;
   }
-  return generated.length > 0;
+
+  if (totalGenerated > 0) {
+    console.log(`  scaffold: ${totalGenerated} files installed`);
+  }
+  return totalGenerated > 0;
 }
 
 export function hasCustomTemplateConfig(
@@ -60,7 +82,8 @@ export function scaffoldInfrastructure(params: {
 }): boolean {
   const { preset, apiConfig, apiName, templateData } = params;
 
-  if (!hasOneTimeDir(preset)) return false;
+  const scaffoldDirs = getScaffoldDirs(preset);
+  if (scaffoldDirs.length === 0) return false;
 
   const outDir = (apiConfig.templateData?.outDir as string)
     || (templateData?.outDir as string)

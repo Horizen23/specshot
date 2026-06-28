@@ -1,0 +1,21 @@
+{{!-- ---
+behavior: scaffold
+target: {{outDir}}/interceptors
+filter:
+  - {{#each pluginNames}}{{this}}.hbs
+  - {{#ifEq this "bearer"}}bearer-auth-manager.hbs
+  - {{/ifEq}}{{/each}}
+--- --}}
+import type { ApiClientWithPlugins } from "../client";
+
+export function installLogger(client: ApiClientWithPlugins) {
+  client.interceptors.request.use(async (config, url) => {
+    console.log(`→ ${config.method?.toUpperCase() ?? "GET"} ${url}`);
+    return config;
+  });
+
+  client.interceptors.response.use(async (response, url) => {
+    console.log(`← ${response.status} ${url}`);
+    return response;
+  });
+}
