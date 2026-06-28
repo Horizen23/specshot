@@ -73,21 +73,15 @@ npx specshot init
 
 ```bash
 npx specshot init \
-  --core-dir src/lib/api/core \
-  --provider-dir src/lib/api/petstore \
-  --integration react-query \
-  --interceptors bearer,logger \
+  --preset class \
   --url http://localhost:8080/openapi.json
 ```
 
-| Flag                        | Description                                           |
-| --------------------------- | ----------------------------------------------------- |
-| `--core-dir <dir>`          | Directory to install the API Core                     |
-| `--provider-dir <dir>`      | Directory to install the API Provider skeleton        |
-| `--integration <type>`      | `swr`, `react-query`, or `none`                       |
-| `--interceptors, -i <list>` | Comma-separated list (e.g. `bearer,logger`) or `none` |
-| `--templates, -t <dir>`     | Custom Handlebars templates directory (partial override) |
-| `--url, -u <url>`           | OpenAPI JSON URL to save in config for later generation |
+| Flag                    | Description                                                          |
+| ----------------------- | -------------------------------------------------------------------- |
+| `--preset <name>`       | Preset: `class`, `functional`, `zod-functional`, or community/custom |
+| `--templates, -t <dir>` | Custom Handlebars templates directory                                |
+| `--url, -u <url>`       | OpenAPI JSON URL to save in config for later generation              |
 
 ### 2. `generate` (Run repeatedly on API updates)
 
@@ -130,50 +124,41 @@ Or, if you want to override the source:
 npx specshot generate --url http://localhost:8080/openapi.json
 ```
 
-**Auto-install:** When using built-in templates, `generate` automatically installs the API Core (`ApiClient`, `BaseService`, types) and Provider skeleton (`client.ts`, interceptors, hooks) if they don't already exist. When using custom templates, infrastructure installation is skipped.
+**Auto-install:** When using built-in templates, `generate` automatically installs the API Core (`ApiClient`, `BaseService`, types) and Provider skeleton (`client.ts`, plugins, hooks) if they don't already exist. When using custom templates, infrastructure installation is skipped.
 
 ### `generate` options
 
-| Flag                                    | Description                                    |
-| --------------------------------------- | ---------------------------------------------- |
-| `--url, -u <url>`                       | Remote OpenAPI spec URL                        |
-| `--file, -f <path>`                     | Local OpenAPI JSON file                        |
-| `--output, -o <dir>`                    | Output directory                               |
-| `--alias, -a <alias>`                   | Import alias (e.g. `@/lib/api`)                |
-| `--config, -c <path>`                   | Custom config file path                        |
-| `--templates, -t <dir>`                 | Custom Handlebars templates (partial override) |
-| `--template-models <path>`              | Override only models.hbs                       |
-| `--template-types <path>`               | Override only types.hbs                        |
-| `--template-service <path>`             | Override only service.hbs                      |
-| `--template-index <path>`               | Override only index.hbs                        |
-| `--template-interceptors-index <path>`  | Override only interceptors-index.hbs           |
-| `--template-msw-handlers <path>`        | Override only MSW handlers.hbs                 |
-| `--template-msw-index <path>`           | Override only MSW index.hbs                    |
-| `--template-msw-browser <path>`         | Override only MSW browser.hbs                  |
+| Flag                                    | Description                                              |
+| --------------------------------------- | -------------------------------------------------------- |
+| `--url, -u <url>`                       | Remote OpenAPI spec URL                                  |
+| `--file, -f <path>`                     | Local OpenAPI JSON file                                  |
+| `--output, -o <dir>`                    | Output directory                                         |
+| `--alias, -a <alias>`                   | Import alias (e.g. `@/lib/api`)                          |
+| `--config, -c <path>`                   | Custom config file path                                  |
+| `--templates, -t <dir>`                 | Custom Handlebars templates (partial override)           |
 | `--preset <name>`                       | Built-in preset: `class`, `functional`, `zod-functional` |
-| `--interceptors, -i <dir>`              | Custom interceptors directory (Auto-discovery) |
-| `--dry-run`                             | Preview without writing files                  |
-| `--msw`                                 | Generate MSW mock handlers                     |
+| `-w, --watch`                           | Watch for changes and auto-regenerate                    |
+| `--dry-run`                             | Preview without writing files                            |
+| `--msw`                                 | Generate MSW mock handlers                               |
 
 ### 3. `templates` (Manage Handlebars templates)
 
-Three subcommands for template management:
+Subcommands for template management:
 
 #### `templates eject`
 
-Copies the built-in Handlebars templates to a local directory so you can customize them. Only the templates you edit will override the built-ins — missing files automatically fall back to defaults.
+Copies a built-in or community preset to your project as a custom preset so you can customize it. Only the templates you edit will override the built-ins — missing files automatically fall back to defaults.
 
 ```bash
-npx specshot templates eject --output ./my-templates
-npx specshot templates eject --preset functional --output ./my-templates
+npx specshot templates eject class
+npx specshot templates eject functional --output ./my-templates
 ```
 
 | Flag                   | Description                                  |
 | ---------------------- | -------------------------------------------- |
-| `--output, -o <dir>`   | Output directory (default: `./templates`)    |
+| `--output, -o <dir>`   | Output directory (default: `.specshot/templates/presets/`) |
 | `--generator-only`     | Eject only generator templates               |
 | `--msw-only`           | Eject only MSW templates                     |
-| `--preset <name>`      | Preset to eject: `class`, `functional`, `zod-functional` |
 
 #### `templates list`
 
@@ -192,6 +177,30 @@ npx specshot templates context service
 npx specshot templates context models
 ```
 
+#### `templates install <package>`
+
+Install a community preset from npm or GitHub:
+
+```bash
+npx specshot templates install github:user/my-preset
+```
+
+#### `templates uninstall <preset>`
+
+Remove an installed community preset:
+
+```bash
+npx specshot templates uninstall my-preset
+```
+
+#### `templates validate`
+
+Validate preset structure and `_preset.json` for community templates:
+
+```bash
+npx specshot templates validate
+```
+
 Then generate with your custom templates:
 
 ```bash
@@ -206,7 +215,7 @@ my-templates/
   types.hbs               # Generator: per-tag request/response types
   service.hbs             # Generator: per-tag service class
   index.hbs               # Generator: provider index + createApi factory
-  interceptors-index.hbs  # Generator: interceptor auto-wiring
+  plugins-index.hbs       # Generator: plugin auto-wiring
   msw/
     handlers.hbs          # MSW: per-tag http.<method>() handlers
     index.hbs             # MSW: handler barrel export
@@ -239,7 +248,7 @@ Templates use standard [Handlebars](https://handlebarsjs.com/) syntax. Key varia
 | `models.hbs`     | `schemas` (shared), `version`, `customCode`                                 |
 | `types.hbs`      | `tag`, `imports`, `specificSchemas`, `operations`, `customCode`             |
 | `service.hbs`    | `className`, `tagPrefix`, `exportsToReExport`, `operations`, `corePath`, `customCode` |
-| `index.hbs`      | `services`, `corePath`, `interceptorsPath`, `customCode`                    |
+| `index.hbs`      | `services`, `corePath`, `pluginsPath`, `customCode`                      |
 | `handlers.hbs`   | `tag`, `tagLowerCase`, `handlers`, `typeImports`, `usesFaker`, `typesImportPath` |
 
 Each generated file preserves a `// --- CUSTOM CODE START ---` / `// --- CUSTOM CODE END ---` block so your hand-written code survives regeneration.
@@ -269,7 +278,6 @@ export default {
   apis: {
     petstore: {
       openapiUrl: "./openapi.json",
-      providerDir: "src/lib/api/petstore",
       fileNaming: {
         models: "schemas",                          // → schemas.ts
         service: "{{pascalCase tag}}Service",       // → PetsService.ts
@@ -310,11 +318,20 @@ SpecShot provides autocompletion for both config files and templates:
 **Config files (`specshot.config.mjs`):**
 
 ```javascript
-/** @type {import('specshot').SpecshotConfig} */
+/**
+ * @typedef {Object} TemplateData
+ * @property {"react-query" | "swr" | "none"} [hook] - Hooks framework
+ * @property {("bearer" | "logger")[]} [pluginNames] - Interceptor plugins
+ */
+/** @type {import('specshot').SpecshotConfig<TemplateData>} */
 export default {
   // Autocompletion works in VS Code with the TypeScript language server
   preset: "functional",
   apis: { /* ... */ },
+  templateData: {
+    hook: "none",
+    pluginNames: [],
+  },
 };
 ```
 
@@ -329,7 +346,6 @@ For JSON config files (`specshot.config.json`), add a `$schema` reference:
 
 **Template files (`.hbs`):**
 
-- Template context types are available in [`templates/types.d.ts`](templates/types.d.ts)
 - Run `specshot templates context <name>` to see available variables in the CLI
 - See [`docs/template-variables.md`](docs/template-variables.md) for the full reference
 
@@ -363,12 +379,25 @@ _(Mock configurations and overrides are automatically saved to `.specshot/mocks.
 ### `specshot.config.mjs`
 
 ```javascript
-/** @type {import('specshot').SpecshotConfig} */
+/**
+ * @typedef {Object} TemplateData
+ * @property {"react-query" | "swr" | "none"} [hook] - Hooks framework
+ * @property {("bearer" | "logger")[]} [pluginNames] - Interceptor plugins
+ */
+/**
+ * @typedef {Object} Overrides
+ * @property {string} [dir]
+ * @property {string} [browser]
+ * @property {string} [core]
+ * @property {string} [handlerPerTag]
+ * @property {string} [index]
+ * @property {string} [plugins]
+ * @property {string} [provider]
+ * @property {string} [servicePerTag]
+ * @property {string} [typesPerTag]
+ */
+/** @type {import('specshot').SpecshotConfig<TemplateData, Overrides>} */
 export default {
-  // Global defaults
-  coreDir: "src/lib/api/core",
-  integration: "swr", // swr, react-query, or none
-  interceptors: ["bearer", "logger"],
   preset: "class", // class, functional, or zod-functional
   templates: "src/lib/api/templates", // string (dir) or object (per-file)
 
@@ -381,32 +410,21 @@ export default {
     },
   ],
 
+  // Template data passed to all templates
+  templateData: {
+    hook: "swr",                         // swr, react-query, or none
+    pluginNames: ["bearer", "logger"],   // interceptor plugins to generate
+  },
+
   // Define your APIs
   apis: {
     petstore: {
-      providerDir: "src/lib/api/petstore",
       // openapiUrl supports:
       // 1. Backend URL (e.g., "http://localhost:8080/openapi.json")
       // 2. Local File (e.g., "./openapi.json")
       openapiUrl: "http://localhost:8080/openapi.json",
-
-      // Optional: custom output paths (WHERE files go)
-      // outputPaths: {
-      //   models: "src/models",
-      //   services: "src/services",
-      //   types: "src/types",
-      //   index: "src/api",
-      // },
-
-      // Optional: custom file naming (WHAT files are named)
-      // fileNaming: {
-      //   models: "schemas",
-      //   service: "{{pascalCase tag}}Service",
-      //   types: "{{pascalCase tag}}Types",
-      // },
     },
     payment: {
-      providerDir: "src/lib/api/payment",
       openapiUrl: "http://api.staging.com/payment/openapi.json",
     },
   },
@@ -421,14 +439,9 @@ export default {
 | ------------------------------------------------------ | -------------------------------------------------- |
 | [`examples/local-file`](examples/local-file)           | Generate from a `openapi.json` on disk             |
 | [`examples/remote-url`](examples/remote-url)           | Fetch from a running backend + mock server         |
-| [`examples/react-query`](examples/react-query)         | Integration with `@tanstack/react-query`           |
-| [`examples/swr`](examples/swr)                         | Integration with `swr` for data fetching           |
 | [`examples/real-or-fake`](examples/real-or-fake)       | Full-stack usage with the mock server              |
-| [`examples/websocket`](examples/websocket)             | WebSocket mock server with live event push         |
-| [`examples/custom-templates`](examples/custom-templates) | Custom Handlebars templates (functional fetch, no Zod) |
-| [`examples/custom-output-paths`](examples/custom-output-paths) | Custom output paths + custom templates + no Zod |
 | [`examples/design-patterns`](examples/design-patterns) | Singleton, Factory, Observer, Builder service patterns |
-| [`examples/naming-helpers`](examples/naming-helpers)   | Naming helpers + file naming configuration POC     |
+| [`examples/react-query`](examples/react-query)         | Integration with `@tanstack/react-query`           |
 
 ---
 

@@ -12,7 +12,7 @@ Demonstrates SpecShot generated API client with **TanStack Query (React Query)**
 
 ## How it was generated
 
-Install dependencies and run the initialization script to generate the API core and provider code based on `specshot.config.mjs`:
+Install dependencies and run the initialization script to generate the API services based on `specshot.config.mjs`:
 
 ```bash
 npm install
@@ -36,12 +36,18 @@ npm run specshot:mock
 This project is configured using `specshot.config.mjs`:
 
 ```javascript
+/** @type {import('specshot').SpecshotConfig<TemplateData, Overrides>} */
 export default {
-  coreDir: "src/lib/api/core",
-  providerDir: "src/lib/api/petstore",
-
-  integration: "react-query",
-  interceptors: ["bearer", "logger"],
+  preset: "class",
+  apis: {
+    petstore: {
+      openapiUrl: "./openapi.json",
+    },
+  },
+  templateData: {
+    hook: "react-query",
+    pluginNames: ["bearer", "logger"],
+  },
 };
 ```
 
@@ -137,12 +143,11 @@ src/
             ├── hooks.ts             # React Query proxy hooks
             ├── index.ts
             ├── types.ts
-            ├── interceptors/
+            ├── plugins/
             │   ├── bearer.ts
             │   ├── bearer-auth-manager.ts
             │   └── index.ts
             └── services/
-                ├── models.ts
                 ├── pets.service.ts
                 ├── pets.types.ts
                 ├── store.service.ts

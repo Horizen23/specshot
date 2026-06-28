@@ -22,13 +22,13 @@ npm install
 
 ```
 src/
-  cli.ts          CLI entry point (commander)
-  generate.ts     Code generation engine
-  __tests__/
-    cli.test.ts   CLI tests
-    generate.test.ts   Generation tests
-    fixtures/     Test fixtures (OpenAPI specs)
-templates/        Handlebars templates for code generation
+  cli/            CLI command handlers
+  core/           Core engine & config loading
+  lib/            Template rendering & generation logic
+  types/          TypeScript type definitions
+  utils/          Helper utilities
+  __tests__/      Tests & fixtures
+templates/        Built-in template presets (class, functional, zod-functional)
 ```
 
 ## Before Submitting a PR

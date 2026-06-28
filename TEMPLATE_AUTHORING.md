@@ -10,7 +10,7 @@ SpecShot supports 3 types of presets. Run `specshot templates list` to see all a
 |------|-----|-------------|----------|
 | **Built-in** | `[built-in]` | Ships with specshot | Inside the specshot package |
 | **Community** | `[community]` | Installed from npm or GitHub | Installed into the specshot package dir |
-| **Custom** | `[custom]` | Created by you in your project | `<project>/templates/presets/` |
+| **Custom** | `[custom]` | Created by you in your project | `.specshot/templates/presets/` |
 
 ### Built-in
 
@@ -37,17 +37,17 @@ Create your own preset from scratch, or eject an existing preset to customize:
 
 ```bash
 # Eject a built-in/community preset into your project
-specshot templates eject functional    # copies to templates/presets/functional/
+specshot templates eject functional    # copies to .specshot/templates/presets/functional/
 specshot templates eject zod-functional
 specshot templates eject my-community-preset
 ```
 
-After ejecting, edit any `.hbs` file in `templates/presets/<name>/`. The preset will appear as `[custom]` in `specshot templates list` automatically.
+After ejecting, edit any `.hbs` file in `.specshot/templates/presets/<name>/`. The preset will appear as `[custom]` in `specshot templates list` automatically.
 
 Or create from scratch:
 
 ```
-<your-project>/templates/presets/my-custom/
+<your-project>/.specshot/templates/presets/my-custom/
 ├── _preset.json
 └── repeatable/
     └── generator/
@@ -59,7 +59,7 @@ Custom presets appear in `specshot templates list` with the `[custom]` tag and a
 ## Quick Start
 
 ```
-templates/presets/my-preset/
+.specshot/templates/presets/my-preset/
 ├── _preset.json                    # Preset manifest (required for marketplace)
 ├── one-time/                       # Scaffold templates (installed once)
 │   ├── core/                       #   Core files (api-client, base-service, etc.)
@@ -322,7 +322,7 @@ Place this file anywhere in your preset tree. The `init` command will auto-disco
 | `includes` | Array/string contains | `{{#if (includes imports 'Pet')}}...{{/if}}` |
 | `concat` | Concatenate strings | `{{concat a b}}` |
 | `hasFile` | File exists check | `{{#if (hasFile 'bearer.ts')}}...{{/if}}` |
-| `scanPlugins` | Scan interceptors dir | `{{#each (scanPlugins)}}...{{/each}}` |
+| `scanPlugins` | Scan plugins dir | `{{#each (scanPlugins)}}...{{/each}}` |
 | `relPath` | Relative path | `{{relPath from to}}` |
 
 ## Sharing Your Preset
@@ -360,7 +360,7 @@ npx specshot templates install specshot-preset-my-thing
 
 ### Option 3: Direct copy
 
-Copy the preset directory into `templates/presets/my-preset/` in your project.
+Copy the preset directory into `.specshot/templates/presets/my-preset/` in your project.
 
 ## Validation
 
@@ -426,7 +426,7 @@ rm -rf test-output test-spec.json
 ## Example: Minimal Preset
 
 ```
-templates/presets/minimal/
+.specshot/templates/presets/minimal/
 ├── _preset.json
 └── repeatable/
     └── generator/

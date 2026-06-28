@@ -4,7 +4,7 @@ Quick demo of SpecShot code generation using a local `openapi.json` file along w
 
 ## Setup
 
-Install dependencies and run the initialization script to generate the API core and provider code based on `specshot.config.mjs`:
+Install dependencies and run the initialization script to generate the API services based on `specshot.config.mjs`:
 
 ```bash
 npm install
@@ -28,15 +28,17 @@ npm run specshot:mock
 This project is configured using `specshot.config.mjs`:
 
 ```javascript
+/** @type {import('specshot').SpecshotConfig<TemplateData, Overrides>} */
 export default {
-  coreDir: "src/lib/api/core",
-  integration: "none",
-  interceptors: ["bearer", "logger"],
+  preset: "class",
   apis: {
-    petstore: {
-      providerDir: "src/lib/api/petstore",
-      openapiUrl: "./openapi.json", // Uses local file
+    prestore: {
+      openapiUrl: "openapi.json", // Uses local file
     },
+  },
+  templateData: {
+    hook: "none",
+    pluginNames: ["bearer", "logger"],
   },
 };
 ```

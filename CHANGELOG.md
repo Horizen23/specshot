@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-> **Note:** This project is pre-v1.0. Breaking changes may occur in minor releases as the API stabilizes.
+> **Note:** This project is pre-v2.0. Breaking changes may occur in minor releases as the API stabilizes.
 
 ### Added
 
@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File naming configuration: control generated file names via `fileNaming` in config with naming helper support.
 - `tsType` field in template context for custom templates to use plain TS types instead of Zod.
 - Init/generate separation: `init` creates config only, `generate` installs core/provider + generates code.
-- Auto-install infrastructure: `generate` installs core/provider/interceptors if missing (built-in templates only).
+- Auto-install infrastructure: `generate` installs core/provider/plugins if missing (built-in templates only).
 - `--dry-run` now validates template files exist and compile before writing.
 - Improved template error messages: file name, path, and context in errors.
 - Template registry (`src/core/template-registry.ts`) for centralized template metadata.
@@ -43,13 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type names use PascalCase: `PetsListPetsResponse` instead of `petsListPetsResponse`.
 - MSW handler functions use PascalCase: `getPetsHandlers` instead of `getpetsHandlers`.
 - `toClassName()` now capitalizes first letter (e.g. `PetsService` not `petsService`).
-- Empty `interceptors/index.ts` (from custom templates) is no longer written.
+- Empty `plugins/index.ts` (from custom templates) is no longer written.
 
 - Initial `init` command to scaffold the agnostic API client core into a project.
 - Initial `generate` command to generate strictly-typed TypeScript services from OpenAPI/Swagger specs.
 - Template system using Handlebars for code generation.
 - Agnostic core templates: `ApiClient`, `BaseService`, and shared types.
 - Service generation templates: service files, model types, Zod schemas.
-- Built-in interceptor templates: Bearer token auth, request/response logger.
-- SWR integration hooks template.
+- Built-in plugin templates: Bearer token auth, request/response logger.
+- SWR hooks template.
 - Interactive CLI with commander, inquirer, chalk, and ora.

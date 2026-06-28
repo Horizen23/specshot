@@ -10,7 +10,7 @@ This document lists all variables available in each Handlebars template.
 | `types.hbs` | `<tag>.types.ts` | Per-tag request/response types |
 | `service.hbs` | `<tag>.service.ts` | Per-tag API service class |
 | `index.hbs` | `index.ts` | Provider barrel exports |
-| `interceptors-index.hbs` | `interceptors/index.ts` | Interceptor registry |
+| `plugins-index.hbs` | `plugins/index.ts` | Plugin registry |
 | `msw/handlers.hbs` | `<tag>.handlers.ts` | MSW mock handlers |
 | `msw/index.hbs` | `index.ts` | MSW handlers barrel |
 | `msw/browser.hbs` | `browser.ts` | MSW browser setup |
@@ -181,37 +181,34 @@ Generates `index.ts` — provider barrel exports.
 
 | Variable | Type | Example | Description |
 |----------|------|---------|-------------|
-| `tags` | array | `[{tag: "pets", className: "PetsService"}]` | All tags |
+| `tags` | array | `[{tag: "pets", className: "PetsService", tagPrefix: "pets"}]` | All tags |
 | `tags[].tag` | string | `pets` | Tag name |
+| `tags[].tagPrefix` | string | `pets` | Tag prefix for filenames |
 | `tags[].className` | string | `PetsService` | Service class name |
 | `corePath` | string | `../../core` | Import path to core |
-| `interceptorsPath` | string | `./interceptors` | Import path to interceptors |
-| `hasHooks` | boolean | `true` | Has SWR/React Query hooks |
-| `indexProviderTypesPath` | string | `./types` | Import path to provider types |
-| `indexClientPath` | string | `./client` | Import path to client |
-| `indexHooksPath` | string | `./hooks` | Import path to hooks |
-| `indexServiceDir` | string | `./services` | Import path to services directory |
+| `pluginsPath` | string | `./plugins` | Import path to plugins |
+| `hasHooks` | boolean | `true` | Has hooks configured in `templateData.hook` |
 | `customCode` | string | | Preserved custom code |
 
 ### Example
 
 ```hbs
 {{#each tags}}
-export * from "{{{../indexServiceDir}}}/{{this.tag}}.service";
+export * from "./{{this.tagPrefix}}.service";
 {{/each}}
 ```
 
 ---
 
-## `interceptors-index.hbs`
+## `plugins-index.hbs`
 
-Generates `interceptors/index.ts` — interceptor registry.
+Generates `plugins/index.ts` — plugin registry.
 
 | Variable | Type | Description |
 |----------|------|-------------|
-| `interceptors` | array | Interceptor import info |
-| `interceptors[].name` | string | Interceptor function name |
-| `interceptors[].path` | string | Import path |
+| `plugins` | array | Plugin import info |
+| `plugins[].name` | string | Plugin function name |
+| `plugins[].path` | string | Import path |
 | `hasAuthManager` | boolean | Has bearer auth manager |
 
 > **Note:** If this template renders to just `export {}`, the file is skipped entirely.
@@ -336,7 +333,6 @@ export default {
   apis: {
     petstore: {
       openapiUrl: "./openapi.json",
-      providerDir: "src",
       fileNaming: {
         models: "schemas.ts",                    // default: "models.ts"
         service: "{{pascalCase tag}}Service.ts", // default: "{{tag}}.service.ts"
@@ -364,11 +360,6 @@ These are computed automatically based on `outputPaths` config:
 | `modelsModulePath` | types dir → models dir | `./models` |
 | `serviceModelsModulePath` | services dir → models dir | `../models/models` |
 | `typesModulePath` | services dir → types dir | `./pets.types` |
-| `serviceProviderTypesPath` | services dir → provider types | `../types` |
-| `indexProviderTypesPath` | index dir → provider types | `./types` |
-| `indexClientPath` | index dir → client | `./client` |
-| `indexHooksPath` | index dir → hooks | `./hooks` |
-| `indexServiceDir` | index dir → services dir | `./services` |
 | `corePath` | services dir → core | `../../core` |
 | `typesImportPath` | MSW dir → types dir | `../../services/pets.types` |
 
@@ -376,6 +367,6 @@ These are computed automatically based on `outputPaths` config:
 
 - Use `{{{variable}}}` (triple braces) for unescaped output (code, paths, Zod)
 - Use `{{variable}}` (double braces) for escaped output (text, summaries)
-- No custom helpers are registered — use stock Handlebars only
+- Custom helpers are registered (e.g. `capitalize`, `camelCase`, etc.) as documented above
 - `{{#each}}`, `{{#if}}`, `{{#unless}}`, `{{#unless @last}}` are available
 - Access parent context with `{{../variable}}`

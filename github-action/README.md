@@ -101,7 +101,7 @@ jobs:
 
 ## Prerequisites
 
-1. Run `npx specshot init` locally first to scaffold the core/provider files.
+1. Run `npx specshot init` locally first to create your configuration file.
 2. Your project needs a `specshot.config.mjs` (created by `init`) or pass `output-dir` explicitly.
 
 ## See Also

@@ -83,21 +83,23 @@ npx specshot generate --templates ./templates
 ## Shared Templates
 
 All patterns share the same supporting templates (`models.hbs`, `types.hbs`,
-`index.hbs`, `interceptors-index.hbs`). Only `service.hbs` differs per pattern.
+`index.hbs`, `plugins-index.hbs`). Only `service.hbs` differs per pattern.
 
 ## File Structure
 
 ```
-templates/
-├── singleton-service.hbs     ← Singleton pattern
-├── factory-service.hbs       ← Factory pattern
-├── observer-service.hbs      ← Observer pattern
-├── builder-service.hbs       ← Builder pattern
-├── shared/
-│   ├── models.hbs            ← Plain TS types + ApiError
-│   ├── types.hbs             ← Request/response types
-│   ├── index.hbs             ← Barrel exports
-│   └── interceptors-index.hbs ← Empty (no plugin system)
-└── msw/
-    └── handlers.hbs          ← MSW mock handlers
+.specshot/templates/presets/
+├── singleton/
+│   └── templates/api/
+│       ├── service-per-tag/service.hbs  ← Singleton pattern
+│       ├── index/index.hbs
+│       ├── models/models.hbs
+│       ├── types-per-tag/types.hbs
+│       └── plugins/plugins-index.hbs
+├── factory/
+│   └── templates/api/...               ← Factory pattern
+├── observer/
+│   └── templates/api/...               ← Observer pattern
+└── builder/
+    └── templates/api/...               ← Builder pattern
 ```
