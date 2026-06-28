@@ -15,7 +15,10 @@ export interface FakerPlugin {
   generate: (faker: Faker, context: FakerPluginContext) => unknown;
 }
 
-export interface SpecshotTemplateData extends Record<string, unknown> {}
+export interface SpecshotTemplateData extends Record<string, unknown> {
+  outDir?: string;
+  coreOut?: string;
+}
 
 /** Template file overrides.
  * `dir` is a global override directory; other keys map to per-template file paths
