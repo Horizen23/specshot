@@ -439,7 +439,6 @@ export default {
 | [`examples/remote-url`](examples/remote-url)           | Fetch from a running backend + mock server         |
 | [`examples/real-or-fake`](examples/real-or-fake)       | Full-stack usage with the mock server              |
 | [`examples/design-patterns`](examples/design-patterns) | Singleton, Factory, Observer, Builder service patterns |
-| [`examples/react-query`](examples/react-query)         | Integration with `@tanstack/react-query`           |
 
 ---
 
