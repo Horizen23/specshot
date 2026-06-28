@@ -3,11 +3,11 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-import { startMocks } from "../.specshot/msw/meme/browser";
+// import { startMocks } from "../.specshot/msw/meme/browser";
 
 async function prepareApp() {
   if (import.meta.env.VITE_USE_MSW === "true") {
-    await startMocks({ baseUrl: "http://localhost:3000" });
+    // await startMocks({ baseUrl: "http://localhost:3000" });
   }
 }
 

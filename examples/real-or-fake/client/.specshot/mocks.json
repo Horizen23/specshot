@@ -17,5 +17,8 @@
   },
   "outputDir": "src/lib/api/meme/services",
   "specSource": "../meme.json",
-  "lastGenerated": "2026-06-24T01:58:24.159Z"
+  "lastGenerated": "2026-06-24T01:58:24.159Z",
+  "proxyTarget": "http://localhost:3000",
+  "proxyEnabled": true,
+  "mockServerPort": 3457
 }
