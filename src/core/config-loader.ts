@@ -16,64 +16,42 @@ export interface FakerPlugin {
   generate: (faker: Faker, context: FakerPluginContext) => unknown;
 }
 
-export interface MswTemplateOverrides {
-  dir?: string;
-  handlers?: string;
-  index?: string;
-  browser?: string;
-}
+export interface SpecshotTemplateData extends Record<string, unknown> {}
 
+/** Template file overrides.
+ * `dir` is a global override directory; other keys map to per-template file paths
+ * (key names come from the template registry's `configKey`). */
 export interface TemplateOverrides {
   dir?: string;
-  models?: string;
-  types?: string;
-  service?: string;
-  index?: string;
-  "interceptors-index"?: string;
-  msw?: MswTemplateOverrides;
+  [key: string]: string | undefined;
 }
 
-export interface OutputPaths {
-  models?: string;
-  services?: string;
-  types?: string;
-  index?: string;
-}
-
-export interface FileNaming {
-  models?: string;
-  service?: string;
-  types?: string;
-  index?: string;
-}
-
-export interface SpecshotUserConfig {
-  coreDir?: string;
-  integration?: string;
-  interceptors?: string[];
+export interface SpecshotUserConfig<
+  TemplateData extends SpecshotTemplateData = SpecshotTemplateData,
+  Overrides extends TemplateOverrides = TemplateOverrides,
+> {
   alias?: string;
-  templates?: string | TemplateOverrides;
-  mswOutputDir?: string;
+  preset?: string;
+  /** Custom Handlebars templates directory or per-template file overrides */
+  templates?: string | Overrides;
   fakerPlugins?: FakerPlugin[];
+  /** Arbitrary data passed to all templates */
+  templateData?: TemplateData;
   apis?: Record<
     string,
     {
       openapiUrl: string;
-      providerDir: string;
-      interceptors?: string[];
-      mswOutputDir?: string;
-      outputPaths?: OutputPaths;
-      fileNaming?: FileNaming;
+      templateData?: TemplateData;
     }
   >;
 }
 
 export const DEFAULT_CONFIG_FILE = "specshot.config.mjs";
 
-export async function loadUserConfig(
+export async function loadUserConfig<TemplateData extends Record<string, unknown> = Record<string, unknown>>(
   cwd: string = process.cwd(),
   configPathOverride?: string,
-): Promise<SpecshotUserConfig> {
+): Promise<SpecshotUserConfig<TemplateData>> {
   let fileToLoad = "";
 
   if (configPathOverride) {
@@ -95,38 +73,21 @@ export async function loadUserConfig(
 
   if (fileToLoad && fs.existsSync(fileToLoad)) {
     try {
+      let config: SpecshotUserConfig<TemplateData>;
       if (fileToLoad.endsWith(".json")) {
         const content = fs.readFileSync(fileToLoad, "utf8");
-        return JSON.parse(content) as SpecshotUserConfig;
+        config = JSON.parse(content) as SpecshotUserConfig<TemplateData>;
+      } else {
+        const fileUrl = pathToFileURL(fileToLoad).href;
+        const mod = await import(fileUrl);
+        config = (mod.default || mod) as SpecshotUserConfig<TemplateData>;
       }
-      const fileUrl = pathToFileURL(fileToLoad).href;
-      const mod = await import(fileUrl);
-      return (mod.default || mod) as SpecshotUserConfig;
+      return config;
     } catch (err) {
       console.error(`\n[Specshot] Failed to load ${fileToLoad}:`, err);
     }
   }
   return {};
-}
-
-export function resolveCorePaths(
-  userConfig: SpecshotUserConfig,
-  outputDir: string,
-  importAlias: string | undefined,
-): { corePathStr: string; servicesCorePath: string } {
-  const providerDir = path.dirname(outputDir);
-
-  let corePathStr = importAlias ? `${importAlias}/core` : "../core";
-  if (!importAlias && userConfig.coreDir) {
-    const targetCoreDir = path.resolve(process.cwd(), userConfig.coreDir);
-    corePathStr = path.relative(providerDir, targetCoreDir).replace(/\\/g, "/");
-    if (!corePathStr.startsWith(".")) corePathStr = "./" + corePathStr;
-  }
-
-  const servicesCorePath = importAlias
-    ? `${importAlias}/core`
-    : "../" + corePathStr;
-  return { corePathStr, servicesCorePath };
 }
 
 export function relModulePath(
@@ -138,21 +99,6 @@ export function relModulePath(
   if (!rel) rel = ".";
   if (!rel.startsWith(".")) rel = "./" + rel;
   return toFileNoExt ? `${rel}/${toFileNoExt}` : rel;
-}
-
-export function computeCorePath(
-  fromDir: string,
-  providerDir: string,
-  importAlias: string | undefined,
-  coreDir?: string,
-): string {
-  if (importAlias) return `${importAlias}/core`;
-  const targetCore = coreDir
-    ? path.resolve(process.cwd(), coreDir)
-    : path.join(providerDir, "core");
-  let rel = path.relative(fromDir, targetCore).replace(/\\/g, "/");
-  if (!rel.startsWith(".")) rel = "./" + rel;
-  return rel;
 }
 
 export function renderFileName(

@@ -1,0 +1,34 @@
+import { RequestConfig } from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath outDir coreOut}}{{/if}}/types";
+export * from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath outDir coreOut}}{{/if}}/types";
+
+export interface BackendResponse<T> {
+  request_id: string;
+  data: T;
+}
+
+export interface AppApiErrorData {
+  $schema?: string;
+  request_id?: string;
+  status: number;
+  title: string;
+  detail: string;
+  errors?: Array<{ message: string }>;
+}
+
+export interface PageResponse<T> {
+  items: T[];
+  total_items: number;
+  total_pages: number;
+  page: number;
+  size: number;
+}
+
+export interface AppRequestConfig extends RequestConfig {
+  /** Options to bypass certain automated API behaviors for App Backend */
+  skip?: {
+    /** Do not attach Authorization header */
+    auth?: boolean;
+    /** Do not attempt to refresh token on 401 response */
+    refreshToken?: boolean;
+  };
+}

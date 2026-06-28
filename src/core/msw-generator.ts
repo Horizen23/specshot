@@ -1,16 +1,12 @@
 import fs from "fs";
 import path from "path";
-import type { OpenApiSpec, ServiceGroup } from "../types/types";
-import type { OpenApiSchema } from "../types/types";
+import os from "os";
+import type { OpenApiSpec, OpenApiSchema, ServiceGroup } from "../types/types";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { endpointKey } from "../types/mock-config";
 import { toMethodName, capitalize } from "../utils/naming-utils";
-import {
-  compileTemplate,
-  writeGenerated,
-  resolveTemplatePath,
-} from "../utils/file-writer";
 import { mockValueFromSchema } from "../utils/msw-utils";
+import { renderTemplates } from "./renderer";
 import type { FakerPlugin } from "./config-loader";
 
 export function generateMswHandlers(
@@ -23,25 +19,23 @@ export function generateMswHandlers(
     mswEndpointFilter?: Set<string>;
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
     fakerPlugins?: FakerPlugin[];
-    providerDir?: string;
+    servicesDir?: string;
     typesDir?: string;
     templatesOverride?: string;
-    perFile?: {
-      handlers?: string;
-      index?: string;
-      browser?: string;
-    };
+    perFile?: Record<string, string | undefined>;
   },
 ): void {
   if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
 
-  const servicesForIndex: { tag: string; tagLowerCase: string; capTag: string }[] = [];
   const filter = opts?.mswEndpointFilter;
   const epConfigs = opts?.mswEndpointConfigs || {};
+  let globalUsesFaker = false;
+
+  const tags: Record<string, unknown>[] = [];
+  const servicesForIndex: { tag: string; tagLowerCase: string; capTag: string }[] = [];
 
   for (const [tag, data] of Object.entries(services)) {
     const tagLowerCase = tag.toLowerCase();
-
     const handlerFns: Record<string, unknown>[] = [];
     const typeImports: Set<string> = new Set();
     let usesFaker = false;
@@ -49,7 +43,6 @@ export function generateMswHandlers(
     for (const op of data.operations) {
       const opKey = endpointKey(tag, op.operationId || "unknown");
       if (filter && !filter.has(opKey)) continue;
-
       const epCfg = epConfigs[opKey];
 
       const fnName = `${op.operationId || "unknown"}Handler`;
@@ -70,13 +63,9 @@ export function generateMswHandlers(
       let responseTypeName: string | null = null;
       let mockResponse: string;
       let mockComment = false;
-      let statusCode =
-        httpMethod === "post" ? 201 : httpMethod === "delete" ? 204 : 200;
+      let statusCode = httpMethod === "post" ? 201 : httpMethod === "delete" ? 204 : 200;
 
-      // Apply endpoint config override for status code
-      if (epCfg?.statusCode) {
-        statusCode = epCfg.statusCode;
-      }
+      if (epCfg?.statusCode) statusCode = epCfg.statusCode;
 
       if (op.responseSchema) {
         if (op.responseSchema.$ref) {
@@ -98,26 +87,16 @@ export function generateMswHandlers(
           if (mockMode === "faker") {
             usesFaker = true;
             mockResponse = mockValueFromSchema(
-              op.responseSchema,
-              "faker",
-              schemas,
-              new Set(),
-              epCfg?.fakerArraySize || 3,
-              epCfg?.fakerArraySizes || {},
-              "root",
-              epCfg?.fakerFormats || {},
-              opts?.fakerPlugins || [],
+              op.responseSchema, "faker", schemas, new Set(),
+              epCfg?.fakerArraySize || 3, epCfg?.fakerArraySizes || {},
+              "root", epCfg?.fakerFormats || {}, opts?.fakerPlugins || [],
             );
             mockComment = false;
           } else if (epCfg?.mockData) {
             mockResponse = epCfg.mockData;
             mockComment = false;
           } else {
-            mockResponse = mockValueFromSchema(
-              op.responseSchema,
-              mockMode === "manual" ? "auto" : mockMode,
-              schemas,
-            );
+            mockResponse = mockValueFromSchema(op.responseSchema, mockMode === "manual" ? "auto" : mockMode, schemas);
           }
         }
       } else {
@@ -125,24 +104,16 @@ export function generateMswHandlers(
       }
 
       let bodyTypeName: string | null = null;
-      let typeNamePayload: string | null = null;
       if (op.hasBody) {
-        typeNamePayload = `${capTag}${capMethod}Payload`;
-        bodyTypeName = typeNamePayload;
-        typeImports.add(typeNamePayload);
+        bodyTypeName = `${capTag}${capMethod}Payload`;
+        typeImports.add(bodyTypeName);
       }
 
       handlerFns.push({
-        fnName,
-        httpMethod,
-        pathPattern,
+        fnName, httpMethod, pathPattern,
         summary: op.summary || op.operationId || op.method,
-        hasBody: op.hasBody,
-        bodyTypeName,
-        mockResponse,
-        mockComment,
-        responseTypeName,
-        statusCode,
+        hasBody: op.hasBody, bodyTypeName, mockResponse, mockComment,
+        responseTypeName, statusCode,
         delayMs: epCfg?.delay || undefined,
         customMockData: epCfg?.mockData || undefined,
         hasError: epCfg?.errorEnabled || false,
@@ -151,9 +122,8 @@ export function generateMswHandlers(
       });
     }
 
-    const handlersFilePath = path.join(mswDir, `${tagLowerCase}.handlers.ts`);
-
     if (handlerFns.length === 0) {
+      const handlersFilePath = path.join(mswDir, `${tagLowerCase}.handlers.ts`);
       if (fs.existsSync(handlersFilePath)) {
         fs.unlinkSync(handlersFilePath);
         console.log(`Deleted unused MSW ${tagLowerCase}.handlers.ts`);
@@ -161,85 +131,63 @@ export function generateMswHandlers(
       continue;
     }
 
-    // Compute relative path to the types file.
+    if (usesFaker) globalUsesFaker = true;
+
     const actualTypesDir = opts?.typesDir
       ? opts.typesDir
-      : opts?.providerDir 
-        ? path.join(opts.providerDir, "services") 
-        : path.join(path.dirname(mswDir), "services");
-      
+      : opts?.servicesDir ? opts.servicesDir : path.join(path.dirname(mswDir), "services");
     const typesFilePath = path.join(actualTypesDir, `${tagLowerCase}.types`);
     let typesImportPath = path.relative(mswDir, typesFilePath);
-    if (!typesImportPath.startsWith(".")) {
-      typesImportPath = `./${typesImportPath}`;
-    }
-    // Normalize path separators for Windows
-    typesImportPath = typesImportPath.replace(/\\/g, '/');
+    if (!typesImportPath.startsWith(".")) typesImportPath = `./${typesImportPath}`;
+    typesImportPath = typesImportPath.replace(/\\/g, "/");
 
-    const handlersData = {
-      tag,
-      capTag: capitalize(tag),
-      tagLowerCase,
+    tags.push({
+      tag, capTag: capitalize(tag), tagLowerCase,
       handlers: handlerFns,
       typeImports: Array.from(typeImports),
       usesFaker,
       typesImportPath,
-    };
-
-    const handlersTemplate = compileTemplate(
-      resolveTemplatePath(
-        "handlers.hbs",
-        opts?.templatesOverride,
-        mswTemplatesDir,
-        opts?.perFile?.handlers,
-      ),
-    );
-    writeGenerated(
-      handlersFilePath,
-      handlersTemplate(handlersData),
-    );
-    console.log(`Generated MSW ${tagLowerCase}.handlers.ts`);
+    });
 
     servicesForIndex.push({ tag, tagLowerCase, capTag: capitalize(tag) });
   }
 
-  const indexFilePath = path.join(mswDir, "index.ts");
-  const browserFilePath = path.join(mswDir, "browser.ts");
-  
-  if (servicesForIndex.length > 0) {
-    const indexTemplate = compileTemplate(
-      resolveTemplatePath(
-        "index.hbs",
-        opts?.templatesOverride,
-        mswTemplatesDir,
-        opts?.perFile?.index,
-      ),
-    );
-    writeGenerated(
-      indexFilePath,
-      indexTemplate({ services: servicesForIndex }),
-    );
-    console.log("Generated MSW handlers/index.ts");
-
-    const browserTemplate = compileTemplate(
-      resolveTemplatePath(
-        "browser.hbs",
-        opts?.templatesOverride,
-        mswTemplatesDir,
-        opts?.perFile?.browser,
-      ),
-    );
-    writeGenerated(browserFilePath, browserTemplate({}));
-    console.log("Generated MSW handlers/browser.ts");
-  } else if (fs.existsSync(indexFilePath)) {
-    // Generate an empty index if all mocks are disabled
-    writeGenerated(indexFilePath, "export const handlers = [];\n");
-    console.log("Emptied MSW handlers/index.ts");
-    
-    // Also clear the browser.ts to avoid startMocks trying to setup Worker with no handlers and failing, though handled by logic
-    if (fs.existsSync(browserFilePath)) {
-      writeGenerated(browserFilePath, "export function startMocks(options?: any) { return Promise.resolve(); }\n");
-      console.log("Emptied MSW handlers/browser.ts");
+  // Handle per-file overrides by merging into a temp metadata structure
+  let renderDir = opts?.templatesOverride || mswTemplatesDir;
+  const perFileEntries = opts?.perFile
+    ? Object.entries(opts.perFile).filter(([, v]) => v)
+    : [];
+  if (perFileEntries.length > 0) {
+    const mergedDir = path.join(os.tmpdir(), `specshot-msw-tpl-${Date.now()}`);
+    fs.mkdirSync(mergedDir, { recursive: true });
+    // Copy default metadata structure
+    for (const entry of fs.readdirSync(mswTemplatesDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        fs.cpSync(path.join(mswTemplatesDir, entry.name), path.join(mergedDir, entry.name), { recursive: true });
+      } else if (entry.name.endsWith(".hbs") && !entry.name.startsWith("_")) {
+        // Don't copy old flat files
+      }
     }
+    // Override with per-file paths (keys are template file paths)
+    for (const [relPath, srcFile] of perFileEntries) {
+      if (srcFile && fs.existsSync(srcFile)) {
+        const dst = path.join(mergedDir, relPath);
+        fs.mkdirSync(path.dirname(dst), { recursive: true });
+        fs.cpSync(srcFile, dst);
+      }
+    }
+    renderDir = mergedDir;
   }
+
+  const renderData: Record<string, unknown> = {
+    mswDir: path.relative(process.cwd(), mswDir),
+    tags,
+    services: servicesForIndex,
+    usesFaker: globalUsesFaker,
+  };
+
+  renderTemplates({
+    templateDir: renderDir,
+    data: renderData,
+  });
 }

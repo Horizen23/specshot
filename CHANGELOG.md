@@ -11,7 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `templates` command to eject built-in Handlebars templates for local customization.
+- `templates eject` command to copy built-in Handlebars templates for local customization.
+- `templates list` command to show all templates and their override status.
+- `templates context <name>` command to show available variables for a template.
+- Built-in template presets: `class` (default), `functional`, `zod-functional`.
+- `--preset` flag on `init`, `generate`, and `templates eject` commands.
+- `preset` field in `specshot.config.mjs`.
 - Partial template override: only edited templates override built-ins, missing files fall back to defaults.
 - Per-file template override via CLI flags (`--template-models`, `--template-service`, etc.) and config object.
 - MSW template override support via `msw/` subdirectory in custom templates dir.
@@ -23,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tsType` field in template context for custom templates to use plain TS types instead of Zod.
 - Init/generate separation: `init` creates config only, `generate` installs core/provider + generates code.
 - Auto-install infrastructure: `generate` installs core/provider/interceptors if missing (built-in templates only).
+- `--dry-run` now validates template files exist and compile before writing.
+- Improved template error messages: file name, path, and context in errors.
+- Template registry (`src/core/template-registry.ts`) for centralized template metadata.
 - Design patterns example (Singleton, Factory, Observer, Builder).
 - Custom output paths example with no Zod, no ApiClient, native fetch.
 - Naming helpers POC example.

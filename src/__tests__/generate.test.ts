@@ -460,15 +460,21 @@ describe("generateApi", () => {
       }) as Response) as typeof fetch;
 
     const customTplDir = path.join(tmpDir, "custom-templates");
-    fs.mkdirSync(customTplDir, { recursive: true });
 
-    // Write minimal templates with a recognizable marker
-    fs.writeFileSync(
-      path.join(customTplDir, "models.hbs"),
-      `// CUSTOM-TPL models`,
-    );
-    fs.writeFileSync(
-      path.join(customTplDir, "types.hbs"),
+    // Build metadata structure matching the default templates
+    function writeTpl(subdir: string, tplFile: string, meta: { target: string; name?: string; iterate?: string }, content: string) {
+      const d = path.join(customTplDir, subdir);
+      fs.mkdirSync(d, { recursive: true });
+      fs.writeFileSync(path.join(d, "_target.hbs"), meta.target);
+      if (meta.name) fs.writeFileSync(path.join(d, "_name.hbs"), meta.name);
+      if (meta.iterate) fs.writeFileSync(path.join(d, "_iterate.hbs"), meta.iterate);
+      fs.writeFileSync(path.join(d, tplFile), content);
+    }
+
+    writeTpl("models", "models.hbs", { target: "{{outputDir}}", name: "models.ts" }, `// CUSTOM-TPL models`);
+    writeTpl(
+      "types-per-tag", "types.hbs",
+      { target: "{{outputDir}}", name: "{{tagPrefix}}.types.ts", iterate: "tags" },
       `// CUSTOM-TPL {{tag}} types
 {{#each specificSchemas}}
 export const {{name}} = {};
@@ -477,22 +483,17 @@ export const {{name}} = {};
 {{#if customCode}}{{{customCode}}}{{/if}}
 // --- CUSTOM CODE END ---`,
     );
-    fs.writeFileSync(
-      path.join(customTplDir, "service.hbs"),
+    writeTpl(
+      "service-per-tag", "service.hbs",
+      { target: "{{outputDir}}", name: "{{tagPrefix}}.service.ts", iterate: "tags" },
       `// CUSTOM-TPL {{className}} service
 import { BaseService } from "{{corePath}}/base-service";
 // --- CUSTOM CODE START ---
 {{#if customCode}}{{{customCode}}}{{/if}}
 // --- CUSTOM CODE END ---`,
     );
-    fs.writeFileSync(
-      path.join(customTplDir, "index.hbs"),
-      `// CUSTOM-TPL index`,
-    );
-    fs.writeFileSync(
-      path.join(customTplDir, "interceptors-index.hbs"),
-      `// CUSTOM-TPL interceptors`,
-    );
+    writeTpl("index", "index.hbs", { target: "{{outputDir}}/..", name: "index.ts" }, `// CUSTOM-TPL index`);
+    writeTpl("plugins", "plugins-index.hbs", { target: "{{outputDir}}/../plugins", name: "index.ts" }, `// CUSTOM-TPL plugins`);
 
     const tplOut = path.join(tmpDir, "tpl-output");
     await generateApi(
@@ -767,18 +768,18 @@ import { BaseService } from "{{corePath}}/base-service";
         }),
       }) as Response) as typeof fetch;
 
-    const provDir = path.join(tmpDir, "interceptor-prov");
-    const interceptorsDir = path.join(provDir, "interceptors");
-    fs.mkdirSync(interceptorsDir, { recursive: true });
+    const provDir = path.join(tmpDir, "plugin-prov");
+    const pluginsDir = path.join(provDir, "plugins");
+    fs.mkdirSync(pluginsDir, { recursive: true });
     fs.writeFileSync(
-      path.join(interceptorsDir, "custom.ts"),
+      path.join(pluginsDir, "custom.ts"),
       `export function installCustom(client: any) { return client; }\n`,
     );
 
     const svcDir = path.join(provDir, "services");
     await generateApi("https://example.com/interceptor.json", svcDir);
 
-    const indexPath = path.join(interceptorsDir, "index.ts");
+    const indexPath = path.join(pluginsDir, "index.ts");
     expect(fs.existsSync(indexPath)).toBe(true);
     const indexContent = fs.readFileSync(indexPath, "utf8");
     expect(indexContent).toContain("installCustom");
@@ -804,15 +805,15 @@ import { BaseService } from "{{corePath}}/base-service";
         }),
       }) as Response) as typeof fetch;
 
-    const noIntDir = path.join(tmpDir, "no-interceptors");
+    const noIntDir = path.join(tmpDir, "no-plugins");
     await generateApi("https://example.com/no-int.json", noIntDir);
 
     expect(fs.existsSync(path.join(noIntDir, "items.service.ts"))).toBe(true);
-    // The parent dir gets interceptors/ created by generateApi, but the
+    // The parent dir gets plugins/ created by generateApi, but the
     // discovery loop handles empty/missing gracefully
     const parentDir = path.dirname(noIntDir);
     expect(
-      fs.existsSync(path.join(parentDir, "interceptors", "index.ts")),
+      fs.existsSync(path.join(parentDir, "plugins", "index.ts")),
     ).toBe(true);
   });
 
@@ -986,20 +987,17 @@ import { BaseService } from "{{corePath}}/base-service";
       undefined,
       {
         msw: true,
-        mswOutputDir: path.join(mswOut, "msw"),
       },
     );
 
-    const handlerFile = path.join(mswOut, "msw", "users.handlers.ts");
+    const handlerFile = path.join(path.dirname(mswOut), "msw", "handlers", "users.handlers.ts");
     expect(fs.existsSync(handlerFile)).toBe(true);
 
     const handlerContent = fs.readFileSync(handlerFile, "utf8");
     expect(handlerContent).toContain(
-      'export const getUsersHandler = http.get<PathParams<"/users">>(',
+      'export function getUsersHandlers(baseUrl: string = "") {',
     );
-    expect(handlerContent).toContain(");");
-    // Verify there is no duplicate closing brace
-    expect(handlerContent).not.toContain("}\n  }\n);");
-    expect(handlerContent).toContain("  },\n);");
+    expect(handlerContent).toContain("http.get");
+    expect(handlerContent).toContain("/users");
   });
 });

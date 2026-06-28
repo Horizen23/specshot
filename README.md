@@ -93,6 +93,29 @@ npx specshot init \
 
 Installs the API core infrastructure (if missing), then reads your OpenAPI spec to generate strictly-typed API services, Zod schemas, and models.
 
+#### Presets
+
+Choose a built-in code style with `--preset`:
+
+| Preset | Style | Dependencies | Result pattern |
+|--------|-------|-------------|----------------|
+| `class` (default) | `BaseService` + `ApiClient` + Zod | `zod` | `Promise<{ data, error, ok }>` |
+| `functional` | Standalone `async function` + native `fetch()` | none | `Promise<T>` (throws on error) |
+| `zod-functional` | Standalone `async function` + Zod schemas | `zod` | `Promise<T>` (throws on error) |
+
+```bash
+npx specshot generate --preset functional
+npx specshot generate --preset zod-functional
+```
+
+Or set it in config:
+```javascript
+export default {
+  preset: "functional",
+  apis: { ... }
+};
+```
+
 If you already provided a `--url` during `init` (which saves it to `specshot.config.mjs`), you can simply run:
 
 ```bash
@@ -127,16 +150,22 @@ npx specshot generate --url http://localhost:8080/openapi.json
 | `--template-msw-handlers <path>`        | Override only MSW handlers.hbs                 |
 | `--template-msw-index <path>`           | Override only MSW index.hbs                    |
 | `--template-msw-browser <path>`         | Override only MSW browser.hbs                  |
+| `--preset <name>`                       | Built-in preset: `class`, `functional`, `zod-functional` |
 | `--interceptors, -i <dir>`              | Custom interceptors directory (Auto-discovery) |
 | `--dry-run`                             | Preview without writing files                  |
 | `--msw`                                 | Generate MSW mock handlers                     |
 
-### 3. `templates` (Eject built-in templates for customization)
+### 3. `templates` (Manage Handlebars templates)
+
+Three subcommands for template management:
+
+#### `templates eject`
 
 Copies the built-in Handlebars templates to a local directory so you can customize them. Only the templates you edit will override the built-ins — missing files automatically fall back to defaults.
 
 ```bash
-npx specshot templates --output ./my-templates
+npx specshot templates eject --output ./my-templates
+npx specshot templates eject --preset functional --output ./my-templates
 ```
 
 | Flag                   | Description                                  |
@@ -144,6 +173,24 @@ npx specshot templates --output ./my-templates
 | `--output, -o <dir>`   | Output directory (default: `./templates`)    |
 | `--generator-only`     | Eject only generator templates               |
 | `--msw-only`           | Eject only MSW templates                     |
+| `--preset <name>`      | Preset to eject: `class`, `functional`, `zod-functional` |
+
+#### `templates list`
+
+Shows all available templates and their current override status (built-in / dir override / per-file override).
+
+```bash
+npx specshot templates list
+```
+
+#### `templates context <name>`
+
+Shows all available variables and naming helpers for a specific template.
+
+```bash
+npx specshot templates context service
+npx specshot templates context models
+```
 
 Then generate with your custom templates:
 
@@ -256,6 +303,36 @@ export default {
 
 Import paths between files are computed automatically. See [`docs/template-variables.md`](docs/template-variables.md) for full reference.
 
+#### Editor autocompletion
+
+SpecShot provides autocompletion for both config files and templates:
+
+**Config files (`specshot.config.mjs`):**
+
+```javascript
+/** @type {import('specshot').SpecshotConfig} */
+export default {
+  // Autocompletion works in VS Code with the TypeScript language server
+  preset: "functional",
+  apis: { /* ... */ },
+};
+```
+
+For JSON config files (`specshot.config.json`), add a `$schema` reference:
+
+```json
+{
+  "$schema": "https://specshot.dev/config.schema.json",
+  "preset": "functional"
+}
+```
+
+**Template files (`.hbs`):**
+
+- Template context types are available in [`templates/types.d.ts`](templates/types.d.ts)
+- Run `specshot templates context <name>` to see available variables in the CLI
+- See [`docs/template-variables.md`](docs/template-variables.md) for the full reference
+
 ### `mock` (Zero-config API Mocking)
 
 SpecShot includes a powerful built-in mock server and **Web Dashboard**. No MSW or complex setup required.
@@ -292,6 +369,7 @@ export default {
   coreDir: "src/lib/api/core",
   integration: "swr", // swr, react-query, or none
   interceptors: ["bearer", "logger"],
+  preset: "class", // class, functional, or zod-functional
   templates: "src/lib/api/templates", // string (dir) or object (per-file)
 
   // Custom Faker.js plugins for mock generation

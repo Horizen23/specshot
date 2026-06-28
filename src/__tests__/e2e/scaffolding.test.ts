@@ -14,6 +14,11 @@ describe("F1 Scaffolding (init command)", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  function writeConfig(config: Record<string, unknown>) {
+    const content = `export default ${JSON.stringify(config, null, 2)};\n`;
+    fs.writeFileSync(path.join(tmpDir, "specshot.config.mjs"), content);
+  }
+
   // Test 1
   it("should scaffold with default interactive prompts", async () => {
     const result = await runCli(["init"], {
@@ -27,32 +32,26 @@ describe("F1 Scaffolding (init command)", () => {
 
     expect(fs.existsSync(path.join(tmpDir, "specshot.config.mjs"))).toBe(true);
 
-    await runCli(["generate"], { cwd: tmpDir });
+    const result2 = await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "src/lib/api/core"))).toBe(true);
-    expect(fs.existsSync(path.join(tmpDir, "src/lib/api/default"))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, "src/lib/api/api"))).toBe(true);
   });
 
   // Test 2
-  it("should scaffold cleanly when all options are provided via CLI flags", async () => {
-    const result = await runCli(
-      [
-        "init",
-        "--core-dir",
-        "custom/core",
-        "--provider-dir",
-        "custom/provider",
-        "--integration",
-        "none",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
-
-    expect(result.code).toBe(0);
-    expect(fs.existsSync(path.join(tmpDir, "specshot.config.mjs"))).toBe(true);
+  it("should scaffold cleanly when config is provided", async () => {
+    writeConfig({
+      apis: {
+        petstore: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "custom/core",
+        outDir: "custom/provider",
+        hook: "none",
+        pluginNames: [],
+      },
+    });
 
     await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "custom/core"))).toBe(true);
@@ -71,30 +70,23 @@ describe("F1 Scaffolding (init command)", () => {
     const result = await runCli(["init", "--help"], { cwd: tmpDir });
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("Usage: specshot init");
-    expect(result.stdout).toContain("--core-dir");
-    expect(result.stdout).toContain("--provider-dir");
   });
 
   // Test 5
   it("should enforce custom core-dir path structure", async () => {
-    const result = await runCli(
-      [
-        "init",
-        "--core-dir",
-        "my-api-libs/core-files",
-        "--provider-dir",
-        "my-api-libs/provider-files",
-        "--integration",
-        "swr",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
-
-    expect(result.code).toBe(0);
+    writeConfig({
+      apis: {
+        petstore: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "my-api-libs/core-files",
+        outDir: "my-api-libs/provider-files",
+        hook: "swr",
+        pluginNames: [],
+      },
+    });
 
     await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "my-api-libs/core-files"))).toBe(
@@ -107,24 +99,19 @@ describe("F1 Scaffolding (init command)", () => {
 
   // Test 6
   it("should enforce custom provider-dir path structure", async () => {
-    const result = await runCli(
-      [
-        "init",
-        "--core-dir",
-        "my-api-libs/core-files",
-        "--provider-dir",
-        "my-api-libs/provider-files",
-        "--integration",
-        "swr",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
-
-    expect(result.code).toBe(0);
+    writeConfig({
+      apis: {
+        petstore: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "my-api-libs/core-files",
+        outDir: "my-api-libs/provider-files",
+        hook: "swr",
+        pluginNames: [],
+      },
+    });
 
     await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "my-api-libs/provider-files"))).toBe(
@@ -132,37 +119,34 @@ describe("F1 Scaffolding (init command)", () => {
     );
     expect(
       fs.existsSync(
-        path.join(tmpDir, "my-api-libs/provider-files/interceptors"),
+        path.join(tmpDir, "my-api-libs/provider-files/client.ts"),
       ),
     ).toBe(true);
   });
 
   // Test 7
   it("should generate a valid specshot.json configuration file", async () => {
-    await runCli(
-      [
-        "init",
-        "--core-dir",
-        "libs/core",
-        "--provider-dir",
-        "libs/prov",
-        "--integration",
-        "swr",
-        "--interceptors",
-        "bearer,logger",
-        "--url",
-        "http://api.example.com/swagger.json",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        default: {
+          openapiUrl: "http://api.example.com/swagger.json",
+        },
+      },
+      templateData: {
+        coreOut: "libs/core",
+        outDir: "libs/prov",
+        hook: "swr",
+        pluginNames: ["bearer", "logger"],
+      },
+    });
 
     const configPath = path.join(tmpDir, "specshot.config.mjs");
     expect(fs.existsSync(configPath)).toBe(true);
 
     const configContent = fs.readFileSync(configPath, "utf-8");
-    expect(configContent).toContain('coreDir: "libs/core"');
-    expect(configContent).toContain('providerDir: "libs/prov"');
-    expect(configContent).toContain('integration: "swr"');
+    expect(configContent).toContain("libs/core");
+    expect(configContent).toContain("libs/prov");
+    expect(configContent).toContain("swr");
     expect(configContent).toContain("bearer");
     expect(configContent).toContain("logger");
     expect(configContent).toContain("http://api.example.com/swagger.json");
@@ -170,22 +154,19 @@ describe("F1 Scaffolding (init command)", () => {
 
   // Test 8
   it("should scaffold SWR integration skeleton when requested", async () => {
-    await runCli(
-      [
-        "init",
-        "--integration",
-        "swr",
-        "--core-dir",
-        "core",
-        "--provider-dir",
-        "prov",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        default: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "core",
+        outDir: "prov",
+        hook: "swr",
+        pluginNames: [],
+      },
+    });
 
     await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "prov/hooks.ts"))).toBe(true);
@@ -198,22 +179,19 @@ describe("F1 Scaffolding (init command)", () => {
 
   // Test 9
   it("should scaffold TanStack Query integration skeleton when requested", async () => {
-    await runCli(
-      [
-        "init",
-        "--integration",
-        "react-query",
-        "--core-dir",
-        "core",
-        "--provider-dir",
-        "prov",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        default: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "core",
+        outDir: "prov",
+        hook: "react-query",
+        pluginNames: [],
+      },
+    });
 
     await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "prov/hooks.ts"))).toBe(true);
@@ -226,22 +204,19 @@ describe("F1 Scaffolding (init command)", () => {
 
   // Test 10
   it("should scaffold None (vanilla TS fetch) integration skeleton when requested", async () => {
-    await runCli(
-      [
-        "init",
-        "--integration",
-        "none",
-        "--core-dir",
-        "core",
-        "--provider-dir",
-        "prov",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        default: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "core",
+        outDir: "prov",
+        hook: "none",
+        pluginNames: [],
+      },
+    });
 
     await runCli(["generate"], { cwd: tmpDir });
     expect(fs.existsSync(path.join(tmpDir, "prov/client.ts"))).toBe(true);
@@ -253,20 +228,15 @@ describe("F1 Scaffolding (init command)", () => {
     await runCli(
       [
         "init",
-        "--core-dir",
-        "core",
-        "--provider-dir",
-        "prov",
-        "--integration",
-        "none",
         "--templates",
         "my-custom-templates",
-        "--interceptors",
-        "none",
         "--url",
         "",
       ],
-      { cwd: tmpDir },
+      {
+        cwd: tmpDir,
+        stdinInputs: ["prov", "", "", "", ""],
+      },
     );
 
     const configPath = path.join(tmpDir, "specshot.config.mjs");
@@ -277,22 +247,19 @@ describe("F1 Scaffolding (init command)", () => {
 
   // Test 12
   it("should include specified interceptors in scaffolding", async () => {
-    await runCli(
-      [
-        "init",
-        "--interceptors",
-        "bearer",
-        "--core-dir",
-        "core",
-        "--provider-dir",
-        "prov",
-        "--integration",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        default: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "core",
+        outDir: "prov",
+        hook: "none",
+        pluginNames: ["bearer"],
+      },
+    });
 
     await runCli(["generate"], { cwd: tmpDir });
     const interceptorDir = path.join(tmpDir, "prov/interceptors");

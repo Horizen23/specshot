@@ -3,16 +3,15 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { DEFAULT_CONFIG_FILE, loadUserConfig } from "../../core/config-loader";
+import { readAllSchemas, generateTypeFile, generateJSDocTypeDef } from "../../core/template-registry";
+import { PRESETS, isValidPreset, DEFAULT_PRESET } from "../../core/presets";
 
 import { showBanner } from "../ui/banner";
 
 interface InitOptions {
-  coreDir?: string;
-  providerDir?: string;
-  integration?: string;
-  interceptors?: string;
   url?: string;
   templates?: string;
+  preset?: string;
 }
 
 export async function initCommand(options: InitOptions = {}) {
@@ -26,16 +25,6 @@ export async function initCommand(options: InitOptions = {}) {
 
   if (config) {
     const firstApi = config.apis && Object.values(config.apis)[0];
-    options.coreDir =
-      options.coreDir !== undefined ? options.coreDir : config.coreDir;
-    options.providerDir =
-      options.providerDir !== undefined
-        ? options.providerDir
-        : firstApi?.providerDir;
-    options.integration =
-      options.integration !== undefined
-        ? options.integration
-        : config.integration;
     options.url =
       options.url !== undefined ? options.url : firstApi?.openapiUrl;
     options.templates =
@@ -44,85 +33,23 @@ export async function initCommand(options: InitOptions = {}) {
         : typeof config.templates === "string"
           ? config.templates
           : undefined;
-    if (
-      config.interceptors &&
-      config.interceptors.length > 0 &&
-      options.interceptors === undefined
-    ) {
-      options.interceptors = config.interceptors.join(",");
-    }
   }
 
-  let finalCoreDir = options.coreDir;
-  let finalIntegration = options.integration;
-  let finalProviderDir = options.providerDir;
   let finalOpenapiUrl = options.url;
-  let selectedInterceptors: string[] = [];
 
-  let apisToGenerate: { name: string; url: string; providerDir: string }[] = [];
+  let apisToGenerate: { name: string; url: string }[] = [];
 
   if (!hasMultiApi) {
     const globalAnswers = await inquirer.prompt([
-      {
-        type: "input",
-        name: "coreDir",
-        message: "Where would you like to install the API Core?",
-        default: options.coreDir || "src/lib/api/core",
-        when: options.coreDir === undefined,
-      },
-      {
-        type: "list",
-        name: "integration",
-        message: "Which data fetching library do you want to use?",
-        choices: [
-          { name: "SWR (React)", value: "swr" },
-          { name: "TanStack Query (React Query)", value: "react-query" },
-          { name: "None (Vanilla TS / Fetch)", value: "none" },
-        ],
-        default: options.integration || "swr",
-        when: options.integration === undefined,
-      },
-      {
-        type: "checkbox",
-        name: "interceptors",
-        message: "Which interceptors do you want to include?",
-        when: options.interceptors === undefined,
-        choices: [
-          {
-            name: "Bearer Auth — JWT token + auto-refresh",
-            value: "bearer",
-            checked: true,
-          },
-          {
-            name: "Logger — console.log every request/response",
-            value: "logger",
-          },
-        ],
-      },
       {
         type: "confirm",
         name: "isMultiApi",
         message:
           "Do you want to configure multiple APIs? (e.g. Auth API, Product API)",
         default: false,
-        when: options.url === undefined && options.providerDir === undefined,
+        when: options.url === undefined,
       },
     ]);
-
-    finalCoreDir = finalCoreDir || globalAnswers.coreDir;
-    finalIntegration = finalIntegration || globalAnswers.integration;
-
-    if (options.interceptors) {
-      if (options.interceptors.toLowerCase() === "none") {
-        selectedInterceptors = [];
-      } else {
-        selectedInterceptors = options.interceptors
-          .split(",")
-          .map((s) => s.trim());
-      }
-    } else {
-      selectedInterceptors = globalAnswers.interceptors || [];
-    }
 
     if (globalAnswers.isMultiApi) {
       let addMore = true;
@@ -142,12 +69,6 @@ export async function initCommand(options: InitOptions = {}) {
             message: "What is the OpenAPI JSON URL?",
           },
           {
-            type: "input",
-            name: "providerDir",
-            message: "Where would you like to install this Provider skeleton?",
-            default: (ans: any) => `src/lib/api/${ans.apiName}`,
-          },
-          {
             type: "confirm",
             name: "addMore",
             message: "Do you want to configure another API?",
@@ -158,7 +79,6 @@ export async function initCommand(options: InitOptions = {}) {
         apisToGenerate.push({
           name: apiAnswers.apiName,
           url: apiAnswers.openapiUrl,
-          providerDir: apiAnswers.providerDir,
         });
         addMore = apiAnswers.addMore;
         count++;
@@ -167,10 +87,9 @@ export async function initCommand(options: InitOptions = {}) {
       const singleAnswers = await inquirer.prompt([
         {
           type: "input",
-          name: "providerDir",
-          message: "Where would you like to install the Provider skeleton?",
-          default: options.providerDir || "src/lib/api/default",
-          when: options.providerDir === undefined,
+          name: "apiName",
+          message: "What is the name of this API? (e.g. 'petstore', 'auth')",
+          default: "api",
         },
         {
           type: "input",
@@ -182,32 +101,98 @@ export async function initCommand(options: InitOptions = {}) {
         },
       ]);
 
-      finalProviderDir = finalProviderDir || singleAnswers.providerDir;
+      apisToGenerate.push({
+        name: singleAnswers.apiName,
+        url: finalOpenapiUrl !== undefined ? finalOpenapiUrl : (singleAnswers.openapiUrl || ""),
+      });
+
       finalOpenapiUrl =
         finalOpenapiUrl !== undefined
           ? finalOpenapiUrl
           : singleAnswers.openapiUrl;
     }
-  } else {
-    finalCoreDir = finalCoreDir || "src/lib/api/core";
-    finalIntegration = finalIntegration || "swr";
-    if (options.interceptors) {
-      selectedInterceptors =
-        options.interceptors.toLowerCase() === "none"
-          ? []
-          : options.interceptors.split(",").map((s) => s.trim());
-    } else if (config.interceptors) {
-      selectedInterceptors = config.interceptors;
+  }
+
+  // ── Select preset ──
+  const presetAnswer = await inquirer.prompt([
+    {
+      type: "list",
+      name: "preset",
+      message: "Which template preset would you like to use?",
+      default: DEFAULT_PRESET,
+      choices: PRESETS.map((p) => ({
+        name: `${p.name.padEnd(18)} ${chalk.gray(p.description)}`,
+        value: p.name,
+      })),
+    },
+  ]);
+  const selectedPreset = presetAnswer.preset;
+
+  // ── Prompt templateData from schemas ──
+  const schemas = readAllSchemas(selectedPreset);
+  const mergedProps: Record<
+    string,
+    { type: string; description?: string; enum?: string[]; default?: unknown }
+  > = {};
+  for (const schema of schemas) {
+    for (const [key, prop] of Object.entries(schema.properties || {})) {
+      mergedProps[key] = { ...prop, default: prop.default ?? mergedProps[key]?.default };
     }
   }
 
-  // ── Write config file only ──
+  const templateDataAnswers: Record<string, unknown> = {};
+  if (Object.keys(mergedProps).length > 0) {
+    console.log(chalk.cyan("\n--- Template Configuration ---"));
+    const questions: Record<string, unknown>[] = [];
+
+    for (const [key, prop] of Object.entries(mergedProps)) {
+      if (prop.enum) {
+        questions.push({
+          type: "list",
+          name: key,
+          message: prop.description || key,
+          default: prop.default as string,
+          choices: prop.enum,
+        });
+      } else if (prop.type === "array") {
+        questions.push({
+          type: "input",
+          name: key,
+          message: `${prop.description || key} (comma-separated)`,
+          default: Array.isArray(prop.default) ? prop.default.join(", ") : "",
+          filter: (input: string) =>
+            input
+              .split(",")
+              .map((s: string) => s.trim())
+              .filter(Boolean),
+        });
+      } else if (prop.type === "boolean") {
+        questions.push({
+          type: "confirm",
+          name: key,
+          message: prop.description || key,
+          default: prop.default as boolean,
+        });
+      } else {
+        questions.push({
+          type: "input",
+          name: key,
+          message: prop.description || key,
+          default: prop.default as string,
+        });
+      }
+    }
+
+    const answers = await inquirer.prompt(questions);
+    Object.assign(templateDataAnswers, answers);
+  }
+
+  // ── Write config file ──
   let apisContent = "";
   if (apisToGenerate.length > 0) {
     apisContent = `  apis: {\n`;
     apisToGenerate.forEach((api) => {
       apisContent += `    ${JSON.stringify(api.name)}: {\n`;
-      apisContent += `      providerDir: ${JSON.stringify(api.providerDir)},\n`;
       apisContent += `      openapiUrl: ${JSON.stringify(api.url)},\n`;
       apisContent += `    },\n`;
     });
@@ -216,7 +201,6 @@ export async function initCommand(options: InitOptions = {}) {
     apisContent = `  apis: {\n`;
     for (const [apiName, apiConfig] of Object.entries(config.apis)) {
       apisContent += `    ${JSON.stringify(apiName)}: {\n`;
-      apisContent += `      providerDir: ${JSON.stringify(apiConfig.providerDir)},\n`;
       apisContent += `      openapiUrl: ${JSON.stringify(apiConfig.openapiUrl)},\n`;
       apisContent += `    },\n`;
     }
@@ -224,37 +208,39 @@ export async function initCommand(options: InitOptions = {}) {
   } else {
     apisContent = `  apis: {\n`;
     apisContent += `    default: {\n`;
-    apisContent += `      providerDir: ${JSON.stringify(finalProviderDir)},\n`;
     apisContent += `      openapiUrl: ${JSON.stringify(finalOpenapiUrl || "")},\n`;
     apisContent += `    }\n`;
     apisContent += `  },\n`;
   }
 
-  const configContent = `/** @type {import('specshot').SpecshotConfig} */
+  const existingTemplateData = (config && config.templateData) || {};
+  const mergedTemplateData = { ...existingTemplateData, ...templateDataAnswers };
+  const tdKeys = Object.keys(mergedTemplateData);
+  const tdStr =
+    tdKeys.length > 0
+      ? JSON.stringify(mergedTemplateData, null, 4).replace(/\n/g, "\n  ")
+      : "{}";
+
+  // Generate multi-line JSDoc typedef + @type
+  const typedefBlock = generateJSDocTypeDef(selectedPreset);
+  const jsdocType = generateTypeFile(selectedPreset);
+
+  const configContent = `${typedefBlock}
+/** @type {${jsdocType}} */
 export default {
-  coreDir: ${JSON.stringify(finalCoreDir)},
-  integration: ${JSON.stringify(finalIntegration)},
-  interceptors: ${JSON.stringify(selectedInterceptors)},
-${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : ""}${apisContent}
-  // Custom Plugins for Faker Mock Data
-  plugins: [
-    // {
-    //   name: "example-plugin",
-    //   resolveFaker(context) {
-    //     // Custom logic to return a mock value
-    //   }
-    // }
-  ],
+  preset: ${JSON.stringify(selectedPreset)},
+${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : ""}${apisContent}  templateData: ${tdStr},
 };
 `;
+
   fs.writeFileSync(
-    path.resolve(process.cwd(), DEFAULT_CONFIG_FILE),
+    path.resolve(cwd, DEFAULT_CONFIG_FILE),
     configContent,
   );
-
   console.log(chalk.green(`\n✔ Config written to ${DEFAULT_CONFIG_FILE}`));
+
   console.log(chalk.cyan(`\nNext steps:`));
   console.log(
-    `  Run ${chalk.cyan("npx specshot generate")} to generate your API code.\n`,
+    `  Run ${chalk.cyan("npx specshot generate")} to scaffold and generate your API code.\n`,
   );
 }

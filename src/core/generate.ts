@@ -16,28 +16,18 @@ import {
   cleanRefName,
   extractRefs,
   schemaToTsType,
-  schemaToZod,
   resolveSchemaOwnership,
 } from "./schema-parser";
-import {
-  toClassName,
-  capitalize,
-  toCamelCase,
-  toMethodName,
-} from "../utils/naming-utils";
-import {
-  extractCustomCode,
-  compileTemplate,
-  writeGenerated,
-  resolveTemplatePath,
-} from "../utils/file-writer";
+import { toClassName, capitalize, toCamelCase, toMethodName } from "../utils/naming-utils";
 import { loadSpec } from "./spec-loader";
-import { loadUserConfig, relModulePath, computeCorePath, renderFileName } from "./config-loader";
-import type { TemplateOverrides, OutputPaths, FileNaming } from "./config-loader";
+import { loadUserConfig } from "./config-loader";
+import type { TemplateOverrides } from "./config-loader";
+import { getRegistry } from "./template-registry";
 import { formatGeneratedFiles } from "../utils/formatter";
+import { renderTemplates } from "./renderer";
+import { extractCustomCode } from "../utils/file-writer";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { generateMswHandlers } from "./msw-generator";
-import { generateProviderIndex } from "./provider-index-generator";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,13 +41,11 @@ export async function generateApi(
     dryRun?: boolean;
     configPath?: string;
     msw?: boolean;
-    mswOutputDir?: string;
     mswEndpointFilter?: Set<string>;
     mswEndpointConfigs?: Record<string, MockEndpointEntry>;
-    interceptorsDir?: string;
     mswOnly?: boolean;
-    outputPaths?: OutputPaths;
-    fileNaming?: FileNaming;
+    preset?: string;
+    templateData?: Record<string, unknown>;
   },
 ) {
   const userConfig = await loadUserConfig(process.cwd());
@@ -69,20 +57,13 @@ export async function generateApi(
     );
   }
 
-  if (opts?.dryRun) {
-    return Object.keys(spec.paths).length;
-  }
-
-  // Resolve which schemas are shared (models.ts) vs tag-local
   const schemas = spec.components?.schemas || {};
   const { sharedSchemas, tagSchemas } = resolveSchemaOwnership(spec);
 
-  let defaultTemplatesDir = path.join(__dirname, "../../templates/generator");
-  if (
-    !fs.existsSync(defaultTemplatesDir) ||
-    !fs.existsSync(path.join(defaultTemplatesDir, "models.hbs"))
-  ) {
-    defaultTemplatesDir = path.join(__dirname, "../templates/generator");
+  const preset = opts?.preset || userConfig.preset || "class";
+  let defaultTemplatesDir = path.join(__dirname, `../../templates/presets/${preset}/repeatable/generator`);
+  if (!fs.existsSync(defaultTemplatesDir)) {
+    defaultTemplatesDir = path.join(__dirname, `../templates/presets/${preset}/repeatable/generator`);
   }
 
   const tplConfig: TemplateOverrides =
@@ -94,111 +75,43 @@ export async function generateApi(
     ? path.resolve(process.cwd(), tplConfig.dir)
     : undefined;
 
-  const perFile = {
-    models: tplConfig.models
-      ? path.resolve(process.cwd(), tplConfig.models)
-      : undefined,
-    types: tplConfig.types
-      ? path.resolve(process.cwd(), tplConfig.types)
-      : undefined,
-    service: tplConfig.service
-      ? path.resolve(process.cwd(), tplConfig.service)
-      : undefined,
-    index: tplConfig.index
-      ? path.resolve(process.cwd(), tplConfig.index)
-      : undefined,
-    "interceptors-index": tplConfig["interceptors-index"]
-      ? path.resolve(process.cwd(), tplConfig["interceptors-index"])
-      : undefined,
-  };
-
-  // ── Resolve custom output directories ──
-  const providerDir = path.dirname(outputDir);
-  const modelsDir = opts?.outputPaths?.models
-    ? path.resolve(process.cwd(), opts.outputPaths.models)
-    : outputDir;
-  const typesDir = opts?.outputPaths?.types
-    ? path.resolve(process.cwd(), opts.outputPaths.types)
-    : outputDir;
-  const servicesDir = opts?.outputPaths?.services
-    ? path.resolve(process.cwd(), opts.outputPaths.services)
-    : outputDir;
-  const indexDir = opts?.outputPaths?.index
-    ? path.resolve(process.cwd(), opts.outputPaths.index)
-    : providerDir;
-
-  for (const dir of [modelsDir, typesDir, servicesDir, indexDir]) {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  }
-
-  // Only create outputDir if it's actually used (no custom override for that type)
-  const usesOutputDir = !opts?.outputPaths?.models || !opts?.outputPaths?.types || !opts?.outputPaths?.services;
-  if (usesOutputDir && !fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-
-  // ── Resolve file names (with optional naming templates) ──
-  const modelsFileName = renderFileName(
-    opts?.fileNaming?.models,
-    "models.ts",
-    {},
-  );
-  const modelsNoExt = modelsFileName.replace(/\.ts$/, "");
-
-  // ── Compute relative module paths for cross-file imports ──
-  const modelsModulePath = relModulePath(typesDir, modelsDir, modelsNoExt);
-  const serviceModelsModulePath = relModulePath(servicesDir, modelsDir, modelsNoExt);
-  const serviceProviderTypesPath = relModulePath(servicesDir, providerDir, "types");
-  const indexProviderTypesPath = relModulePath(indexDir, providerDir, "types");
-  const indexClientPath = relModulePath(indexDir, providerDir, "client");
-  const indexHooksPath = relModulePath(indexDir, providerDir, "hooks");
-  const indexServiceDir = relModulePath(indexDir, servicesDir, "");
-  const indexCorePath = computeCorePath(indexDir, providerDir, importAlias, userConfig.coreDir);
-  const servicesCorePath = computeCorePath(servicesDir, providerDir, importAlias, userConfig.coreDir);
-
-  // GENERATE SHARED MODELS (models.ts)
-  const modelsPath = path.join(modelsDir, modelsFileName);
-  const modelsCustomCode = extractCustomCode(modelsPath);
-
-  if (!opts?.mswOnly) {
-    const modelsData = {
-      schemas: Array.from(sharedSchemas).map((name) => {
-        const schemaKey = Object.keys(schemas).find(
-          (k) => cleanRefName(k) === name,
-        );
-        return {
-          name,
-          zod: schemaKey ? schemaToZod(schemas[schemaKey]) : "z.any()",
-          tsType: schemaKey ? schemaToTsType(schemas[schemaKey]) : "unknown",
-        };
-      }),
-      customCode: modelsCustomCode,
-    };
-
-    const modelsTemplate = compileTemplate(
-      resolveTemplatePath(
-        "models.hbs",
-        overrideDir,
-        defaultTemplatesDir,
-        perFile.models,
-      ),
-    );
-    writeGenerated(modelsPath, modelsTemplate(modelsData));
-    console.log(`Generated ${modelsFileName} (Shared Models)`);
-
-    const schemaAliases = modelsData.schemas
-      .map((s) => `export const ${s.name}Schema = ${s.name};`)
-      .join("\n");
-    if (schemaAliases) {
-      fs.appendFileSync(modelsPath, `\n${schemaAliases}\n`);
+  // ── Dry-run: just validate templates ──
+  if (opts?.dryRun) {
+    const endpointCount = Object.keys(spec.paths).length;
+    let validatedCount = 0;
+    const tplDir = overrideDir || defaultTemplatesDir;
+    if (fs.existsSync(tplDir)) {
+      const entries = fs.readdirSync(tplDir, { recursive: true, withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.endsWith(".hbs") && !entry.name.startsWith("_")) {
+          validatedCount++;
+        }
+      }
     }
+    if (opts?.msw) {
+      let mswTplDir = path.join(__dirname, `../../templates/presets/${preset}/repeatable/msw`);
+      if (!fs.existsSync(mswTplDir)) {
+        mswTplDir = path.join(__dirname, `../templates/presets/${preset}/repeatable/msw`);
+      }
+      const mswOverrideDir = overrideDir ? path.join(overrideDir, "msw") : undefined;
+      const checkDir = mswOverrideDir || mswTplDir;
+      if (fs.existsSync(checkDir)) {
+        const entries = fs.readdirSync(checkDir, { recursive: true, withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isFile() && entry.name.endsWith(".hbs") && !entry.name.startsWith("_")) validatedCount++;
+        }
+      }
+    }
+    console.log(`  Templates validated: ${validatedCount} templates`);
+    return endpointCount;
   }
 
-  // Group paths by tags
-  const services: Record<string, ServiceGroup> = {};
+  // ── Ensure output directory exists (renderer creates subdirs as needed) ──
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-  for (const [pathUrl, methods] of Object.entries(spec.paths) as [
-    string,
-    Record<string, OpenApiOperation>,
-  ][]) {
+  // ── Group paths by tags ──
+  const services: Record<string, ServiceGroup> = {};
+  for (const [pathUrl, methods] of Object.entries(spec.paths) as [string, Record<string, OpenApiOperation>][]) {
     for (const [method, operation] of Object.entries(methods)) {
       if (!operation.tags || operation.tags.length === 0) continue;
       const tag = operation.tags[0];
@@ -213,27 +126,28 @@ export async function generateApi(
         hasBody: !!operation.requestBody,
         hasQuery: !!operation.parameters?.some((p) => p.in === "query"),
         hasPathParams: !!operation.parameters?.some((p) => p.in === "path"),
-        responseSchema:
-          operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema,
+        responseSchema: operation.responses?.[HTTP_OK]?.content?.[JSON_CONTENT_TYPE]?.schema,
         bodySchema: operation.requestBody?.content?.[JSON_CONTENT_TYPE]?.schema,
       });
     }
   }
 
+  // ── Build per-tag data and shared models data ──
+  const sharedModelsData: { name: string; zod: string; tsType: string }[] = [];
+  for (const name of sharedSchemas) {
+    const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
+    sharedModelsData.push({
+      name,
+      zod: schemaKey ? schemaToTsType(schemas[schemaKey]) : "z.any()",
+      tsType: schemaKey ? schemaToTsType(schemas[schemaKey]) : "unknown",
+    });
+  }
+
+  const tagsData: Record<string, unknown>[] = [];
+
   for (const [tag, data] of Object.entries(services)) {
     const className = toClassName(tag);
     const tagPrefix = tag.toLowerCase();
-    const namingContext = { tag, tagPrefix, className };
-    const serviceFileName = renderFileName(
-      opts?.fileNaming?.service,
-      `${tagPrefix}.service.ts`,
-      namingContext,
-    );
-    const typesFileName = renderFileName(
-      opts?.fileNaming?.types,
-      `${tagPrefix}.types.ts`,
-      namingContext,
-    );
 
     const modelsToImport = new Set<string>();
     const specificSchemasList: { name: string; zod: string; tsType: string }[] = [];
@@ -241,16 +155,14 @@ export async function generateApi(
 
     if (specificSchemas.size > 0) {
       for (const name of specificSchemas) {
-        const schemaKey = Object.keys(schemas).find(
-          (k) => cleanRefName(k) === name,
-        );
+        const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === name);
         if (schemaKey) {
           const nested = extractRefs(schemas[schemaKey]);
           for (const n of nested)
             if (sharedSchemas.has(n)) modelsToImport.add(n);
           specificSchemasList.push({
             name,
-            zod: schemaToZod(schemas[schemaKey]),
+            zod: schemaToTsType(schemas[schemaKey]),
             tsType: schemaToTsType(schemas[schemaKey]),
           });
         }
@@ -280,11 +192,7 @@ export async function generateApi(
       }
 
       let typeNameParams: string | null = null;
-      const queryParamsList: {
-        name: string;
-        required: boolean | undefined;
-        tsType: string;
-      }[] = [];
+      const queryParamsList: { name: string; required: boolean | undefined; tsType: string }[] = [];
       if (op.hasQuery) {
         typeNameParams = `${capTag}${capMethod}Params`;
         typeNames.push(typeNameParams);
@@ -305,9 +213,7 @@ export async function generateApi(
         let refName = cleanRefName(op.responseSchema.$ref);
         if (refName !== RESPONSE_BODY_STRUCT) {
           if (refName.startsWith(RESPONSE_BODY_PREFIX)) {
-            const schemaKey = Object.keys(schemas).find(
-              (k) => cleanRefName(k) === refName,
-            );
+            const schemaKey = Object.keys(schemas).find((k) => cleanRefName(k) === refName);
             const wrapperSchema = schemaKey ? schemas[schemaKey] : undefined;
             if (wrapperSchema?.properties?.data?.$ref) {
               refName = cleanRefName(wrapperSchema.properties.data.$ref);
@@ -315,11 +221,7 @@ export async function generateApi(
               refName = schemaToTsType(wrapperSchema.properties.data);
             }
           }
-          if (
-            refName &&
-            !refName.includes("{") &&
-            !["string", "number", "boolean"].includes(refName)
-          ) {
+          if (refName && !refName.includes("{") && !["string", "number", "boolean"].includes(refName)) {
             if (sharedSchemas.has(refName)) modelsToImport.add(refName);
           }
           resType = refName || "void";
@@ -340,7 +242,6 @@ export async function generateApi(
           pathParamsList.push({ original: p.name, safe: toCamelCase(p.name) });
         }
       }
-
       if (op.hasQuery)
         configType = `Omit<AppRequestConfig, "params"> & { params?: ${typeNameParams} }`;
 
@@ -372,150 +273,80 @@ export async function generateApi(
       });
     }
 
-    if (!opts?.mswOnly) {
-      const typesPath = path.join(typesDir, typesFileName);
-      const typesCustomCode = extractCustomCode(typesPath);
-
-      const typesData = {
-        tag,
-        imports: Array.from(modelsToImport),
-        specificSchemas: specificSchemasList,
-        operations: operationsList,
-        customCode: typesCustomCode,
-        modelsModulePath,
-      };
-
-      const typesTemplate = compileTemplate(
-        resolveTemplatePath(
-          "types.hbs",
-          overrideDir,
-          defaultTemplatesDir,
-          perFile.types,
-        ),
-      );
-      writeGenerated(typesPath, typesTemplate(typesData));
-      console.log(`Generated ${typesFileName}`);
-
-      const servicePath = path.join(servicesDir, serviceFileName);
-      const serviceCustomCode = extractCustomCode(servicePath);
-
-      const typesModulePath = relModulePath(servicesDir, typesDir, typesFileName.replace(/\.ts$/, ""));
-
-      const serviceData = {
-        className,
-        tagPrefix,
-        tagLowerCase: tagPrefix,
-        exportsToReExport: [...Array.from(specificSchemas), ...typeNames],
-        operations: operationsList,
-        corePath: servicesCorePath,
-        customCode: serviceCustomCode,
-        typesModulePath,
-        serviceProviderTypesPath,
-        modelsModulePath: serviceModelsModulePath,
-      };
-
-      const serviceTemplate = compileTemplate(
-        resolveTemplatePath(
-          "service.hbs",
-          overrideDir,
-          defaultTemplatesDir,
-          perFile.service,
-        ),
-      );
-      writeGenerated(servicePath, serviceTemplate(serviceData));
-      console.log(`Generated ${serviceFileName}`);
-    }
-  }
-
-  // -- MSW handler generation --
-  if (opts?.msw) {
-    const mswDir =
-      opts.mswOutputDir || path.join(providerDir, "msw", "handlers");
-
-    let defaultMswTemplatesDir = path.join(__dirname, "../../templates/msw");
-    if (
-      !fs.existsSync(defaultMswTemplatesDir) ||
-      !fs.existsSync(path.join(defaultMswTemplatesDir, "handlers.hbs"))
-    ) {
-      defaultMswTemplatesDir = path.join(__dirname, "../templates/msw");
-    }
-
-    const mswOverrideDir = overrideDir
-      ? path.join(overrideDir, "msw")
-      : undefined;
-
-    const mswPerFile = {
-      handlers: tplConfig.msw?.handlers
-        ? path.resolve(process.cwd(), tplConfig.msw.handlers)
-        : undefined,
-      index: tplConfig.msw?.index
-        ? path.resolve(process.cwd(), tplConfig.msw.index)
-        : undefined,
-      browser: tplConfig.msw?.browser
-        ? path.resolve(process.cwd(), tplConfig.msw.browser)
-        : undefined,
-    };
-
-    generateMswHandlers(
-      spec,
-      services,
-      schemas,
-      mswDir,
-      defaultMswTemplatesDir,
-      {
-        mswEndpointFilter: opts.mswEndpointFilter,
-        mswEndpointConfigs: opts.mswEndpointConfigs,
-        fakerPlugins: userConfig.fakerPlugins,
-        providerDir,
-        typesDir,
-        templatesOverride: mswOverrideDir,
-        perFile: mswPerFile,
-      },
-    );
-  }
-
-  // -- Provider index generation --
-  if (!opts?.mswOnly) {
-    const interceptorsDir = opts?.interceptorsDir
-      ? path.resolve(process.cwd(), opts.interceptorsDir)
-      : path.join(providerDir, "interceptors");
-
-    // Build map of tag → service file name (without extension) for index template
-    const serviceFileNames: Record<string, string> = {};
-    for (const tag of Object.keys(services)) {
-      const tagPrefix = tag.toLowerCase();
-      const namingCtx = { tag, tagPrefix, className: toClassName(tag) };
-      const sfName = renderFileName(
-        opts?.fileNaming?.service,
-        `${tagPrefix}.service.ts`,
-        namingCtx,
-      );
-      serviceFileNames[tag] = sfName.replace(/\.ts$/, "");
-    }
-
-    generateProviderIndex({
-      providerDir,
-      indexDir,
-      interceptorsDir,
-      templatesDir: defaultTemplatesDir,
-      templatesOverride: overrideDir,
-      perFile,
-      corePathStr: indexCorePath,
-      services,
-      indexProviderTypesPath,
-      indexClientPath,
-      indexHooksPath,
-      indexServiceDir,
-      servicesDir,
-      serviceFileNames,
+    tagsData.push({
+      name: tag,
+      tag: tagPrefix,
+      tagPrefix,
+      className,
+      imports: Array.from(modelsToImport),
+      specificSchemas: specificSchemasList,
+      operations: operationsList,
+      tagLowerCase: tagPrefix,
+      exportsToReExport: [...Array.from(specificSchemas), ...typeNames],
     });
   }
 
-  // Format all directories that may contain generated files
-  const formatDirs = [...new Set([modelsDir, typesDir, servicesDir, indexDir, providerDir])];
-  for (const dir of formatDirs) {
-    await formatGeneratedFiles(dir);
+  // ── Build template data ──
+  const renderData: Record<string, unknown> = {
+    ...userConfig.templateData,
+    ...opts?.templateData,
+    tags: tagsData,
+    sharedSchemas: sharedModelsData,
+    outputDir: path.relative(process.cwd(), outputDir),
+    importAlias,
+    modelImports: [] as string[],
+    schemas: sharedModelsData,
+  };
+
+  // ── Render templates ──
+  let renderDir = overrideDir || defaultTemplatesDir;
+  if (overrideDir) {
+    const entries = fs.readdirSync(overrideDir, { recursive: true, withFileTypes: true });
+    const hasHbs = entries.some((e) => e.isFile() && e.name.endsWith(".hbs"));
+    if (!hasHbs) renderDir = defaultTemplatesDir;
+  }
+  renderTemplates({
+    templateDir: renderDir,
+    data: renderData,
+    defaultTarget: path.relative(process.cwd(), outputDir),
+    enhanceData: ({ outputPath }) => {
+      const custom = extractCustomCode(outputPath);
+      return custom !== null ? { customCode: custom } : {};
+    },
+  });
+
+  // -- MSW handler generation --
+  if (opts?.msw) {
+    const mswDir = path.join(path.dirname(outputDir), "msw", "handlers");
+    let defaultMswTemplatesDir = path.join(__dirname, `../../templates/presets/${preset}/repeatable/msw`);
+    if (!fs.existsSync(defaultMswTemplatesDir)) {
+      defaultMswTemplatesDir = path.join(__dirname, `../templates/presets/${preset}/repeatable/msw`);
+    }
+
+    generateMswHandlers(spec, services, schemas, mswDir, defaultMswTemplatesDir, {
+      mswEndpointFilter: opts.mswEndpointFilter,
+      mswEndpointConfigs: opts.mswEndpointConfigs,
+      fakerPlugins: userConfig.fakerPlugins,
+      servicesDir: outputDir,
+      typesDir: outputDir,
+      templatesOverride: overrideDir ? path.join(overrideDir, "msw") : undefined,
+      perFile: Object.fromEntries(
+        getRegistry(preset)
+          .filter((t) => t.group === "msw" && t.configKey)
+          .map((t) => {
+            const override = tplConfig[t.configKey!];
+            return [t.file, override ? path.resolve(process.cwd(), override) : undefined];
+          })
+      ),
+    });
+  }
+
+  // ── Format generated files (scan outputDir tree for generated .ts files) ──
+  await formatGeneratedFiles(outputDir);
+  if (opts?.msw) {
+    await formatGeneratedFiles(path.join(path.dirname(outputDir), "msw"));
   }
 
   console.log(`\nSmart generation complete!`);
 }
+

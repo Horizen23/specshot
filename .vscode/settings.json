@@ -1,0 +1,12 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["specshot.config.json", "specshot.json"],
+      "url": "./schemas/specshot.config.schema.json"
+    }
+  ],
+  "json.validate.enable": true,
+  "files.associations": {
+    "*.hbs": "handlebars"
+  }
+}

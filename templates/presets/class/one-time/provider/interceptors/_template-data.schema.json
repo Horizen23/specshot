@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Interceptor Plugins Variables",
+  "description": "Controls which interceptor plugin files are generated",
+  "type": "object",
+  "properties": {
+    "pluginNames": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["bearer", "logger"] },
+      "default": [],
+      "description": "List of interceptor plugins to generate"
+    }
+  },
+  "required": []
+}

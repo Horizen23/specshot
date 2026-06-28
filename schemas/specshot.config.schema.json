@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://specshot.dev/config.schema.json",
+  "title": "SpecShot Configuration",
+  "description": "Configuration for SpecShot — OpenAPI to TypeScript code generator",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema URL for autocompletion"
+    },
+    "templateData": {
+      "type": "object",
+      "description": "Arbitrary data passed to all templates — template-specific fields like coreDir, integration, interceptors go here",
+      "additionalProperties": true
+    },
+    "alias": {
+      "type": "string",
+      "description": "Import alias prefix (e.g. @/lib/api)",
+      "examples": ["@/lib/api", "@/api"]
+    },
+    "preset": {
+      "type": "string",
+      "enum": ["class", "functional", "zod-functional"],
+      "description": "Built-in template preset",
+      "default": "class"
+    },
+    "templates": {
+      "description": "Custom templates — directory path or per-file object",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Directory path containing .hbs files (partial override with fallback)"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "dir": {
+              "type": "string",
+              "description": "Directory path for template override"
+            },
+            "models": {
+              "type": "string",
+              "description": "Path to custom models.hbs"
+            },
+            "types": {
+              "type": "string",
+              "description": "Path to custom types.hbs"
+            },
+            "service": {
+              "type": "string",
+              "description": "Path to custom service.hbs"
+            },
+            "index": {
+              "type": "string",
+              "description": "Path to custom index.hbs"
+            },
+            "interceptors-index": {
+              "type": "string",
+              "description": "Path to custom interceptors-index.hbs"
+            },
+            "msw": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "dir": {
+                  "type": "string",
+                  "description": "Directory path for MSW template override"
+                },
+                "handlers": {
+                  "type": "string",
+                  "description": "Path to custom MSW handlers.hbs"
+                },
+                "index": {
+                  "type": "string",
+                  "description": "Path to custom MSW index.hbs"
+                },
+                "browser": {
+                  "type": "string",
+                  "description": "Path to custom MSW browser.hbs"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "mswOutputDir": {
+      "type": "string",
+      "description": "Output directory for MSW handlers"
+    },
+    "fakerPlugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "match", "generate"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Plugin name"
+          },
+          "match": {
+            "type": "object",
+            "description": "Match function — receives { path, schema }",
+            "additionalProperties": true
+          },
+          "generate": {
+            "type": "object",
+            "description": "Generate function — receives (faker, context)",
+            "additionalProperties": true
+          }
+        }
+      },
+      "description": "Custom Faker.js plugins for mock data generation"
+    },
+    "apis": {
+      "type": "object",
+      "description": "API definitions — each entry generates a separate set of services",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["openapiUrl"],
+        "properties": {
+          "openapiUrl": {
+            "type": "string",
+            "description": "OpenAPI spec URL or local file path"
+          },
+          "providerDir": {
+            "type": "string",
+            "description": "Provider directory (where client.ts, interceptors, and services live)"
+          },
+          "mswOutputDir": {
+            "type": "string",
+            "description": "Per-API MSW output directory"
+          },
+          "outputPaths": {
+            "type": "object",
+            "description": "Custom output paths for generated files",
+            "additionalProperties": false,
+            "properties": {
+              "models": {
+                "type": "string",
+                "description": "Output directory for models (e.g. src/models)"
+              },
+              "services": {
+                "type": "string",
+                "description": "Output directory for services (e.g. src/services)"
+              },
+              "types": {
+                "type": "string",
+                "description": "Output directory for types (e.g. src/types)"
+              },
+              "index": {
+                "type": "string",
+                "description": "Output directory for index (e.g. src/api)"
+              }
+            }
+          },
+          "fileNaming": {
+            "type": "object",
+            "description": "Custom file naming (supports Handlebars helpers)",
+            "additionalProperties": false,
+            "properties": {
+              "models": {
+                "type": "string",
+                "description": "File name for models (default: models)\nSupports: {{pascalCase tag}}, {{camelCase tag}}, etc.",
+                "default": "models"
+              },
+              "service": {
+                "type": "string",
+                "description": "File name for services (default: {{tag}}.service)\nSupports: {{pascalCase tag}}, {{camelCase tag}}, etc.",
+                "default": "{{tag}}.service",
+                "examples": ["{{pascalCase tag}}Service"]
+              },
+              "types": {
+                "type": "string",
+                "description": "File name for types (default: {{tag}}.types)\nSupports: {{pascalCase tag}}, {{camelCase tag}}, etc.",
+                "default": "{{tag}}.types",
+                "examples": ["{{pascalCase tag}}Types"]
+              },
+              "index": {
+                "type": "string",
+                "description": "File name for index (default: index)",
+                "default": "index"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

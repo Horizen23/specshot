@@ -1,22 +1,26 @@
-/** @type {import('specshot').SpecshotConfig} */
+/**
+ * @typedef {Object} SpecshotTemplateData
+ * @property {"react-query" | "swr" | "none"} [hook] - Which hooks framework to scaffold: 'react-query', 'swr', or 'none'
+ * @property {("bearer" | "logger")[]} [pluginNames] - List of interceptor plugins to generate
+ */
+/**
+ * @typedef {Object} SpecshotTemplateOverrides
+ * @property {string} [dir]
+ * @property {string} [msw-handlers]
+ * @property {string} [plugins-index]
+ * @property {string} [service]
+ * @property {string} [types]
+ */
+/** @type {import('specshot').SpecshotConfig<TemplateData, Overrides>} */
 export default {
-  coreDir: "src/lib/api/core",
-  integration: "none",
-  interceptors: [],
+  preset: "class",
   apis: {
-    petstore: {
-      providerDir: "src/lib/api/petstore",
+    "petstore": {
       openapiUrl: "./openapi.json",
-    }
+    },
   },
-
-  // Custom Plugins for Faker Mock Data
-  plugins: [
-    // {
-    //   name: "example-plugin",
-    //   resolveFaker(context) {
-    //     // Custom logic to return a mock value
-    //   }
-    // }
-  ],
+  templateData: {
+      "hook": "none",
+      "pluginNames": []
+  },
 };

@@ -50,10 +50,6 @@ export async function mockCommand(options: {
       options.file = firstApi.openapiUrl;
     }
   }
-  if (!options.output && firstApi?.providerDir) {
-    options.output = path.join(firstApi.providerDir, "services");
-  }
-
   if (options.web) {
     await startMockWebServer({
       url: options.url,
@@ -247,14 +243,7 @@ export async function mockCommand(options: {
     }
   }
 
-  const defaultOutput =
-    existingMockConfig.outputDir ||
-    path.join(
-      (config.apis && Object.values(config.apis)[0]?.providerDir) ||
-        "src/lib/api/default",
-      "msw",
-      "handlers",
-    );
+  const defaultOutput = existingMockConfig.outputDir || "";
 
   const { outputDir } = await inquirer.prompt([
     {
@@ -292,16 +281,12 @@ export async function mockCommand(options: {
   const genSpinner = ora("Generating MSW handlers...").start();
 
   try {
-    // Determine providerDir (parent of services dir)
-    const providerDirFromOutput = path.dirname(path.dirname(resolvedOutputDir));
-
-    // We need to generate services first (or at minimum the types) because MSW handlers reference them.
-    // For the mock command, we generate services into a temp location alongside msw output.
-    const servicesDir = path.join(providerDirFromOutput, "services");
+    // Derive services directory from the MSW output parent
+    const mswParent = path.dirname(path.dirname(resolvedOutputDir));
+    const servicesDir = path.join(mswParent, "services");
 
     await generateApi(specSource, servicesDir, undefined, undefined, {
       msw: true,
-      mswOutputDir: resolvedOutputDir,
       mswEndpointFilter: selectedSet,
       mswEndpointConfigs: mockConfig.endpoints,
     });

@@ -29,9 +29,14 @@ describe("F4 Mocking Engine (mock command server)", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  function writeConfig(config: Record<string, unknown>) {
+    const content = `export default ${JSON.stringify(config, null, 2)};\n`;
+    fs.writeFileSync(path.join(tmpDir, "specshot.config.mjs"), content);
+  }
+
   function startEngine(
     port: number,
-    webPort: number,
+    _webPort: number,
     file: string,
     cwd: string,
   ): Promise<{ process: ChildProcess; url: string }> {
@@ -43,7 +48,7 @@ describe("F4 Mocking Engine (mock command server)", () => {
           "mock",
           "--web",
           "--port",
-          webPort.toString(),
+          port.toString(),
           "--file",
           file,
         ],
@@ -60,7 +65,7 @@ describe("F4 Mocking Engine (mock command server)", () => {
         cp.kill("SIGKILL");
         reject(
           new Error(
-            `Timeout waiting for mock engine to start on webPort ${webPort}`,
+            `Timeout waiting for mock engine to start on port ${port}`,
           ),
         );
       }, 8000);
@@ -72,18 +77,30 @@ describe("F4 Mocking Engine (mock command server)", () => {
           const dashboardUrl = match ? match[0] : `http://localhost:3456`;
 
           try {
+            // Mock server starts automatically with --web; just verify it's running
             const res = await fetch(`${dashboardUrl}/api/mock-server`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "start", port }),
+              method: "GET",
             });
             const data = (await res.json()) as any;
-            if (data.ok) {
-              resolve({ process: cp, url: `http://localhost:${port}` });
+            if (data.running) {
+              const actualPort = data.port || port;
+              resolve({ process: cp, url: `http://localhost:${actualPort}` });
             } else {
-              reject(
-                new Error("Failed to start mock server via dashboard API"),
-              );
+              // Try starting it via API if not auto-started
+              const startRes = await fetch(`${dashboardUrl}/api/mock-server`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "start", port }),
+              });
+              const startData = (await startRes.json()) as any;
+              if (startData.ok) {
+                const actualPort = startData.port || port;
+                resolve({ process: cp, url: `http://localhost:${actualPort}` });
+              } else {
+                reject(
+                  new Error("Failed to start mock server via dashboard API"),
+                );
+              }
             }
           } catch (e) {
             reject(e);
@@ -220,23 +237,19 @@ describe("F4 Mocking Engine (mock command server)", () => {
   // Test 6 (Tier 3 Cross-Feature Flow)
   it("should execute end-to-end scaffolding and code generation flow", async () => {
     // 1. Init
-    const initRes = await runCli(
-      [
-        "init",
-        "--core-dir",
-        "src/core",
-        "--provider-dir",
-        "src/prov",
-        "--integration",
-        "react-query",
-        "--interceptors",
-        "bearer",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
-    expect(initRes.code).toBe(0);
+    writeConfig({
+      apis: {
+        petstore: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "src/core",
+        outDir: "src/prov",
+        hook: "react-query",
+        pluginNames: ["bearer"],
+      },
+    });
 
     // 2. Generate
     const genRes = await runCli(
@@ -255,22 +268,19 @@ describe("F4 Mocking Engine (mock command server)", () => {
 
   // Test 7 (Tier 3 Cross-Feature Flow)
   it("should persist interactive mock choices in specshot.mocks.json configuration", async () => {
-    await runCli(
-      [
-        "init",
-        "--core-dir",
-        "src/core",
-        "--provider-dir",
-        "src/prov",
-        "--integration",
-        "none",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        petstore: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "src/core",
+        outDir: "src/prov",
+        hook: "none",
+        pluginNames: [],
+      },
+    });
 
     const mockConfig = {
       endpoints: {
@@ -300,29 +310,26 @@ describe("F4 Mocking Engine (mock command server)", () => {
 
   // Test 8 (Tier 3 Cross-Feature Flow)
   it("should generate code with correct MSW setup and serve active mocked endpoints", async () => {
-    await runCli(
-      [
-        "init",
-        "--core-dir",
-        "core",
-        "--provider-dir",
-        "prov",
-        "--integration",
-        "none",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        petstore: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "core",
+        outDir: "prov",
+        hook: "none",
+        pluginNames: [],
+      },
+    });
 
     await runCli(
       ["generate", "--file", fixturePath, "--output", "prov/services", "--msw"],
       { cwd: tmpDir },
     );
 
-    // MSW index handlers generated in providerDir/msw/handlers.ts
+    // MSW index handlers generated in prov/msw/handlers/index.ts
     expect(fs.existsSync(path.join(tmpDir, "prov/msw/handlers/index.ts"))).toBe(
       true,
     );

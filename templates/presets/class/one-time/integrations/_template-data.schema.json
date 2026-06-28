@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Integrations Variables",
+  "description": "Controls which hooks integration (react-query, SWR, none) is scaffolded",
+  "type": "object",
+  "properties": {
+    "hook": {
+      "type": "string",
+      "enum": ["react-query", "swr", "none"],
+      "default": "none",
+      "description": "Which hooks framework to scaffold: 'react-query', 'swr', or 'none'"
+    }
+  },
+  "required": []
+}

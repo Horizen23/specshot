@@ -5,6 +5,7 @@ import os from "os";
 import Handlebars from "handlebars";
 import { fileURLToPath } from "url";
 import { program } from "../cli/cli.js";
+import { registerNamingHelpers } from "../utils/file-writer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +16,10 @@ const fixturePath = path.join(
   "petstore.json",
 );
 const fixture = fs.readFileSync(fixturePath, "utf8");
+
+beforeAll(() => {
+  registerNamingHelpers();
+});
 
 describe("CLI", () => {
   it("should have correct name and description", () => {
@@ -84,9 +89,7 @@ describe("CLI", () => {
       fs.mkdirSync(outputDir, { recursive: true });
       fs.writeFileSync(
         configPath,
-        JSON.stringify({
-          providerDir: path.join(tmpDir, "custom-provider"),
-        }),
+        JSON.stringify({}),
       );
 
       await program.parseAsync([
@@ -335,21 +338,23 @@ describe("CLI", () => {
       )._optionValues = {};
     });
 
-    it("should read openapiUrl and providerDir from config", async () => {
+    it("should read openapiUrl and outputPaths from config", async () => {
       const tmpDir = path.join(
         os.tmpdir(),
         `specshot-cli-config-url-${Date.now()}`,
       );
-      const providerDir = path.join(tmpDir, "auto-services");
+      const apiDir = path.join(tmpDir, "auto-services");
       const configPath = path.join(tmpDir, "specshot.json");
-      fs.mkdirSync(providerDir, { recursive: true });
+      fs.mkdirSync(apiDir, { recursive: true });
       fs.writeFileSync(
         configPath,
         JSON.stringify({
           apis: {
             default: {
               openapiUrl: fixturePath,
-              providerDir: providerDir,
+              templateData: {
+                outputDir: apiDir,
+              },
             },
           },
         }),
@@ -363,9 +368,8 @@ describe("CLI", () => {
         configPath,
       ]);
 
-      const servicesDir = path.join(providerDir, "services");
-      expect(fs.existsSync(path.join(servicesDir, "models.ts"))).toBe(true);
-      expect(fs.existsSync(path.join(servicesDir, "pets.service.ts"))).toBe(
+      expect(fs.existsSync(path.join(apiDir, "models.ts"))).toBe(true);
+      expect(fs.existsSync(path.join(apiDir, "pets.service.ts"))).toBe(
         true,
       );
 
@@ -420,20 +424,25 @@ describe("CLI", () => {
       fs.mkdirSync(outputDir, { recursive: true });
       fs.mkdirSync(tplDir, { recursive: true });
 
-      fs.writeFileSync(path.join(tplDir, "models.hbs"), `// CLI-TPL models\n`);
-      fs.writeFileSync(
-        path.join(tplDir, "types.hbs"),
+      function writeTpl(subdir: string, tplFile: string, meta: { target: string; name?: string; iterate?: string }, content: string) {
+        const d = path.join(tplDir, subdir);
+        fs.mkdirSync(d, { recursive: true });
+        fs.writeFileSync(path.join(d, "_target.hbs"), meta.target);
+        if (meta.name) fs.writeFileSync(path.join(d, "_name.hbs"), meta.name);
+        if (meta.iterate) fs.writeFileSync(path.join(d, "_iterate.hbs"), meta.iterate);
+        fs.writeFileSync(path.join(d, tplFile), content);
+      }
+      writeTpl("models", "models.hbs", { target: "{{outputDir}}", name: "models.ts" }, `// CLI-TPL models\n`);
+      writeTpl("types-per-tag", "types.hbs",
+        { target: "{{outputDir}}", name: "{{tagPrefix}}.types.ts", iterate: "tags" },
         `// CLI-TPL {{tag}} types\n{{#each operations}}\nexport type {{typeNameResponse}} = void;\n{{/each}}\n// --- CUSTOM CODE START ---\n{{#if customCode}}{{{customCode}}}{{/if}}\n// --- CUSTOM CODE END ---\n`,
       );
-      fs.writeFileSync(
-        path.join(tplDir, "service.hbs"),
+      writeTpl("service-per-tag", "service.hbs",
+        { target: "{{outputDir}}", name: "{{tagPrefix}}.service.ts", iterate: "tags" },
         `// CLI-TPL {{className}} service\nimport { BaseService } from "{{corePath}}/base-service";\n// --- CUSTOM CODE START ---\n{{#if customCode}}{{{customCode}}}{{/if}}\n// --- CUSTOM CODE END ---\n`,
       );
-      fs.writeFileSync(path.join(tplDir, "index.hbs"), `// CLI-TPL index\n`);
-      fs.writeFileSync(
-        path.join(tplDir, "interceptors-index.hbs"),
-        `// CLI-TPL interceptors\n`,
-      );
+      writeTpl("index", "index.hbs", { target: "{{outputDir}}/..", name: "index.ts" }, `// CLI-TPL index\n`);
+      writeTpl("plugins", "plugins-index.hbs", { target: "{{outputDir}}/../plugins", name: "index.ts" }, `// CLI-TPL plugins\n`);
 
       await program.parseAsync([
         "node",
@@ -550,7 +559,7 @@ describe("CLI", () => {
     it("should have react-query hooks template", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
       );
       expect(fs.existsSync(tplPath)).toBe(true);
     });
@@ -558,11 +567,11 @@ describe("CLI", () => {
     it("should compile react-query hooks template to valid TypeScript", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
       );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
-      const result = template({ corePath: "../core" });
+      const result = template({ corePath: "../core", outDir: "src/lib/api/petstore", coreOut: "src/lib/api/core", importAlias: undefined });
 
       // Verify imports
       expect(result).toContain('"@tanstack/react-query"');
@@ -598,11 +607,11 @@ describe("CLI", () => {
     it("should generate queryKey and invalidate helpers on hook methods", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
       );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
-      const result = template({ corePath: "../core" });
+      const result = template({ corePath: "../core", outDir: "src/lib/api/petstore", coreOut: "src/lib/api/core", importAlias: undefined });
 
       // queryKey assignment
       expect(result).toContain("hookFn.queryKey");
@@ -614,11 +623,11 @@ describe("CLI", () => {
     it("should exclude abort/getSignal/withSignal from proxy mapping (same as SWR)", () => {
       const tplPath = path.join(
         __dirname,
-        "../../templates/integrations/react-query/hooks.hbs",
+        "../../templates/presets/class/one-time/integrations/react-query/hooks.hbs",
       );
       const templateStr = fs.readFileSync(tplPath, "utf8");
       const template = Handlebars.compile(templateStr);
-      const result = template({ corePath: "../core" });
+      const result = template({ corePath: "../core", outDir: "src/lib/api/petstore", coreOut: "src/lib/api/core", importAlias: undefined });
 
       expect(result).toContain("abort");
       expect(result).toContain("getSignal");

@@ -46,6 +46,11 @@ describe("F2 Code Generation (generate command)", () => {
     tmpDir = createTmpDir("specshot-codegen-test");
   });
 
+  function writeConfig(config: Record<string, unknown>) {
+    const content = `export default ${JSON.stringify(config, null, 2)};\n`;
+    fs.writeFileSync(path.join(tmpDir, "specshot.config.mjs"), content);
+  }
+
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
@@ -187,21 +192,20 @@ describe("F2 Code Generation (generate command)", () => {
     const customTplDir = path.join(tmpDir, "templates");
     fs.mkdirSync(customTplDir, { recursive: true });
 
-    // Write simple mock templates directly to customTplDir
-    fs.writeFileSync(
-      path.join(customTplDir, "models.hbs"),
-      "// custom models {{version}}",
-    );
-    fs.writeFileSync(path.join(customTplDir, "types.hbs"), "// custom types");
-    fs.writeFileSync(
-      path.join(customTplDir, "service.hbs"),
-      "// custom service",
-    );
-    fs.writeFileSync(
-      path.join(customTplDir, "interceptors-index.hbs"),
-      "// custom interceptors",
-    );
-    fs.writeFileSync(path.join(customTplDir, "index.hbs"), "// custom index");
+    // Build metadata structure matching the default templates
+    function writeTpl(subdir: string, tplFile: string, meta: { target: string; name?: string; iterate?: string }, content: string) {
+      const d = path.join(customTplDir, subdir);
+      fs.mkdirSync(d, { recursive: true });
+      fs.writeFileSync(path.join(d, "_target.hbs"), meta.target);
+      if (meta.name) fs.writeFileSync(path.join(d, "_name.hbs"), meta.name);
+      if (meta.iterate) fs.writeFileSync(path.join(d, "_iterate.hbs"), meta.iterate);
+      fs.writeFileSync(path.join(d, tplFile), content);
+    }
+    writeTpl("models", "models.hbs", { target: "{{outputDir}}", name: "models.ts" }, "// custom models {{version}}");
+    writeTpl("types-per-tag", "types.hbs", { target: "{{outputDir}}", name: "{{tagPrefix}}.types.ts", iterate: "tags" }, "// custom types");
+    writeTpl("service-per-tag", "service.hbs", { target: "{{outputDir}}", name: "{{tagPrefix}}.service.ts", iterate: "tags" }, "// custom service");
+    writeTpl("plugins", "plugins-index.hbs", { target: "{{outputDir}}/../plugins", name: "index.ts" }, "// custom plugins");
+    writeTpl("index", "index.hbs", { target: "{{outputDir}}/..", name: "index.ts" }, "// custom index");
 
     const result = await runCli(
       [
@@ -290,22 +294,19 @@ describe("F2 Code Generation (generate command)", () => {
   it("should generate files with SWR integration provider", async () => {
     const outputDir = path.join(tmpDir, "out");
 
-    await runCli(
-      [
-        "init",
-        "--integration",
-        "swr",
-        "--core-dir",
-        "core",
-        "--provider-dir",
-        "prov",
-        "--interceptors",
-        "none",
-        "--url",
-        "",
-      ],
-      { cwd: tmpDir },
-    );
+    writeConfig({
+      apis: {
+        petstore: {
+          openapiUrl: "",
+        },
+      },
+      templateData: {
+        coreOut: "core",
+        outDir: "prov",
+        hook: "swr",
+        pluginNames: [],
+      },
+    });
 
     const result = await runCli(
       ["generate", "--file", fixturePath, "--output", outputDir],
