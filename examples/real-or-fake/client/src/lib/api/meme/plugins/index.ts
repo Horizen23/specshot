@@ -1,16 +1,16 @@
-import { installLogger } from "../interceptors/logger";
+import { installLogger } from "./logger";
 
 // ==========================================
 // Plugin Registry
 // ==========================================
 
-import type { ApiClientWithPlugins } from "../client";
+import type { ApiClient } from "../../core/api-client";
 
-type PluginInstaller = (client: ApiClientWithPlugins) => void;
+type PluginInstaller = (client: ApiClient) => void;
 const registry: PluginInstaller[] = [];
 registry.push(installLogger);
 
-export function useAllPlugins(client: ApiClientWithPlugins) {
+export function useAllPlugins(client: ApiClient) {
   for (const install of registry) {
     install(client);
   }

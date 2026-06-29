@@ -44,17 +44,25 @@ export type MemesListMemesParams = {
   category?: "news" | "history" | "science" | "pop-culture";
 };
 
-export type MemesListMemesResponse = Meme[];
+export const MemesListMemesResponseSchema = z.array(MemeSchema);
+export type MemesListMemesResponse = z.infer<
+  typeof MemesListMemesResponseSchema
+>;
 
 export type MemesCreateMemePayload = CreateMemeRequest;
 
-export type MemesCreateMemeResponse = void;
+export const MemesCreateMemeResponseSchema = z.any();
+export type MemesCreateMemeResponse = z.infer<
+  typeof MemesCreateMemeResponseSchema
+>;
 
-export type MemesGetMemeResponse = Meme;
+export const MemesGetMemeResponseSchema = MemeSchema;
+export type MemesGetMemeResponse = z.infer<typeof MemesGetMemeResponseSchema>;
 
 export type MemesVoteMemePayload = VoteRequest;
 
-export type MemesVoteMemeResponse = VoteResult;
+export const MemesVoteMemeResponseSchema = VoteResultSchema;
+export type MemesVoteMemeResponse = z.infer<typeof MemesVoteMemeResponseSchema>;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

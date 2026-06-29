@@ -23,12 +23,4 @@ export interface PageResponse<T> {
   size: number;
 }
 
-export interface AppRequestConfig extends RequestConfig {
-  /** Options to bypass certain automated API behaviors for App Backend */
-  skip?: {
-    /** Do not attach Authorization header */
-    auth?: boolean;
-    /** Do not attempt to refresh token on 401 response */
-    refreshToken?: boolean;
-  };
-}
+export interface AppRequestConfig extends RequestConfig {}

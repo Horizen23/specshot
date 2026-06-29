@@ -11,24 +11,48 @@ import { MemesService } from "./services/memes.service";
 export * from "./services/leaderboard.service";
 import { LeaderboardService } from "./services/leaderboard.service";
 
+// ==========================================
+// API Factory (For SSR and Client)
+// ==========================================
 export function createApi(client: ApiClient) {
+  const instances = new Map<string, any>();
   return {
     client,
-    memes: new MemesService(client),
-    leaderboard: new LeaderboardService(client),
+    get memes(): MemesService {
+      let instance = instances.get("memes");
+      if (!instance) {
+        instance = new MemesService(client);
+        instances.set("memes", instance);
+      }
+      return instance;
+    },
+    get leaderboard(): LeaderboardService {
+      let instance = instances.get("leaderboard");
+      if (!instance) {
+        instance = new LeaderboardService(client);
+        instances.set("leaderboard", instance);
+      }
+      return instance;
+    },
   } as const;
 }
 
-// Client-side singletons for convenient browser usage (e.g. SWR)
+export type ApiInstance = ReturnType<typeof createApi>;
+
+// ==========================================
+// Default Client API (Client-side usage only)
+// ==========================================
+// For SSR, DO NOT use this exported singleton. Instead, create a new client
+// per request using `createApiClient()` and `createApi()` to prevent data leaks.
 import { createApiClient } from "./client";
 import { useAllPlugins } from "./plugins";
 
-export const browserClient = createApiClient();
-useAllPlugins(browserClient);
+export const defaultClient = createApiClient();
+useAllPlugins(defaultClient);
 
-export const browserApi = createApi(browserClient);
+export const clientApi = createApi(defaultClient);
 
-export const useApi = createApiHooks(browserApi);
+export const useApi = createApiHooks(clientApi);
 
 // --- CUSTOM CODE START ---
 // Add your custom exports here. Do not remove these comments.

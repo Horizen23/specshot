@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { browserClient, browserApi, useApi, Meme } from "./lib/api/meme";
+import { defaultClient, clientApi, useApi, Meme } from "./lib/api/meme";
 
 const ENDPOINTS = {
   real: "http://localhost:3000",
@@ -7,7 +7,7 @@ const ENDPOINTS = {
 };
 
 // Set initial base URL
-browserClient.options.baseUrl = ENDPOINTS.real;
+defaultClient.options.baseUrl = ENDPOINTS.real;
 
 export default function App() {
   const [apiUrl, setApiUrl] = useState(ENDPOINTS.real);
@@ -19,7 +19,7 @@ export default function App() {
   const toggleEndpoint = (mode: "real" | "fake") => {
     const newUrl = mode === "real" ? ENDPOINTS.real : ENDPOINTS.fake;
     setApiUrl(newUrl);
-    browserClient.options.baseUrl = newUrl;
+    defaultClient.options.baseUrl = newUrl;
     // Re-fetch data on endpoint change
     mutate();
   };
@@ -70,7 +70,7 @@ function MemeCard({ meme }: { meme: Meme }) {
     setIsMutating(true);
     try {
       // Use the direct API client for POST requests
-      const res = await browserApi.memes.voteMeme(meme.id, { guess });
+      const res = await clientApi.memes.voteMeme(meme.id, { guess });
       if (res.ok) {
         setVoted(res.data);
       }

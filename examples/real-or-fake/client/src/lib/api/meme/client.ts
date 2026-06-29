@@ -1,23 +1,22 @@
-import { ApiClient } from "../core/api-client";
+import { ApiClient, ApiClientBuilder } from "../core/api-client";
 
 /**
- * Base URL for all API requests.
- *
- * Resolved from (in priority order):
- *   1. The `VITE_API_BASE_URL` environment variable (set at build time).
- *   2. The first `url` entry in the OpenAPI `servers` array: (none defined).
- *   3. The empty string — the browser's own origin is used (same-origin requests).
+ * Default Base URL for all API requests.
+ * 
+ * By default, this is set to the first `url` from the OpenAPI spec's `servers` array.
+ * You can hardcode this directly, or import it from your project's config folder.
  */
-const API_BASE_URL: string =
-  // @ts-ignore - VITE_API_BASE_URL is injected by the build tool when defined
-  (typeof import.meta !== "undefined" &&
-    (import.meta as any).env?.VITE_API_BASE_URL) ||
-  "";
+const API_BASE_URL: string = "";
 
-export function createApiClient() {
-  const client = new ApiClient({
-    baseUrl: API_BASE_URL,
-    dataExtractor: (data: unknown) => {
+export interface ApiClientConfig {
+  /** Override the default API base URL */
+  baseUrl?: string;
+}
+
+export function createApiClientBuilder(config?: ApiClientConfig) {
+  return new ApiClientBuilder()
+    .setBaseUrl(config?.baseUrl ?? API_BASE_URL)
+    .setDataExtractor((data: unknown) => {
       // If the server wraps responses in `{ request_id, data, errors }`,
       // unwrap the `data` field. Otherwise return the response as-is.
       if (
@@ -29,8 +28,8 @@ export function createApiClient() {
         return (data as Record<string, unknown>).data;
       }
       return data;
-    },
-    errorExtractor: (data: unknown) => {
+    })
+    .setErrorExtractor((data: unknown) => {
       if (typeof data !== "object" || data === null) return undefined;
       const obj = data as Record<string, unknown>;
       if (Array.isArray(obj.errors) && obj.errors.length > 0) {
@@ -39,22 +38,15 @@ export function createApiClient() {
       }
       if (typeof obj.message === "string") return obj.message;
       return undefined;
-    },
-  });
-
-  const plugins: Record<string, unknown> = {};
-
-  return Object.assign(client, {
-    /** Register a plugin. Returns the client for chaining. */
-    use(name: string, plugin: unknown) {
-      (plugins as Record<string, unknown>)[name] = plugin;
-      return client as ApiClientWithPlugins;
-    },
-    /** Get a registered plugin. */
-    plugin<T = unknown>(name: string): T | undefined {
-      return (plugins as Record<string, unknown>)[name] as T | undefined;
-    },
-  });
+    });
 }
 
-export type ApiClientWithPlugins = ReturnType<typeof createApiClient>;
+/**
+ * Creates the default browser/client-side API client.
+ * For server-side rendering (SSR), it's recommended to create a new client per request using `createApiClientBuilder().build()`.
+ */
+export function createApiClient(config?: ApiClientConfig): ApiClient {
+  return createApiClientBuilder(config).build();
+}
+
+
