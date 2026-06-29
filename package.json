@@ -1,6 +1,6 @@
 {
   "name": "specshot",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Fire an OpenAPI spec, get strictly-typed TypeScript code and a robust API mock server — zero-dependency, Zod-validated, and highly customizable.",
   "type": "module",
   "main": "dist/cli.js",
