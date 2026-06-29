@@ -5,46 +5,46 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  Store,
-  CreateStoreRequest,
-  StoresListStoresResponse,
-  StoresCreateStorePayload,
-  StoresCreateStoreResponse,
-  StoresGetStoreResponse,
-} from "./stores.types";
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
+} from "./pets.types";
 import {
-  StoresListStoresResponseSchema,
-  StoresCreateStoreResponseSchema,
-  StoresGetStoreResponseSchema,
-} from "./stores.types";
+  PetsListPetsResponseSchema,
+  PetsCreatePetResponseSchema,
+  PetsGetPetResponseSchema,
+} from "./pets.types";
 
 export type {
-  Store,
-  CreateStoreRequest,
-  StoresListStoresResponse,
-  StoresCreateStorePayload,
-  StoresCreateStoreResponse,
-  StoresGetStoreResponse,
+  Pet,
+  CreatePetRequest,
+  PetsListPetsResponse,
+  PetsCreatePetPayload,
+  PetsCreatePetResponse,
+  PetsGetPetResponse,
 };
 
-export class StoresService extends BaseService<"stores"> {
+export class PetsService extends BaseService<"pets"> {
   constructor(client: ApiClient) {
-    super(client, "stores");
+    super(client, "pets");
   }
 
   /**
-   * listStores
-   * List all stores
+   * listPets
+   * List all pets
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `StoresListStoresResponse` (null on error)
+   *   - `data`: `PetsListPetsResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.stores.listStores(...);
+   * const req = api.pets.listPets(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -54,33 +54,30 @@ export class StoresService extends BaseService<"stores"> {
    * }
    * // use `data` safely here
    */
-  public listStores(
+  public listPets(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<StoresListStoresResponse, AppApiErrorData>> {
-    return this.client.get<StoresListStoresResponse, AppApiErrorData>(
-      `/stores`,
-      {
-        ...this.withSignal(config),
-        zodSchema: StoresListStoresResponseSchema,
-      },
-    );
+  ): CancelablePromise<ApiResult<PetsListPetsResponse, AppApiErrorData>> {
+    return this.client.get<PetsListPetsResponse, AppApiErrorData>(`/pets`, {
+      ...this.withSignal(config),
+      zodSchema: PetsListPetsResponseSchema,
+    });
   }
 
   /**
-   * createStore
-   * Create a store
+   * createPet
+   * Create a pet
 
-   * @param payload - Request body (`StoresCreateStorePayload`)
+   * @param payload - Request body (`PetsCreatePetPayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `StoresCreateStoreResponse` (null on error)
+   *   - `data`: `PetsCreatePetResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.stores.createStore(...);
+   * const req = api.pets.createPet(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -90,34 +87,34 @@ export class StoresService extends BaseService<"stores"> {
    * }
    * // use `data` safely here
    */
-  public createStore(
-    payload: StoresCreateStorePayload,
+  public createPet(
+    payload: PetsCreatePetPayload,
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<StoresCreateStoreResponse, AppApiErrorData>> {
-    return this.client.post<StoresCreateStoreResponse, AppApiErrorData>(
-      `/stores`,
+  ): CancelablePromise<ApiResult<PetsCreatePetResponse, AppApiErrorData>> {
+    return this.client.post<PetsCreatePetResponse, AppApiErrorData>(
+      `/pets`,
       payload,
       {
         ...this.withSignal(config),
-        zodSchema: StoresCreateStoreResponseSchema,
+        zodSchema: PetsCreatePetResponseSchema,
       },
     );
   }
 
   /**
-   * getStore
-   * Get a store by ID
-   * @param storeId - Path parameter
+   * getPet
+   * Get a pet by ID
+   * @param petId - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `StoresGetStoreResponse` (null on error)
+   *   - `data`: `PetsGetPetResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.stores.getStore(...);
+   * const req = api.pets.getPet(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -127,20 +124,21 @@ export class StoresService extends BaseService<"stores"> {
    * }
    * // use `data` safely here
    */
-  public getStore(
-    storeId: string | number,
+  public getPet(
+    petId: string | number,
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<StoresGetStoreResponse, AppApiErrorData>> {
-    return this.client.get<StoresGetStoreResponse, AppApiErrorData>(
-      `/stores/${storeId}`,
+  ): CancelablePromise<ApiResult<PetsGetPetResponse, AppApiErrorData>> {
+    return this.client.get<PetsGetPetResponse, AppApiErrorData>(
+      `/pets/${petId}`,
       {
         ...this.withSignal(config),
-        zodSchema: StoresGetStoreResponseSchema,
+        zodSchema: PetsGetPetResponseSchema,
       },
     );
   }
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
+
   // --- CUSTOM CODE END ---
 }

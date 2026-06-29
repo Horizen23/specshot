@@ -5,46 +5,46 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  Pet,
-  CreatePetRequest,
-  PetsListPetsResponse,
-  PetsCreatePetPayload,
-  PetsCreatePetResponse,
-  PetsGetPetResponse,
-} from "./pets.types";
+  Store,
+  CreateStoreRequest,
+  StoresListStoresResponse,
+  StoresCreateStorePayload,
+  StoresCreateStoreResponse,
+  StoresGetStoreResponse,
+} from "./stores.types";
 import {
-  PetsListPetsResponseSchema,
-  PetsCreatePetResponseSchema,
-  PetsGetPetResponseSchema,
-} from "./pets.types";
+  StoresListStoresResponseSchema,
+  StoresCreateStoreResponseSchema,
+  StoresGetStoreResponseSchema,
+} from "./stores.types";
 
 export type {
-  Pet,
-  CreatePetRequest,
-  PetsListPetsResponse,
-  PetsCreatePetPayload,
-  PetsCreatePetResponse,
-  PetsGetPetResponse,
+  Store,
+  CreateStoreRequest,
+  StoresListStoresResponse,
+  StoresCreateStorePayload,
+  StoresCreateStoreResponse,
+  StoresGetStoreResponse,
 };
 
-export class PetsService extends BaseService<"pets"> {
+export class StoresService extends BaseService<"stores"> {
   constructor(client: ApiClient) {
-    super(client, "pets");
+    super(client, "stores");
   }
 
   /**
-   * listPets
-   * List all pets
+   * listStores
+   * List all stores
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `PetsListPetsResponse` (null on error)
+   *   - `data`: `StoresListStoresResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.pets.listPets(...);
+   * const req = api.stores.listStores(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -54,67 +54,33 @@ export class PetsService extends BaseService<"pets"> {
    * }
    * // use `data` safely here
    */
-  public listPets(
+  public listStores(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<PetsListPetsResponse, AppApiErrorData>> {
-    return this.client.get<PetsListPetsResponse, AppApiErrorData>(`/pets`, {
-      ...this.withSignal(config),
-      zodSchema: PetsListPetsResponseSchema,
-    });
-  }
-
-  /**
-   * createPet
-   * Create a pet
-
-   * @param payload - Request body (`PetsCreatePetPayload`)
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `PetsCreatePetResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.pets.createPet(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public createPet(
-    payload: PetsCreatePetPayload,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<PetsCreatePetResponse, AppApiErrorData>> {
-    return this.client.post<PetsCreatePetResponse, AppApiErrorData>(
-      `/pets`,
-      payload,
+  ): CancelablePromise<ApiResult<StoresListStoresResponse, AppApiErrorData>> {
+    return this.client.get<StoresListStoresResponse, AppApiErrorData>(
+      `/stores`,
       {
         ...this.withSignal(config),
-        zodSchema: PetsCreatePetResponseSchema,
+        zodSchema: StoresListStoresResponseSchema,
       },
     );
   }
 
   /**
-   * getPet
-   * Get a pet by ID
-   * @param petId - Path parameter
+   * createStore
+   * Create a store
+
+   * @param payload - Request body (`StoresCreateStorePayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `PetsGetPetResponse` (null on error)
+   *   - `data`: `StoresCreateStoreResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.pets.getPet(...);
+   * const req = api.stores.createStore(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -124,20 +90,58 @@ export class PetsService extends BaseService<"pets"> {
    * }
    * // use `data` safely here
    */
-  public getPet(
-    petId: string | number,
+  public createStore(
+    payload: StoresCreateStorePayload,
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<PetsGetPetResponse, AppApiErrorData>> {
-    return this.client.get<PetsGetPetResponse, AppApiErrorData>(
-      `/pets/${petId}`,
+  ): CancelablePromise<ApiResult<StoresCreateStoreResponse, AppApiErrorData>> {
+    return this.client.post<StoresCreateStoreResponse, AppApiErrorData>(
+      `/stores`,
+      payload,
       {
         ...this.withSignal(config),
-        zodSchema: PetsGetPetResponseSchema,
+        zodSchema: StoresCreateStoreResponseSchema,
+      },
+    );
+  }
+
+  /**
+   * getStore
+   * Get a store by ID
+   * @param storeId - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `StoresGetStoreResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.stores.getStore(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public getStore(
+    storeId: string | number,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<StoresGetStoreResponse, AppApiErrorData>> {
+    return this.client.get<StoresGetStoreResponse, AppApiErrorData>(
+      `/stores/${storeId}`,
+      {
+        ...this.withSignal(config),
+        zodSchema: StoresGetStoreResponseSchema,
       },
     );
   }
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
+
   // --- CUSTOM CODE END ---
 }
