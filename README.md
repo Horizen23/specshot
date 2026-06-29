@@ -16,17 +16,17 @@ Drop an OpenAPI spec in, get production-ready TypeScript out. No SDKs to install
 | ----------------------- | --------------------------------- |
 | `fetch()` with no types | Fully typed `{ data, error, ok }` |
 | `try/catch` everywhere  | Clean result pattern              |
-| Manual Zod schemas      | Auto-generated validation         |
+| Manual Zod schemas      | Multi-mode auto-validation        |
 | Vendor lock-in          | Code you own, edit, and extend    |
 
 ### What you get
 
 - **Typed API client** — every endpoint, param, body, and response strictly typed
-- **Zod schemas** — optional runtime validation, auto-generated from your spec
+- **Multi-mode Validation** — `types-only` (zero deps), `zod-schemas`, or full `zod-runtime` validation
 - **Result pattern** — `{ data, error, ok }` pattern. No exceptions. No guessing.
-- **Plugins** — Bearer auth with auto-refresh, request logging built-in
-- **SWR ready** — optional React hooks out of the box
-- **Zero deps** — your generated code depends on nothing
+- **Plugin Architecture** — Easily extend the client. Bearer auth with auto-refresh and logger built-in.
+- **Hooks ready** — optional SWR or TanStack React Query hooks out of the box
+- **Zero deps (optional)** — generate pure fetch functions, or opt into Zod for runtime safety
 
 ---
 
@@ -43,14 +43,15 @@ npx specshot generate --url http://localhost:8080/openapi.json
 ```
 
 ```typescript
-import { createApi } from "./lib/api/default";
+import { clientApi, defaultClient } from "./lib/api/default";
 
-const api = createApi(/* your client */);
+// Override the base URL if needed
+defaultClient.options.baseUrl = "https://api.myprod.com";
 
 // Everything is typed — no generics, no casting
-const { data, error, ok } = await api.pets.listPets();
-const { data: pet } = await api.pets.getPet("abc123");
-const result = await api.pets.createPet({ name: "Buddy", species: "dog" });
+const { data, error, ok } = await clientApi.pets.listPets();
+const { data: pet } = await clientApi.pets.getPet("abc123");
+const result = await clientApi.pets.createPet({ name: "Buddy", species: "dog" });
 ```
 
 That's it. No config files. No code generation pipelines. Just typed API calls.
@@ -213,7 +214,7 @@ my-templates/
   models.hbs              # Generator: shared Zod schemas + types
   types.hbs               # Generator: per-tag request/response types
   service.hbs             # Generator: per-tag service class
-  index.hbs               # Generator: provider index + createApi factory
+  index.hbs               # Generator: provider index + clientApi export
   plugins-index.hbs       # Generator: plugin auto-wiring
   msw/
     handlers.hbs          # MSW: per-tag http.<method>() handlers
@@ -321,6 +322,7 @@ SpecShot provides autocompletion for both config files and templates:
  * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Hooks framework
  * @property {("bearer" | "logger")[]} [pluginNames] - Interceptor plugins
+ * @property {"types-only" | "zod-schemas" | "zod-runtime"} [validation] - Validation strictness mode
  */
 /** @type {import('specshot').SpecshotConfig<TemplateData>} */
 export default {
@@ -330,6 +332,7 @@ export default {
   templateData: {
     hook: "none",
     pluginNames: [],
+    validation: "zod-runtime",
   },
 };
 ```
@@ -382,6 +385,7 @@ _(Mock configurations and overrides are automatically saved to `.specshot/mocks.
  * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Hooks framework
  * @property {("bearer" | "logger")[]} [pluginNames] - Interceptor plugins
+ * @property {"types-only" | "zod-schemas" | "zod-runtime"} [validation] - Validation strictness mode
  */
 /**
  * @typedef {Object} Overrides
@@ -412,7 +416,8 @@ export default {
   // Template data passed to all templates
   templateData: {
     hook: "swr", // swr, react-query, or none
-    pluginNames: ["bearer", "logger"], // interceptor plugins to generate
+    pluginNames: ["bearer", "logger"], // plugins to generate
+    validation: "zod-runtime", // strict runtime data validation
   },
 
   // Define your APIs
