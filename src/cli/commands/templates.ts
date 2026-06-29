@@ -56,8 +56,10 @@ function copyDir(src: string, dest: string): string[] {
 
 export async function templatesEjectPresetCommand(
   presetName: string,
+  nameOverride?: string,
 ): Promise<void> {
-  console.log(chalk.cyan(`\n  Ejecting preset: ${presetName}\n`));
+  const targetName = nameOverride ? nameOverride : presetName;
+  console.log(chalk.cyan(`\n  Ejecting preset: ${presetName}${nameOverride ? ` as ${targetName}` : ""}\n`));
 
   // Validate source exists
   if (!isValidPreset(presetName)) {
@@ -83,17 +85,17 @@ export async function templatesEjectPresetCommand(
   // Determine source dir (from package dir — built-in or community)
   const srcDir = getPresetDirFromPaths(presetName);
 
-  // Destination: project's templates/presets/<presetName>/
+  // Destination: project's templates/presets/<targetName>/
   const projectPresetsDir = path.resolve(
     process.cwd(),
     ".specshot/templates/presets",
   );
-  const destDir = path.join(projectPresetsDir, presetName);
+  const destDir = path.join(projectPresetsDir, targetName);
 
   if (fs.existsSync(destDir)) {
     console.error(
       chalk.red(
-        `  Preset "${presetName}" already exists at .specshot/templates/presets/${presetName}/`,
+        `  Preset "${targetName}" already exists at .specshot/templates/presets/${targetName}/`,
       ),
     );
     console.log(chalk.gray(`  Remove it first or choose a different name.\n`));
@@ -106,7 +108,7 @@ export async function templatesEjectPresetCommand(
     {
       type: "confirm",
       name: "confirm",
-      message: `Eject preset "${presetName}" to .specshot/templates/presets/${presetName}/?`,
+      message: `Eject preset "${presetName}" to .specshot/templates/presets/${targetName}/?`,
       default: true,
     },
   ]);
@@ -123,9 +125,24 @@ export async function templatesEjectPresetCommand(
   // Copy entire preset directory
   const copied = copyDir(srcDir, destDir);
 
+  // Update _preset.json if we have a name override
+  if (nameOverride) {
+    const presetJsonPath = path.join(destDir, "_preset.json");
+    if (fs.existsSync(presetJsonPath)) {
+      try {
+        const raw = fs.readFileSync(presetJsonPath, "utf8");
+        const data = JSON.parse(raw);
+        data.name = targetName;
+        fs.writeFileSync(presetJsonPath, JSON.stringify(data, null, 2));
+      } catch (err) {
+        console.warn(chalk.yellow(`  Failed to update _preset.json with new name: ${err}`));
+      }
+    }
+  }
+
   console.log(
     chalk.green(
-      `  ✔ Ejected preset "${presetName}" to .specshot/templates/presets/${presetName}/\n`,
+      `  ✔ Ejected preset "${presetName}" to .specshot/templates/presets/${targetName}/\n`,
     ),
   );
   console.log(chalk.gray(`  ${copied.length} files copied\n`));
@@ -141,7 +158,7 @@ export async function templatesEjectPresetCommand(
   console.log(
     chalk.cyan(`\n  The preset is now [custom] — edit any .hbs file in:`),
   );
-  console.log(`    .specshot/templates/presets/${presetName}/\n`);
+  console.log(`    .specshot/templates/presets/${targetName}/\n`);
   console.log(
     chalk.gray(
       "  It will appear in 'specshot templates list' as [custom] automatically.\n",

@@ -117,9 +117,13 @@ templatesCmd
   .description(
     "Copy a built-in or community preset to your project as a custom preset",
   )
-  .action(async (preset) => {
+  .option(
+    "--name <name>",
+    "Override preset name for the ejected copy",
+  )
+  .action(async (preset, options) => {
     try {
-      await templatesEjectPresetCommand(preset);
+      await templatesEjectPresetCommand(preset, options.name);
     } catch (err) {
       const chalk = (await import("chalk")).default;
       console.error(chalk.red("Templates eject failed"));
