@@ -145,13 +145,24 @@ export type ApiEventType = "request" | "success" | "error";
 
 export interface ApiEventPayloads {
   request: { url: string; config: ApiRequestConfig };
-  success: { url: string; config: ApiRequestConfig; data: unknown; status: number };
-  error: { url: string; config: ApiRequestConfig; error: ApiError<unknown> | ClientError };
+  success: {
+    url: string;
+    config: ApiRequestConfig;
+    data: unknown;
+    status: number;
+  };
+  error: {
+    url: string;
+    config: ApiRequestConfig;
+    error: ApiError<unknown> | ClientError;
+  };
 }
 
-export type ApiEventListener<E extends ApiEventType> = (payload: ApiEventPayloads[E]) => void;
+export type ApiEventListener<E extends ApiEventType> = (
+  payload: ApiEventPayloads[E],
+) => void;
 
-/** 
+/**
  * Type-safe interface for extending ApiClient capabilities.
  */
 export interface ApiPlugin {

@@ -20,16 +20,13 @@
 export default {
   preset: "class",
   apis: {
-    "petstore": {
+    petstore: {
       openapiUrl: "openapi.json",
     },
   },
   templateData: {
-      "hook": "none",
-      "pluginNames": [
-          "bearer",
-          "logger"
-      ],
-      "validation": "zod-runtime"
+    hook: "none",
+    pluginNames: ["bearer", "logger"],
+    validation: "zod-runtime",
   },
 };

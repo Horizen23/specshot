@@ -117,10 +117,7 @@ templatesCmd
   .description(
     "Copy a built-in or community preset to your project as a custom preset",
   )
-  .option(
-    "--name <name>",
-    "Override preset name for the ejected copy",
-  )
+  .option("--name <name>", "Override preset name for the ejected copy")
   .action(async (preset, options) => {
     try {
       await templatesEjectPresetCommand(preset, options.name);

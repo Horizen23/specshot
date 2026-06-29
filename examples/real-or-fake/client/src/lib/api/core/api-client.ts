@@ -84,11 +84,16 @@ export class ApiClient {
   };
 
   private readonly plugins = new Map<string, unknown>();
-  private readonly listeners: { [K in ApiEventType]?: Set<ApiEventListener<K>> } = {};
+  private readonly listeners: {
+    [K in ApiEventType]?: Set<ApiEventListener<K>>;
+  } = {};
 
   public constructor(public readonly options: ApiClientOptions) {}
 
-  public on<E extends ApiEventType>(event: E, listener: ApiEventListener<E>): () => void {
+  public on<E extends ApiEventType>(
+    event: E,
+    listener: ApiEventListener<E>,
+  ): () => void {
     if (!this.listeners[event]) {
       this.listeners[event] = new Set() as any;
     }
@@ -96,12 +101,19 @@ export class ApiClient {
     return () => this.off(event, listener);
   }
 
-  public off<E extends ApiEventType>(event: E, listener: ApiEventListener<E>): void {
+  public off<E extends ApiEventType>(
+    event: E,
+    listener: ApiEventListener<E>,
+  ): void {
     this.listeners[event]?.delete(listener as any);
   }
 
-  private emit<E extends ApiEventType>(event: E, payload: ApiEventPayloads[E]): void {
-    const eventListeners = this.listeners[event] as Set<ApiEventListener<E>> | undefined;
+  private emit<E extends ApiEventType>(
+    event: E,
+    payload: ApiEventPayloads[E],
+  ): void {
+    const eventListeners = this.listeners[event] as
+      Set<ApiEventListener<E>> | undefined;
     if (eventListeners) {
       for (const listener of eventListeners) {
         listener(payload);
@@ -121,8 +133,10 @@ export class ApiClient {
     } else {
       this.plugins.set(nameOrPlugin.name, nameOrPlugin);
       if (nameOrPlugin.onInit) nameOrPlugin.onInit(this);
-      if (nameOrPlugin.onRequest) this.interceptors.request.use(nameOrPlugin.onRequest);
-      if (nameOrPlugin.onResponse) this.interceptors.response.use(nameOrPlugin.onResponse);
+      if (nameOrPlugin.onRequest)
+        this.interceptors.request.use(nameOrPlugin.onRequest);
+      if (nameOrPlugin.onResponse)
+        this.interceptors.response.use(nameOrPlugin.onResponse);
     }
     return this;
   }
@@ -182,125 +196,138 @@ export class ApiClient {
         } = initialConfig;
         fullUrl = this.resolveUrl(url, params);
 
-      // Run request interceptors
-      let config: ApiRequestConfig = restConfig;
-      for (const interceptor of this.interceptors.request.getAll()) {
-        config = await interceptor(config, fullUrl);
-      }
+        // Run request interceptors
+        let config: ApiRequestConfig = restConfig;
+        for (const interceptor of this.interceptors.request.getAll()) {
+          config = await interceptor(config, fullUrl);
+        }
 
-      // Build combined abort signal
-      const signals: AbortSignal[] = [controller.signal];
-      if (timeout != null) signals.push(AbortSignal.timeout(timeout));
-      if (config.signal instanceof AbortSignal) signals.push(config.signal);
-      const signal = AbortSignal.any(signals);
+        // Build combined abort signal
+        const signals: AbortSignal[] = [controller.signal];
+        if (timeout != null) signals.push(AbortSignal.timeout(timeout));
+        if (config.signal instanceof AbortSignal) signals.push(config.signal);
+        const signal = AbortSignal.any(signals);
 
-      // Build headers — skip Content-Type for FormData (browser sets it with boundary)
-      const headers = new Headers(config.headers ?? {});
-      if (
-        !headers.has("Content-Type") &&
-        config.body &&
-        typeof config.body === "string"
-      ) {
-        headers.set("Content-Type", "application/json");
-      }
+        // Build headers — skip Content-Type for FormData (browser sets it with boundary)
+        const headers = new Headers(config.headers ?? {});
+        if (
+          !headers.has("Content-Type") &&
+          config.body &&
+          typeof config.body === "string"
+        ) {
+          headers.set("Content-Type", "application/json");
+        }
 
-      this.emit("request", { url: fullUrl, config });
+        this.emit("request", { url: fullUrl, config });
 
-      // Fetch — classify client-side errors
-      let response: Response;
-      try {
-        response = await fetch(fullUrl, { ...config, headers, signal });
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") {
-          const isTimeout = signals.some(
-            (s) =>
-              s.reason instanceof DOMException &&
-              s.reason.name === "TimeoutError",
-          );
-          if (isTimeout) {
+        // Fetch — classify client-side errors
+        let response: Response;
+        try {
+          response = await fetch(fullUrl, { ...config, headers, signal });
+        } catch (err) {
+          if (err instanceof DOMException && err.name === "AbortError") {
+            const isTimeout = signals.some(
+              (s) =>
+                s.reason instanceof DOMException &&
+                s.reason.name === "TimeoutError",
+            );
+            if (isTimeout) {
+              throw new ClientError(
+                "timeout",
+                `Request timed out after ${timeout}ms`,
+                err,
+              );
+            }
+            throw new ClientError("abort", "Request was cancelled", err);
+          }
+          if (err instanceof TypeError) {
             throw new ClientError(
-              "timeout",
-              `Request timed out after ${timeout}ms`,
+              "network",
+              "Network error — check your connection",
               err,
             );
           }
-          throw new ClientError("abort", "Request was cancelled", err);
-        }
-        if (err instanceof TypeError) {
           throw new ClientError(
             "network",
-            "Network error — check your connection",
-            err,
+            "Unexpected fetch error",
+            err instanceof Error ? err : new Error(String(err)),
           );
         }
-        throw new ClientError("network", "Unexpected fetch error", err instanceof Error ? err : new Error(String(err)));
-      }
 
-      // Run response interceptors
-      for (const interceptor of this.interceptors.response.getAll()) {
-        response = await interceptor(response, fullUrl, config);
-      }
+        // Run response interceptors
+        for (const interceptor of this.interceptors.response.getAll()) {
+          response = await interceptor(response, fullUrl, config);
+        }
 
-      // Handle HTTP errors
-      if (!response.ok) {
-        const errorData: unknown = await response.json().catch(() => null);
-        const message =
-          this.options.errorExtractor?.(errorData) || response.statusText;
-        throw new ApiError<TError>(
-          response.status,
-          errorData as TError,
-          fullUrl,
-          message,
+        // Handle HTTP errors
+        if (!response.ok) {
+          const errorData: unknown = await response.json().catch(() => null);
+          const message =
+            this.options.errorExtractor?.(errorData) || response.statusText;
+          throw new ApiError<TError>(
+            response.status,
+            errorData as TError,
+            fullUrl,
+            message,
+          );
+        }
+
+        if (response.status === 204)
+          return { data: undefined as any, error: null, ok: true };
+
+        const parsedData = await parseResponse<typeof responseType, TJson>(
+          response,
+          responseType,
         );
-      }
 
-      if (response.status === 204)
-        return { data: undefined as any, error: null, ok: true };
-
-      const parsedData = await parseResponse<typeof responseType, TJson>(
-        response,
-        responseType,
-      );
-
-      let data = parsedData;
-      // Allow custom unwrapping of data if provided in options
-      if (this.options.dataExtractor && responseType === "json") {
-        data = this.options.dataExtractor(parsedData) as any;
-      }
-
-      // Optional Runtime Schema Validation (e.g. Zod)
-      if (config.responseSchema && responseType === "json") {
-        const validation = config.responseSchema.safeParse(data);
-        if (!validation.success) {
-          throw new ClientError(
-            "parse",
-            "Runtime Schema Validation Failed",
-            validation.error instanceof Error
-              ? validation.error
-              : new Error(JSON.stringify(validation.error)),
-          );
+        let data = parsedData;
+        // Allow custom unwrapping of data if provided in options
+        if (this.options.dataExtractor && responseType === "json") {
+          data = this.options.dataExtractor(parsedData) as any;
         }
-        data = validation.data;
-      }
 
-      this.emit("success", { url: fullUrl, config, data, status: response.status });
-
-      return { data, error: null, ok: true };
-    } catch (err) {
-      const apiOrClientError =
-        err instanceof ApiError || err instanceof ClientError
-          ? err
-          : new ClientError(
-              "network",
-              "Unexpected internal error",
-              err instanceof Error ? err : new Error(String(err)),
+        // Optional Runtime Schema Validation (e.g. Zod)
+        if (config.responseSchema && responseType === "json") {
+          const validation = config.responseSchema.safeParse(data);
+          if (!validation.success) {
+            throw new ClientError(
+              "parse",
+              "Runtime Schema Validation Failed",
+              validation.error instanceof Error
+                ? validation.error
+                : new Error(JSON.stringify(validation.error)),
             );
+          }
+          data = validation.data;
+        }
 
-      this.emit("error", { url: fullUrl, config: initialConfig, error: apiOrClientError });
+        this.emit("success", {
+          url: fullUrl,
+          config,
+          data,
+          status: response.status,
+        });
 
-      return { data: null, error: apiOrClientError, ok: false };
-    }
-  })();
+        return { data, error: null, ok: true };
+      } catch (err) {
+        const apiOrClientError =
+          err instanceof ApiError || err instanceof ClientError
+            ? err
+            : new ClientError(
+                "network",
+                "Unexpected internal error",
+                err instanceof Error ? err : new Error(String(err)),
+              );
+
+        this.emit("error", {
+          url: fullUrl,
+          config: initialConfig,
+          error: apiOrClientError,
+        });
+
+        return { data: null, error: apiOrClientError, ok: false };
+      }
+    })();
 
     (promise as CancelablePromise<any>).cancel = (reason?: any) => {
       controller.abort(reason);
@@ -531,7 +558,9 @@ export class ApiClient {
       ...config,
       method: "DELETE" as HttpMethod,
       responseType: "void",
-    } as ApiRequestConfig<"void">) as CancelablePromise<ApiResult<void, TError>>;
+    } as ApiRequestConfig<"void">) as CancelablePromise<
+      ApiResult<void, TError>
+    >;
   }
 }
 
@@ -554,7 +583,9 @@ export class ApiClientBuilder {
     return this;
   }
 
-  public setErrorExtractor(extractor: (data: unknown) => string | undefined): this {
+  public setErrorExtractor(
+    extractor: (data: unknown) => string | undefined,
+  ): this {
     this.options.errorExtractor = extractor;
     return this;
   }
@@ -579,7 +610,10 @@ export class ApiClientBuilder {
 
   public addPlugin(plugin: ApiPlugin): this;
   public addPlugin(name: string, plugin: unknown): this;
-  public addPlugin(nameOrPlugin: string | ApiPlugin, pluginObj?: unknown): this {
+  public addPlugin(
+    nameOrPlugin: string | ApiPlugin,
+    pluginObj?: unknown,
+  ): this {
     if (typeof nameOrPlugin === "string") {
       this.plugins.set(nameOrPlugin, pluginObj);
     } else {
@@ -603,7 +637,11 @@ export class ApiClientBuilder {
     }
     for (const [name, plugin] of this.plugins.entries()) {
       // If it's an ApiPlugin (has a name field matching the key and maybe hooks)
-      if (plugin && typeof plugin === "object" && (plugin as ApiPlugin).name === name) {
+      if (
+        plugin &&
+        typeof plugin === "object" &&
+        (plugin as ApiPlugin).name === name
+      ) {
         client.use(plugin as ApiPlugin);
       } else {
         client.use(name, plugin);

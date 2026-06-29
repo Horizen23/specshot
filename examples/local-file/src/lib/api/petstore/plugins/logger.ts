@@ -11,7 +11,7 @@ export function installLogger(client: ApiClient) {
     onResponse: async (response, url) => {
       console.log(`← ${response.status} ${url}`);
       return response;
-    }
+    },
   };
 
   client.use(loggerPlugin);

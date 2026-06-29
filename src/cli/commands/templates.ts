@@ -59,7 +59,11 @@ export async function templatesEjectPresetCommand(
   nameOverride?: string,
 ): Promise<void> {
   const targetName = nameOverride ? nameOverride : presetName;
-  console.log(chalk.cyan(`\n  Ejecting preset: ${presetName}${nameOverride ? ` as ${targetName}` : ""}\n`));
+  console.log(
+    chalk.cyan(
+      `\n  Ejecting preset: ${presetName}${nameOverride ? ` as ${targetName}` : ""}\n`,
+    ),
+  );
 
   // Validate source exists
   if (!isValidPreset(presetName)) {
@@ -135,7 +139,9 @@ export async function templatesEjectPresetCommand(
         data.name = targetName;
         fs.writeFileSync(presetJsonPath, JSON.stringify(data, null, 2));
       } catch (err) {
-        console.warn(chalk.yellow(`  Failed to update _preset.json with new name: ${err}`));
+        console.warn(
+          chalk.yellow(`  Failed to update _preset.json with new name: ${err}`),
+        );
       }
     }
   }

@@ -43,7 +43,7 @@ export function installBearer(client: ApiClient) {
         }
       }
       return response;
-    }
+    },
   };
 
   client.use(bearerPlugin);

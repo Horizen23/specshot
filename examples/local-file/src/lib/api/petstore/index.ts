@@ -50,7 +50,6 @@ useAllPlugins(defaultClient);
 
 export const clientApi = createApi(defaultClient);
 
-
 // --- CUSTOM CODE START ---
 // Add your custom exports here. Do not remove these comments.
 // --- CUSTOM CODE END ---

@@ -2,7 +2,7 @@ import { ApiClient, ApiClientBuilder } from "../core/api-client";
 
 /**
  * Default Base URL for all API requests.
- * 
+ *
  * By default, this is set to the first `url` from the OpenAPI spec's `servers` array.
  * You can hardcode this directly, or import it from your project's config folder.
  */
@@ -48,5 +48,3 @@ export function createApiClientBuilder(config?: ApiClientConfig) {
 export function createApiClient(config?: ApiClientConfig): ApiClient {
   return createApiClientBuilder(config).build();
 }
-
-
