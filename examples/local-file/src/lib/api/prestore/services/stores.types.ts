@@ -17,13 +17,22 @@ export type CreateStoreRequest = z.infer<typeof CreateStoreRequestSchema>;
 
 // -- Request & Response Types --
 
-export type StoresListStoresResponse = Store[];
+export const StoresListStoresResponseSchema = z.array(StoreSchema);
+export type StoresListStoresResponse = z.infer<
+  typeof StoresListStoresResponseSchema
+>;
 
 export type StoresCreateStorePayload = CreateStoreRequest;
 
-export type StoresCreateStoreResponse = Store;
+export const StoresCreateStoreResponseSchema = StoreSchema;
+export type StoresCreateStoreResponse = z.infer<
+  typeof StoresCreateStoreResponseSchema
+>;
 
-export type StoresGetStoreResponse = Store;
+export const StoresGetStoreResponseSchema = StoreSchema;
+export type StoresGetStoreResponse = z.infer<
+  typeof StoresGetStoreResponseSchema
+>;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

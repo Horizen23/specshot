@@ -1,0 +1,26 @@
+{{!-- ---
+behavior: scaffold
+target: {{outDir}}/plugins
+filter:
+  - {{#each pluginNames}}{{this}}.hbs
+  - {{#ifEq this "bearer"}}bearer-auth-manager.hbs
+  - {{/ifEq}}{{/each}}
+--- --}}
+import type { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{relPath (concat outDir "/plugins") coreOut}}/api-client{{/if}}";
+import type { ApiPlugin } from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath (concat outDir "/plugins") coreOut}}{{/if}}/types";
+
+export function installLogger(client: ApiClient) {
+  const loggerPlugin: ApiPlugin = {
+    name: "logger",
+    onRequest: async (config, url) => {
+      console.log(`→ ${config.method?.toUpperCase() ?? "GET"} ${url}`);
+      return config;
+    },
+    onResponse: async (response, url) => {
+      console.log(`← ${response.status} ${url}`);
+      return response;
+    }
+  };
+
+  client.use(loggerPlugin);
+}

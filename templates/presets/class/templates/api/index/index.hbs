@@ -18,26 +18,43 @@ export * from "./services/{{this.tagPrefix}}.service";
 import { {{this.className}} } from "./services/{{this.tagPrefix}}.service";
 {{/each}}
 
+// ==========================================
+// API Factory (For SSR and Client)
+// ==========================================
 export function createApi(client: ApiClient) {
+  const instances = new Map<string, any>();
   return {
     client,
 {{#each tags}}
-    {{this.tag}}: new {{this.className}}(client),
+    get {{this.tag}}(): {{this.className}} {
+      let instance = instances.get("{{this.tag}}");
+      if (!instance) {
+        instance = new {{this.className}}(client);
+        instances.set("{{this.tag}}", instance);
+      }
+      return instance;
+    },
 {{/each}}
   } as const;
 }
 
-// Client-side singletons for convenient browser usage (e.g. SWR)
+export type ApiInstance = ReturnType<typeof createApi>;
+
+// ==========================================
+// Default Client API (Client-side usage only)
+// ==========================================
+// For SSR, DO NOT use this exported singleton. Instead, create a new client
+// per request using `createApiClient()` and `createApi()` to prevent data leaks.
 import { createApiClient } from "./client";
 import { useAllPlugins } from "./plugins";
 
-export const browserClient = createApiClient();
-useAllPlugins(browserClient);
+export const defaultClient = createApiClient();
+useAllPlugins(defaultClient);
 
-export const browserApi = createApi(browserClient);
+export const clientApi = createApi(defaultClient);
 
 {{#hasFile (concat outputDir "/../hooks.ts")}}
-export const useApi = createApiHooks(browserApi);
+export const useApi = createApiHooks(clientApi);
 {{/hasFile}}
 
 // --- CUSTOM CODE START ---

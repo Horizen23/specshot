@@ -9,22 +9,47 @@ import { PetsService } from "./services/pets.service";
 export * from "./services/stores.service";
 import { StoresService } from "./services/stores.service";
 
+// ==========================================
+// API Factory (For SSR and Client)
+// ==========================================
 export function createApi(client: ApiClient) {
+  const instances = new Map<string, any>();
   return {
     client,
-    pets: new PetsService(client),
-    stores: new StoresService(client),
+    get pets(): PetsService {
+      let instance = instances.get("pets");
+      if (!instance) {
+        instance = new PetsService(client);
+        instances.set("pets", instance);
+      }
+      return instance;
+    },
+    get stores(): StoresService {
+      let instance = instances.get("stores");
+      if (!instance) {
+        instance = new StoresService(client);
+        instances.set("stores", instance);
+      }
+      return instance;
+    },
   } as const;
 }
 
-// Client-side singletons for convenient browser usage (e.g. SWR)
+export type ApiInstance = ReturnType<typeof createApi>;
+
+// ==========================================
+// Default Client API (Client-side usage only)
+// ==========================================
+// For SSR, DO NOT use this exported singleton. Instead, create a new client
+// per request using `createApiClient()` and `createApi()` to prevent data leaks.
 import { createApiClient } from "./client";
 import { useAllPlugins } from "./plugins";
 
-export const browserClient = createApiClient();
-useAllPlugins(browserClient);
+export const defaultClient = createApiClient();
+useAllPlugins(defaultClient);
 
-export const browserApi = createApi(browserClient);
+export const clientApi = createApi(defaultClient);
+
 
 // --- CUSTOM CODE START ---
 // Add your custom exports here. Do not remove these comments.

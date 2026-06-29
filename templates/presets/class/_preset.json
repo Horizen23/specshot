@@ -8,5 +8,8 @@
     "SWR or React Query hooks support",
     "Promise<{ data, error, ok }> result pattern"
   ],
-  "deps": ["zod"]
+  "deps": ["zod"],
+  "templateData": {
+    "validation": "zod-runtime"
+  }
 }

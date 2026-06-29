@@ -2,6 +2,7 @@
  * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Which hooks framework to scaffold: 'react-query', 'swr', or 'none'
  * @property {("bearer" | "logger")[]} [pluginNames] - List of interceptor plugins to generate
+ * @property {"types-only" | "zod-schemas" | "zod-runtime"} [validation] - Validation strictness mode
  */
 /**
  * @typedef {Object} Overrides
@@ -19,12 +20,13 @@
 export default {
   preset: "class",
   apis: {
-    prestore: {
+    "prestore": {
       openapiUrl: "openapi.json",
     },
   },
   templateData: {
-    hook: "none",
-    pluginNames: ["bearer", "logger"],
+      "hook": "none",
+      "pluginNames": ["bearer", "logger"],
+      "validation": "zod-runtime"
   },
 };

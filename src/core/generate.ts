@@ -238,6 +238,7 @@ export async function generateApi(
       const typeNameResponse = `${capTag}${capMethod}Response`;
       typeNames.push(typeNameResponse);
       let resType = "void";
+      let resZod = "z.any()";
       if (op.responseSchema?.$ref) {
         let refName = cleanRefName(op.responseSchema.$ref);
         if (refName !== RESPONSE_BODY_STRUCT) {
@@ -260,6 +261,7 @@ export async function generateApi(
             if (sharedSchemas.has(refName)) modelsToImport.add(refName);
           }
           resType = refName || "void";
+          resZod = refName ? `${refName}Schema` : "z.any()";
         }
       } else if (op.responseSchema) {
         const nestedRefs = extractRefs(op.responseSchema);
@@ -267,6 +269,7 @@ export async function generateApi(
           if (sharedSchemas.has(ref)) modelsToImport.add(ref);
         }
         resType = schemaToTsType(op.responseSchema);
+        resZod = schemaToZod(op.responseSchema);
       }
 
       let configType = "AppRequestConfig";
@@ -301,6 +304,7 @@ export async function generateApi(
         queryParams: queryParamsList,
         typeNameResponse,
         resType,
+        resZod,
         pathParams: pathParamsList,
         configType,
         urlStr,

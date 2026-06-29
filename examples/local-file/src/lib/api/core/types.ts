@@ -60,6 +60,8 @@ export type ApiRequestConfig<R extends ResponseType = ResponseType> =
     responseType?: R;
     /** Optional schema validator (e.g. Zod) to validate the response at runtime */
     responseSchema?: SchemaParser<any>;
+    /** Optional schema validator (e.g. Zod) to validate the response at runtime */
+    zodSchema?: { safeParse: (data: unknown) => any };
   };
 
 // ==========================================
@@ -81,6 +83,12 @@ export class ApiError<TData = unknown> extends Error {
 export type ApiResult<TData, TErrorData = unknown> =
   | { data: TData; error: null; ok: true }
   | { data: null; error: ApiError<TErrorData> | ClientError; ok: false };
+
+/** A Promise that can be cancelled imperatively */
+export type CancelablePromise<T> = Promise<T> & {
+  /** Aborts the underlying network request */
+  cancel: (reason?: any) => void;
+};
 
 // ==========================================
 // Client Error (network / timeout / abort)
@@ -120,7 +128,7 @@ export function isClientError(e: unknown): e is ClientError {
 }
 
 // ==========================================
-// Interceptor Manager
+// Interceptor Manager & Plugins
 // ==========================================
 export type RequestInterceptor = (
   config: ApiRequestConfig,
@@ -132,6 +140,30 @@ export type ResponseInterceptor = (
   url: string,
   config: ApiRequestConfig,
 ) => Response | Promise<Response>;
+
+export type ApiEventType = "request" | "success" | "error";
+
+export interface ApiEventPayloads {
+  request: { url: string; config: ApiRequestConfig };
+  success: { url: string; config: ApiRequestConfig; data: unknown; status: number };
+  error: { url: string; config: ApiRequestConfig; error: ApiError<unknown> | ClientError };
+}
+
+export type ApiEventListener<E extends ApiEventType> = (payload: ApiEventPayloads[E]) => void;
+
+/** 
+ * Type-safe interface for extending ApiClient capabilities.
+ */
+export interface ApiPlugin {
+  /** Unique name for the plugin, used for client.plugin("name") lookup */
+  name: string;
+  /** Hook called when the plugin is registered */
+  onInit?: (client: any) => void;
+  /** Request interceptor */
+  onRequest?: RequestInterceptor;
+  /** Response interceptor */
+  onResponse?: ResponseInterceptor;
+}
 
 export class InterceptorManager<TInterceptor> {
   private interceptors = new Map<number, TInterceptor>();

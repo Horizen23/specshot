@@ -3,27 +3,27 @@ behavior: generated
 target: {{outputDir}}/../plugins
 name: index.ts
 --- --}}
-{{#each (scanPlugins (concat outputDir "/../interceptors"))}}
-import { {{this.fn}} } from "../interceptors/{{this.file}}";
+{{#each (scanPlugins (concat outputDir "/../plugins"))}}
+import { {{this.fn}} } from "./{{this.file}}";
 {{/each}}
-{{#hasFile (concat outputDir "/../interceptors/bearer-auth-manager.ts")}}
+{{#hasFile (concat outputDir "/../plugins/bearer-auth-manager.ts")}}
 // Re-export for direct access
-export { AuthManager } from "../interceptors/bearer-auth-manager";
+export { AuthManager } from "./bearer-auth-manager";
 {{/hasFile}}
 
 // ==========================================
 // Plugin Registry
 // ==========================================
 
-import type { ApiClientWithPlugins } from "../client";
+import type { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{relPath (concat outputDir "/../plugins") coreOut}}/api-client{{/if}}";
 
-type PluginInstaller = (client: ApiClientWithPlugins) => void;
+type PluginInstaller = (client: ApiClient) => void;
 const registry: PluginInstaller[] = [];
-{{#each (scanPlugins (concat outputDir "/../interceptors"))}}
+{{#each (scanPlugins (concat outputDir "/../plugins"))}}
 registry.push({{this.fn}});
 {{/each}}
 
-export function useAllPlugins(client: ApiClientWithPlugins) {
+export function useAllPlugins(client: ApiClient) {
   for (const install of registry) {
     install(client);
   }

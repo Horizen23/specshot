@@ -12,6 +12,11 @@ import {
   ResponseType,
   ResponseTypeMap,
   ApiClientOptions,
+  CancelablePromise,
+  ApiPlugin,
+  ApiEventType,
+  ApiEventPayloads,
+  ApiEventListener,
 } from "./types";
 
 // ==========================================
@@ -78,7 +83,49 @@ export class ApiClient {
     response: new InterceptorManager<ResponseInterceptor>(),
   };
 
+  private readonly plugins = new Map<string, unknown>();
+  private readonly listeners: { [K in ApiEventType]?: Set<ApiEventListener<K>> } = {};
+
   public constructor(public readonly options: ApiClientOptions) {}
+
+  public on<E extends ApiEventType>(event: E, listener: ApiEventListener<E>): () => void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = new Set() as any;
+    }
+    this.listeners[event]!.add(listener as any);
+    return () => this.off(event, listener);
+  }
+
+  public off<E extends ApiEventType>(event: E, listener: ApiEventListener<E>): void {
+    this.listeners[event]?.delete(listener as any);
+  }
+
+  private emit<E extends ApiEventType>(event: E, payload: ApiEventPayloads[E]): void {
+    const eventListeners = this.listeners[event] as Set<ApiEventListener<E>> | undefined;
+    if (eventListeners) {
+      for (const listener of eventListeners) {
+        listener(payload);
+      }
+    }
+  }
+
+  public plugin<T = unknown>(name: string): T | undefined {
+    return this.plugins.get(name) as T | undefined;
+  }
+
+  public use(plugin: ApiPlugin): this;
+  public use(name: string, plugin: unknown): this;
+  public use(nameOrPlugin: string | ApiPlugin, pluginObj?: unknown): this {
+    if (typeof nameOrPlugin === "string") {
+      this.plugins.set(nameOrPlugin, pluginObj);
+    } else {
+      this.plugins.set(nameOrPlugin.name, nameOrPlugin);
+      if (nameOrPlugin.onInit) nameOrPlugin.onInit(this);
+      if (nameOrPlugin.onRequest) this.interceptors.request.use(nameOrPlugin.onRequest);
+      if (nameOrPlugin.onResponse) this.interceptors.response.use(nameOrPlugin.onResponse);
+    }
+    return this;
+  }
 
   private resolveUrl(url: string, params?: RequestConfig["params"]): string {
     const base = url.startsWith("http") ? url : `${this.options.baseUrl}${url}`;
@@ -96,40 +143,44 @@ export class ApiClient {
   public request<TJson, TError = unknown>(
     url: string,
     config?: ApiRequestConfig<"json">,
-  ): Promise<ApiResult<TJson, TError>>;
+  ): CancelablePromise<ApiResult<TJson, TError>>;
 
   public request<TError = unknown>(
     url: string,
     config: ApiRequestConfig<"blob">,
-  ): Promise<ApiResult<BlobResponse, TError>>;
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
 
   public request<TError = unknown>(
     url: string,
     config: ApiRequestConfig<"text">,
-  ): Promise<ApiResult<string, TError>>;
+  ): CancelablePromise<ApiResult<string, TError>>;
 
   public request<TError = unknown>(
     url: string,
     config: ApiRequestConfig<"void">,
-  ): Promise<ApiResult<void, TError>>;
+  ): CancelablePromise<ApiResult<void, TError>>;
 
   public request<TJson = unknown, TError = unknown>(
     url: string,
     config: ApiRequestConfig<ResponseType>,
-  ): Promise<ApiResult<unknown, TError>>;
+  ): CancelablePromise<ApiResult<unknown, TError>>;
 
-  public async request<TJson = unknown, TError = unknown>(
+  public request<TJson = unknown, TError = unknown>(
     url: string,
     initialConfig: ApiRequestConfig = {},
-  ): Promise<ApiResult<unknown, TError>> {
-    try {
-      const {
-        timeout,
-        params,
-        responseType = "json",
-        ...restConfig
-      } = initialConfig;
-      const fullUrl = this.resolveUrl(url, params);
+  ): CancelablePromise<ApiResult<unknown, TError>> {
+    const controller = new AbortController();
+
+    const promise = (async () => {
+      let fullUrl = url;
+      try {
+        const {
+          timeout,
+          params,
+          responseType = "json",
+          ...restConfig
+        } = initialConfig;
+        fullUrl = this.resolveUrl(url, params);
 
       // Run request interceptors
       let config: ApiRequestConfig = restConfig;
@@ -138,10 +189,10 @@ export class ApiClient {
       }
 
       // Build combined abort signal
-      const signals: AbortSignal[] = [];
+      const signals: AbortSignal[] = [controller.signal];
       if (timeout != null) signals.push(AbortSignal.timeout(timeout));
       if (config.signal instanceof AbortSignal) signals.push(config.signal);
-      const signal = signals.length > 0 ? AbortSignal.any(signals) : undefined;
+      const signal = AbortSignal.any(signals);
 
       // Build headers — skip Content-Type for FormData (browser sets it with boundary)
       const headers = new Headers(config.headers ?? {});
@@ -152,6 +203,8 @@ export class ApiClient {
       ) {
         headers.set("Content-Type", "application/json");
       }
+
+      this.emit("request", { url: fullUrl, config });
 
       // Fetch — classify client-side errors
       let response: Response;
@@ -180,11 +233,7 @@ export class ApiClient {
             err,
           );
         }
-        throw new ClientError(
-          "network",
-          "Unexpected fetch error",
-          err instanceof Error ? err : new Error(String(err)),
-        );
+        throw new ClientError("network", "Unexpected fetch error", err instanceof Error ? err : new Error(String(err)));
       }
 
       // Run response interceptors
@@ -234,21 +283,30 @@ export class ApiClient {
         data = validation.data;
       }
 
+      this.emit("success", { url: fullUrl, config, data, status: response.status });
+
       return { data, error: null, ok: true };
     } catch (err) {
-      if (err instanceof ApiError || err instanceof ClientError) {
-        return { data: null, error: err, ok: false };
-      }
-      return {
-        data: null,
-        error: new ClientError(
-          "network",
-          "Unexpected internal error",
-          err instanceof Error ? err : new Error(String(err)),
-        ),
-        ok: false,
-      };
+      const apiOrClientError =
+        err instanceof ApiError || err instanceof ClientError
+          ? err
+          : new ClientError(
+              "network",
+              "Unexpected internal error",
+              err instanceof Error ? err : new Error(String(err)),
+            );
+
+      this.emit("error", { url: fullUrl, config: initialConfig, error: apiOrClientError });
+
+      return { data: null, error: apiOrClientError, ok: false };
     }
+  })();
+
+    (promise as CancelablePromise<any>).cancel = (reason?: any) => {
+      controller.abort(reason);
+    };
+
+    return promise as CancelablePromise<ApiResult<unknown, TError>>;
   }
 
   // ==========================================
@@ -257,27 +315,27 @@ export class ApiClient {
   public get<TJson, TError = unknown>(
     url: string,
     config?: ApiRequestConfig<"json">,
-  ): Promise<ApiResult<TJson, TError>>;
+  ): CancelablePromise<ApiResult<TJson, TError>>;
   public get<TError = unknown>(
     url: string,
     config: ApiRequestConfig<"blob">,
-  ): Promise<ApiResult<BlobResponse, TError>>;
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
   public get<TError = unknown>(
     url: string,
     config: ApiRequestConfig<"text">,
-  ): Promise<ApiResult<string, TError>>;
+  ): CancelablePromise<ApiResult<string, TError>>;
   public get<TError = unknown>(
     url: string,
     config: ApiRequestConfig<"void">,
-  ): Promise<ApiResult<void, TError>>;
+  ): CancelablePromise<ApiResult<void, TError>>;
   public get<TJson = unknown, TError = unknown>(
     url: string,
     config: ApiRequestConfig<ResponseType>,
-  ): Promise<ApiResult<unknown, TError>>;
+  ): CancelablePromise<ApiResult<unknown, TError>>;
   public get<TJson = unknown, TError = unknown>(
     url: string,
     config?: ApiRequestConfig,
-  ): Promise<ApiResult<unknown, TError>> {
+  ): CancelablePromise<ApiResult<unknown, TError>> {
     return this.request<TJson, TError>(url, {
       ...config,
       method: "GET" as HttpMethod,
@@ -292,7 +350,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config?: ApiRequestConfig<"json">,
-  ): Promise<ApiResult<TJson, TError>>;
+  ): CancelablePromise<ApiResult<TJson, TError>>;
   public post<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -300,7 +358,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"blob">,
-  ): Promise<ApiResult<BlobResponse, TError>>;
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
   public post<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -308,7 +366,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"text">,
-  ): Promise<ApiResult<string, TError>>;
+  ): CancelablePromise<ApiResult<string, TError>>;
   public post<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -316,7 +374,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"void">,
-  ): Promise<ApiResult<void, TError>>;
+  ): CancelablePromise<ApiResult<void, TError>>;
   public post<
     TJson = unknown,
     TError = unknown,
@@ -325,7 +383,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<ResponseType>,
-  ): Promise<ApiResult<unknown, TError>>;
+  ): CancelablePromise<ApiResult<unknown, TError>>;
   public post<
     TJson = unknown,
     TError = unknown,
@@ -334,7 +392,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config?: ApiRequestConfig,
-  ): Promise<ApiResult<unknown, TError>> {
+  ): CancelablePromise<ApiResult<unknown, TError>> {
     const serializedBody =
       body instanceof FormData ? body : JSON.stringify(body);
     return this.request<TJson, TError>(url, {
@@ -352,7 +410,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config?: ApiRequestConfig<"json">,
-  ): Promise<ApiResult<TJson, TError>>;
+  ): CancelablePromise<ApiResult<TJson, TError>>;
   public put<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -360,7 +418,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"blob">,
-  ): Promise<ApiResult<BlobResponse, TError>>;
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
   public put<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -368,7 +426,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"text">,
-  ): Promise<ApiResult<string, TError>>;
+  ): CancelablePromise<ApiResult<string, TError>>;
   public put<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -376,7 +434,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"void">,
-  ): Promise<ApiResult<void, TError>>;
+  ): CancelablePromise<ApiResult<void, TError>>;
   public put<
     TJson = unknown,
     TError = unknown,
@@ -385,7 +443,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<ResponseType>,
-  ): Promise<ApiResult<unknown, TError>>;
+  ): CancelablePromise<ApiResult<unknown, TError>>;
   public put<
     TJson = unknown,
     TError = unknown,
@@ -394,7 +452,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config?: ApiRequestConfig,
-  ): Promise<ApiResult<unknown, TError>> {
+  ): CancelablePromise<ApiResult<unknown, TError>> {
     const serializedBody =
       body instanceof FormData ? body : JSON.stringify(body);
     return this.request<TJson, TError>(url, {
@@ -412,7 +470,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config?: ApiRequestConfig<"json">,
-  ): Promise<ApiResult<TJson, TError>>;
+  ): CancelablePromise<ApiResult<TJson, TError>>;
   public patch<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -420,7 +478,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"blob">,
-  ): Promise<ApiResult<BlobResponse, TError>>;
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
   public patch<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -428,7 +486,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"text">,
-  ): Promise<ApiResult<string, TError>>;
+  ): CancelablePromise<ApiResult<string, TError>>;
   public patch<
     TError = unknown,
     TBody extends object | FormData = Record<string, unknown>,
@@ -436,7 +494,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<"void">,
-  ): Promise<ApiResult<void, TError>>;
+  ): CancelablePromise<ApiResult<void, TError>>;
   public patch<
     TJson = unknown,
     TError = unknown,
@@ -445,7 +503,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config: ApiRequestConfig<ResponseType>,
-  ): Promise<ApiResult<unknown, TError>>;
+  ): CancelablePromise<ApiResult<unknown, TError>>;
   public patch<
     TJson = unknown,
     TError = unknown,
@@ -454,7 +512,7 @@ export class ApiClient {
     url: string,
     body: TBody,
     config?: ApiRequestConfig,
-  ): Promise<ApiResult<unknown, TError>> {
+  ): CancelablePromise<ApiResult<unknown, TError>> {
     const serializedBody =
       body instanceof FormData ? body : JSON.stringify(body);
     return this.request<TJson, TError>(url, {
@@ -468,11 +526,90 @@ export class ApiClient {
   public delete<TError = unknown>(
     url: string,
     config?: ApiRequestConfig,
-  ): Promise<ApiResult<void, TError>> {
+  ): CancelablePromise<ApiResult<void, TError>> {
     return this.request<void, TError>(url, {
       ...config,
       method: "DELETE" as HttpMethod,
       responseType: "void",
-    } as ApiRequestConfig<"void">) as Promise<ApiResult<void, TError>>;
+    } as ApiRequestConfig<"void">) as CancelablePromise<ApiResult<void, TError>>;
+  }
+}
+
+// ==========================================
+// ApiClientBuilder (Fluent API)
+// ==========================================
+export class ApiClientBuilder {
+  private options: Partial<ApiClientOptions> = {};
+  private requestInterceptors: RequestInterceptor[] = [];
+  private responseInterceptors: ResponseInterceptor[] = [];
+  private plugins = new Map<string, unknown>();
+
+  public setBaseUrl(baseUrl: string): this {
+    this.options.baseUrl = baseUrl;
+    return this;
+  }
+
+  public setDataExtractor(extractor: (data: unknown) => unknown): this {
+    this.options.dataExtractor = extractor;
+    return this;
+  }
+
+  public setErrorExtractor(extractor: (data: unknown) => string | undefined): this {
+    this.options.errorExtractor = extractor;
+    return this;
+  }
+
+  public addRequestInterceptor(interceptor: RequestInterceptor): this {
+    this.requestInterceptors.push(interceptor);
+    return this;
+  }
+
+  public addResponseInterceptor(interceptor: ResponseInterceptor): this {
+    this.responseInterceptors.push(interceptor);
+    return this;
+  }
+
+  public addHeader(key: string, value: string | (() => string)): this {
+    return this.addRequestInterceptor((config, url) => {
+      const headers = new Headers(config.headers || {});
+      headers.set(key, typeof value === "function" ? value() : value);
+      return { ...config, headers };
+    });
+  }
+
+  public addPlugin(plugin: ApiPlugin): this;
+  public addPlugin(name: string, plugin: unknown): this;
+  public addPlugin(nameOrPlugin: string | ApiPlugin, pluginObj?: unknown): this {
+    if (typeof nameOrPlugin === "string") {
+      this.plugins.set(nameOrPlugin, pluginObj);
+    } else {
+      this.plugins.set(nameOrPlugin.name, nameOrPlugin);
+    }
+    return this;
+  }
+
+  public build(): ApiClient {
+    const client = new ApiClient({
+      baseUrl: this.options.baseUrl || "",
+      dataExtractor: this.options.dataExtractor,
+      errorExtractor: this.options.errorExtractor,
+    });
+
+    for (const interceptor of this.requestInterceptors) {
+      client.interceptors.request.use(interceptor);
+    }
+    for (const interceptor of this.responseInterceptors) {
+      client.interceptors.response.use(interceptor);
+    }
+    for (const [name, plugin] of this.plugins.entries()) {
+      // If it's an ApiPlugin (has a name field matching the key and maybe hooks)
+      if (plugin && typeof plugin === "object" && (plugin as ApiPlugin).name === name) {
+        client.use(plugin as ApiPlugin);
+      } else {
+        client.use(name, plugin);
+      }
+    }
+
+    return client;
   }
 }

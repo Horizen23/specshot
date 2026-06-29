@@ -17,13 +17,16 @@ export type CreatePetRequest = z.infer<typeof CreatePetRequestSchema>;
 
 // -- Request & Response Types --
 
-export type PetsListPetsResponse = Pet[];
+export const PetsListPetsResponseSchema = z.array(PetSchema);
+export type PetsListPetsResponse = z.infer<typeof PetsListPetsResponseSchema>;
 
 export type PetsCreatePetPayload = CreatePetRequest;
 
-export type PetsCreatePetResponse = Pet;
+export const PetsCreatePetResponseSchema = PetSchema;
+export type PetsCreatePetResponse = z.infer<typeof PetsCreatePetResponseSchema>;
 
-export type PetsGetPetResponse = Pet;
+export const PetsGetPetResponseSchema = PetSchema;
+export type PetsGetPetResponse = z.infer<typeof PetsGetPetResponseSchema>;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

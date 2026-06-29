@@ -1,6 +1,6 @@
 {{!-- ---
 behavior: scaffold
-target: {{outDir}}/interceptors
+target: {{outDir}}/plugins
 filter:
   - {{#each pluginNames}}{{this}}.hbs
   - {{#ifEq this "bearer"}}bearer-auth-manager.hbs
