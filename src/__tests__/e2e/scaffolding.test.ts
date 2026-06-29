@@ -23,7 +23,7 @@ describe("F1 Scaffolding (init command)", () => {
   it("should scaffold with default interactive prompts", async () => {
     const result = await runCli(["init"], {
       cwd: tmpDir,
-      stdinInputs: ["", "", "", "", "", ""],
+      stdinInputs: ["", "", "", "", "", "", ""],
     });
 
     expect(result.code).toBe(0);
@@ -225,7 +225,7 @@ describe("F1 Scaffolding (init command)", () => {
   it("should copy custom Handlebars templates directory if provided", async () => {
     await runCli(["init", "--templates", "my-custom-templates", "--url", ""], {
       cwd: tmpDir,
-      stdinInputs: ["prov", "", "", "", ""],
+      stdinInputs: ["prov", "", "", "", "", ""],
     });
 
     const configPath = path.join(tmpDir, "specshot.config.mjs");
@@ -251,7 +251,7 @@ describe("F1 Scaffolding (init command)", () => {
     });
 
     await runCli(["generate"], { cwd: tmpDir });
-    const interceptorDir = path.join(tmpDir, "prov/interceptors");
+    const interceptorDir = path.join(tmpDir, "prov/plugins");
     expect(fs.existsSync(path.join(interceptorDir, "bearer.ts"))).toBe(true);
     expect(fs.existsSync(path.join(interceptorDir, "logger.ts"))).toBe(false);
   });

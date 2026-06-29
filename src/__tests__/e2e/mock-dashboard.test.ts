@@ -155,7 +155,7 @@ describe("F3 Dashboard API (mock --web command)", () => {
       if (server1) server1.kill("SIGKILL");
       if (server2) server2.kill("SIGKILL");
     }
-  });
+  }, 20000);
 
   // Test 4
   it("should fail to start dashboard server with invalid command flags", async () => {

@@ -791,7 +791,7 @@ import { BaseService } from "{{corePath}}/base-service";
       }) as Response) as typeof fetch;
 
     const provDir = path.join(tmpDir, "plugin-prov");
-    const interceptorsDir = path.join(provDir, "interceptors");
+    const interceptorsDir = path.join(provDir, "plugins");
     fs.mkdirSync(interceptorsDir, { recursive: true });
     fs.writeFileSync(
       path.join(interceptorsDir, "custom.ts"),
