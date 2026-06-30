@@ -2,9 +2,9 @@
 behavior: scaffold
 target: {{outDir}}/plugins
 filter:
-  - {{#each pluginNames}}{{this}}.hbs
-  - {{#ifEq this "bearer"}}bearer-auth-manager.hbs
-  - {{/ifEq}}{{/each}}
+{{#each pluginNames}}
+  - {{this}}.hbs
+{{/each}}
 --- --}}
 import type { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{relPath (concat outDir "/plugins") coreOut}}/api-client{{/if}}";
 import type { ApiPlugin } from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath (concat outDir "/plugins") coreOut}}{{/if}}/types";

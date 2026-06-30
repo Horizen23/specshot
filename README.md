@@ -51,7 +51,10 @@ defaultClient.options.baseUrl = "https://api.myprod.com";
 // Everything is typed — no generics, no casting
 const { data, error, ok } = await clientApi.pets.listPets();
 const { data: pet } = await clientApi.pets.getPet("abc123");
-const result = await clientApi.pets.createPet({ name: "Buddy", species: "dog" });
+const result = await clientApi.pets.createPet({
+  name: "Buddy",
+  species: "dog",
+});
 ```
 
 That's it. No config files. No code generation pipelines. Just typed API calls.
@@ -321,7 +324,7 @@ SpecShot provides autocompletion for both config files and templates:
 /**
  * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Hooks framework
- * @property {("bearer" | "logger")[]} [pluginNames] - Interceptor plugins
+ * @property {("bearer" | "logger" | "request-id" | "circuit-breaker")[]} [pluginNames] - Plugins to generate
  * @property {"types-only" | "zod-schemas" | "zod-runtime"} [validation] - Validation strictness mode
  */
 /** @type {import('specshot').SpecshotConfig<TemplateData>} */
@@ -384,7 +387,7 @@ _(Mock configurations and overrides are automatically saved to `.specshot/mocks.
 /**
  * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Hooks framework
- * @property {("bearer" | "logger")[]} [pluginNames] - Interceptor plugins
+ * @property {("bearer" | "logger" | "request-id" | "circuit-breaker")[]} [pluginNames] - Plugins to generate
  * @property {"types-only" | "zod-schemas" | "zod-runtime"} [validation] - Validation strictness mode
  */
 /**

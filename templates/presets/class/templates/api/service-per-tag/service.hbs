@@ -8,7 +8,7 @@ iterate: tags
 import { BaseService } from "{{#if importAlias}}{{importAlias}}/core/base-service{{else}}{{coreRelPath}}/base-service{{/if}}";
 import { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{coreRelPath}}/api-client{{/if}}";
 import { ApiResult, CancelablePromise } from "{{#if importAlias}}{{importAlias}}/core/types{{else}}{{coreRelPath}}/types{{/if}}";
-import { AppRequestConfig, AppApiErrorData } from "{{#if importAlias}}{{importAlias}}/types{{else}}{{typesRelPath}}{{/if}}";
+import { AppRequestConfig, AppApiErrorData } from "{{typesRelPath}}";
 
 {{#if exportsToReExport.length}}
 import type { {{#each exportsToReExport}}{{this}}{{#unless @last}}, {{/unless}}{{/each}} } from "./{{tagPrefix}}.types";

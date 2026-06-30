@@ -2,9 +2,12 @@
 behavior: scaffold
 target: {{outDir}}/plugins
 filter:
-  - {{#each pluginNames}}{{this}}.hbs
-  - {{#ifEq this "bearer"}}bearer-auth-manager.hbs
-  - {{/ifEq}}{{/each}}
+{{#each pluginNames}}
+  - {{this}}.hbs
+{{#ifEq this "bearer"}}
+  - bearer-auth-manager.hbs
+{{/ifEq}}
+{{/each}}
 --- --}}
 /**
  * AuthManager — Isomorphic token manager for the API client.

@@ -6,9 +6,12 @@
   "properties": {
     "pluginNames": {
       "type": "array",
-      "items": { "type": "string", "enum": ["bearer", "logger"] },
+      "items": {
+        "type": "string",
+        "enum": ["bearer", "logger", "request-id", "circuit-breaker"]
+      },
       "default": [],
-      "description": "List of interceptor plugins to generate"
+      "description": "List of plugins to generate"
     }
   },
   "required": []

@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "@/api/*": ["./src/lib/api/*"]
+    },
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",

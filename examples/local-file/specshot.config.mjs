@@ -1,7 +1,7 @@
 /**
  * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Which hooks framework to scaffold: 'react-query', 'swr', or 'none'
- * @property {("bearer" | "logger")[]} [pluginNames] - List of interceptor plugins to generate
+ * @property {("bearer" | "logger" | "request-id" | "circuit-breaker")[]} [pluginNames] - List of plugins to generate
  * @property {"types-only" | "zod-schemas" | "zod-runtime"} [validation] - Validation strictness mode
  */
 /**
@@ -24,9 +24,10 @@ export default {
       openapiUrl: "openapi.json",
     },
   },
+  alias: "@/api",
   templateData: {
     hook: "none",
-    pluginNames: ["bearer", "logger"],
+    pluginNames: ["bearer", "logger", "request-id", "circuit-breaker"],
     validation: "zod-runtime",
   },
 };

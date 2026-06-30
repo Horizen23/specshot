@@ -1,0 +1,28 @@
+import type { ApiClient } from "../../core/api-client";
+import type { ApiPlugin } from "../../core/types";
+
+function generateUUID() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0,
+      v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+export function installRequestId(client: ApiClient) {
+  const requestIdPlugin: ApiPlugin = {
+    name: "request-id",
+    onRequest: async (config, url) => {
+      const headers = new Headers(config.headers || {});
+      if (!headers.has("X-Request-Id")) {
+        headers.set("X-Request-Id", generateUUID());
+      }
+      return { ...config, headers };
+    },
+  };
+
+  client.use(requestIdPlugin);
+}
