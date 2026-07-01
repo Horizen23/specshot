@@ -287,12 +287,32 @@ export class ApiClient {
         }
 
         // Optional Runtime Schema Validation (e.g. Zod)
-        if (config.responseSchema && responseType === "json") {
-          const validation = config.responseSchema.safeParse(data);
+        const schema = config.responseSchema || config.zodSchema;
+        if (schema && responseType === "json") {
+          const validation = schema.safeParse(data);
           if (!validation.success) {
+            let errorMessage = "Runtime Schema Validation Failed";
+
+            // Try to format Zod error if it's a ZodError-like object
+            if (
+              validation.error &&
+              Array.isArray((validation.error as any).issues)
+            ) {
+              const issues = (validation.error as any).issues;
+              const formattedIssues = issues
+                .map(
+                  (i: any) =>
+                    `\n  - Field: "${i.path.join(".") || "root"}" \n    Message: ${i.message}`,
+                )
+                .join("");
+
+              errorMessage = `[API Type Mismatch] ${initialConfig.method || "GET"} ${url}${formattedIssues}\n  (Please check with the backend team to update the types)`;
+              console.error(errorMessage);
+            }
+
             throw new ClientError(
               "parse",
-              "Runtime Schema Validation Failed",
+              errorMessage,
               validation.error instanceof Error
                 ? validation.error
                 : new Error(JSON.stringify(validation.error)),

@@ -8,7 +8,11 @@ import {
   generateTypeFile,
   generateJSDocTypeDef,
 } from "../../core/template-registry";
-import { getAvailablePresets, DEFAULT_PRESET } from "../../core/presets";
+import {
+  getAvailablePresets,
+  getPresetInfo,
+  DEFAULT_PRESET,
+} from "../../core/presets";
 
 import { showBanner } from "../ui/banner";
 
@@ -150,6 +154,9 @@ export async function initCommand(options: InitOptions = {}) {
     return;
   }
 
+  const presetInfo = getPresetInfo(selectedPreset);
+  const presetDefaults = presetInfo?.templateData || {};
+
   // ── Prompt templateData from schemas ──
   const schemas = readAllSchemas(selectedPreset);
   const mergedProps: Record<
@@ -177,12 +184,15 @@ export async function initCommand(options: InitOptions = {}) {
     const questions: Record<string, unknown>[] = [];
 
     for (const [key, prop] of Object.entries(mergedProps)) {
+      const defaultValue =
+        presetDefaults[key] !== undefined ? presetDefaults[key] : prop.default;
+
       if (prop.enum) {
         questions.push({
           type: "list",
           name: key,
           message: prop.description || key,
-          default: prop.default as string,
+          default: defaultValue as string,
           choices: prop.enum,
         });
       } else if (prop.type === "array") {
@@ -191,7 +201,7 @@ export async function initCommand(options: InitOptions = {}) {
             type: "checkbox",
             name: key,
             message: prop.description || key,
-            default: prop.default as string[],
+            default: defaultValue as string[],
             choices: prop.items.enum,
           });
         } else {
@@ -199,7 +209,7 @@ export async function initCommand(options: InitOptions = {}) {
             type: "input",
             name: key,
             message: `${prop.description || key} (comma-separated)`,
-            default: Array.isArray(prop.default) ? prop.default.join(", ") : "",
+            default: Array.isArray(defaultValue) ? defaultValue.join(", ") : "",
             filter: (input: string) =>
               input
                 .split(",")
@@ -212,14 +222,14 @@ export async function initCommand(options: InitOptions = {}) {
           type: "confirm",
           name: key,
           message: prop.description || key,
-          default: prop.default as boolean,
+          default: defaultValue as boolean,
         });
       } else {
         questions.push({
           type: "input",
           name: key,
           message: prop.description || key,
-          default: prop.default as string,
+          default: defaultValue as string,
         });
       }
     }

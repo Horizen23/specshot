@@ -8,8 +8,19 @@
     "SWR or React Query hooks support",
     "Promise<{ data, error, ok }> result pattern"
   ],
-  "deps": ["zod"],
+  "deps": [
+    "zod",
+    "sonner",
+    "react-toastify",
+    "react-hot-toast",
+    "vue-toastification",
+    "sweetalert2",
+    "swr",
+    "@tanstack/react-query"
+  ],
   "templateData": {
-    "validation": "zod-runtime"
+    "validation": "zod-runtime",
+    "pluginNames": ["bearer", "logger"],
+    "toastLibrary": "sonner"
   }
 }

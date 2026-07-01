@@ -131,18 +131,19 @@ npx specshot generate --url http://localhost:8080/openapi.json
 
 ### `generate` options
 
-| Flag                    | Description                                    |
-| ----------------------- | ---------------------------------------------- |
-| `--url, -u <url>`       | Remote OpenAPI spec URL                        |
-| `--file, -f <path>`     | Local OpenAPI JSON file                        |
-| `--output, -o <dir>`    | Output directory                               |
-| `--alias, -a <alias>`   | Import alias (e.g. `@/lib/api`)                |
-| `--config, -c <path>`   | Custom config file path                        |
-| `--templates, -t <dir>` | Custom Handlebars templates (partial override) |
-| `--preset <name>`       | Built-in preset: `class`, `functional`         |
-| `-w, --watch`           | Watch for changes and auto-regenerate          |
-| `--dry-run`             | Preview without writing files                  |
-| `--msw`                 | Generate MSW mock handlers                     |
+| Flag                    | Description                                                |
+| ----------------------- | ---------------------------------------------------------- |
+| `--url, -u <url>`       | Remote OpenAPI spec URL                                    |
+| `--file, -f <path>`     | Local OpenAPI JSON file                                    |
+| `--output, -o <dir>`    | Output directory                                           |
+| `--alias, -a <alias>`   | Import alias (e.g. `@/lib/api`)                            |
+| `--config, -c <path>`   | Custom config file path                                    |
+| `--templates, -t <dir>` | Custom Handlebars templates (partial override)             |
+| `--preset <name>`       | Built-in preset: `class`, `functional`                     |
+| `-w, --watch`           | Watch for changes and auto-regenerate                      |
+| `--dry-run`             | Preview without writing files                              |
+| `--msw`                 | Generate MSW mock handlers                                 |
+| `--force-scaffold`      | Force regenerate scaffold files, overwriting existing ones |
 
 ### 3. `templates` (Manage Handlebars templates)
 

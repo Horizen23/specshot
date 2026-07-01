@@ -22,6 +22,7 @@ interface GenerateOptions {
   msw?: boolean;
   watch?: boolean;
   preset?: string;
+  forceScaffold?: boolean;
 }
 
 export async function generateCommand(options: GenerateOptions) {
@@ -49,6 +50,7 @@ export async function generateCommand(options: GenerateOptions) {
           apiConfig,
           apiName,
           templateData: config.templateData,
+          forceScaffold: options.forceScaffold,
         });
         if (installed) console.log(chalk.green(`✔ Scaffold installed`));
       } else {
@@ -135,6 +137,7 @@ export async function generateCommand(options: GenerateOptions) {
       apiConfig: firstApi,
       apiName: firstApiName || "api",
       templateData: config.templateData,
+      forceScaffold: options.forceScaffold,
     });
     if (installed) console.log(chalk.green(`✔ Scaffold installed`));
   }

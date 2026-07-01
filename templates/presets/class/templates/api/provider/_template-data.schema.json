@@ -12,6 +12,20 @@
       },
       "default": [],
       "description": "List of plugins to generate"
+    },
+    "toastLibrary": {
+      "type": "string",
+      "enum": [
+        "none",
+        "sonner",
+        "react-toastify",
+        "react-hot-toast",
+        "vue-toastification",
+        "sweetalert2",
+        "alert"
+      ],
+      "default": "none",
+      "description": "Select a UI library to automatically handle global API error toasts"
     }
   },
   "required": []

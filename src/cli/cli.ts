@@ -74,6 +74,10 @@ program
   .option("-w, --watch", "Watch for changes and auto-regenerate")
   .option("--dry-run", "Run without writing any files")
   .option("--msw", "Generate MSW mock handlers")
+  .option(
+    "--force-scaffold",
+    "Force regenerate scaffold files, overwriting existing ones",
+  )
   .action(generateCommand);
 
 program

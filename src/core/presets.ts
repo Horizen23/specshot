@@ -9,6 +9,7 @@ export interface PresetInfo {
   features: string[];
   deps: string[];
   source: "built-in" | "community" | "custom";
+  templateData?: Record<string, unknown>;
 }
 
 export const DEFAULT_PRESET = "class";
@@ -63,6 +64,7 @@ interface RawPresetManifest {
   description?: unknown;
   features?: unknown;
   deps?: unknown;
+  templateData?: unknown;
 }
 
 function loadPresetManifest(
@@ -116,6 +118,10 @@ function loadPresetManifest(
           ? data.deps.filter((d): d is string => typeof d === "string")
           : [],
         source,
+        templateData:
+          typeof data.templateData === "object" && data.templateData !== null
+            ? (data.templateData as Record<string, unknown>)
+            : undefined,
       };
     } catch (err) {
       console.warn(`  [SpecShot] Failed to parse ${manifestPath}: ${err}`);

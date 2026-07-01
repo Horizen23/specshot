@@ -28,8 +28,15 @@ export interface PageResponse<T> {
 }
 
 {{#if (includes pluginNames "bearer")}}
-import { AuthConfig } from "./plugins/bearer";
-export interface AppRequestConfig extends RequestConfig, AuthConfig {}
-{{else}}
-export interface AppRequestConfig extends RequestConfig {}
+import type { AuthConfig } from "./plugins/bearer";
 {{/if}}
+{{#if toastLibrary}}
+{{#ifEq toastLibrary "none"}}{{else}}
+import type { ToastConfig } from "./plugins/toast";
+{{/ifEq}}
+{{/if}}
+
+export interface AppRequestConfig extends RequestConfig
+{{#if (includes pluginNames "bearer")}}, AuthConfig{{/if}}
+{{#if toastLibrary}}{{#ifEq toastLibrary "none"}}{{else}}, ToastConfig{{/ifEq}}{{/if}}
+{}

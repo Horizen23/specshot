@@ -14,6 +14,7 @@ export interface InstallOptions {
   preset: string;
   openapiUrl?: string;
   data?: Record<string, unknown>;
+  forceScaffold?: boolean;
 }
 
 function getScaffoldDirs(preset: string): string[] {
@@ -56,7 +57,7 @@ export function installScaffold(options: InstallOptions): boolean {
     const generated = renderTemplates({
       templateDir: scaffoldDir,
       data,
-      skipIfExists: true,
+      skipIfExists: !options.forceScaffold,
       behavior: "scaffold",
     });
     totalGenerated += generated.length;
@@ -84,8 +85,9 @@ export function scaffoldInfrastructure(params: {
   };
   apiName: string;
   templateData?: Record<string, unknown>;
+  forceScaffold?: boolean;
 }): boolean {
-  const { preset, apiConfig, apiName, templateData } = params;
+  const { preset, apiConfig, apiName, templateData, forceScaffold } = params;
 
   const scaffoldDirs = getScaffoldDirs(preset);
   if (scaffoldDirs.length === 0) return false;
@@ -112,5 +114,6 @@ export function scaffoldInfrastructure(params: {
     preset,
     openapiUrl: apiConfig.openapiUrl,
     data: mergedData,
+    forceScaffold,
   });
 }

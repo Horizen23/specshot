@@ -23,5 +23,9 @@ export interface PageResponse<T> {
   size: number;
 }
 
-import { AuthConfig } from "./plugins/bearer";
-export interface AppRequestConfig extends RequestConfig, AuthConfig {}
+import type { AuthConfig } from "./plugins/bearer";
+
+import type { ToastConfig } from "./plugins/toast";
+
+export interface AppRequestConfig
+  extends RequestConfig, AuthConfig, ToastConfig {}

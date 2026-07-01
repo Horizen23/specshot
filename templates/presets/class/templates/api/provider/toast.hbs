@@ -1,0 +1,67 @@
+{{!-- ---
+behavior: scaffold
+target: {{outDir}}/plugins
+filter:
+{{#if toastLibrary}}
+{{#ifEq toastLibrary "none"}}{{else}}
+  - toast.hbs
+{{/ifEq}}
+{{/if}}
+--- --}}
+import type { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{relPath (concat outDir "/plugins") coreOut}}/api-client{{/if}}";
+import type { ApiRequestConfig } from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath (concat outDir "/plugins") coreOut}}{{/if}}/types";
+
+{{#ifEq toastLibrary "sonner"}}
+import { toast } from "sonner";
+{{/ifEq}}
+{{#ifEq toastLibrary "react-toastify"}}
+import { toast } from "react-toastify";
+{{/ifEq}}
+{{#ifEq toastLibrary "react-hot-toast"}}
+import toast from "react-hot-toast";
+{{/ifEq}}
+{{#ifEq toastLibrary "vue-toastification"}}
+import { useToast } from "vue-toastification";
+const toast = useToast();
+{{/ifEq}}
+{{#ifEq toastLibrary "sweetalert2"}}
+import Swal from "sweetalert2";
+{{/ifEq}}
+
+export interface ToastConfig {
+  /** If true, prevents a global toast notification from appearing if this request fails. */
+  silent?: boolean;
+}
+
+/**
+ * Global Error Handler Plugin
+ * Listens to all API errors and displays a toast notification.
+ */
+export function installToast(client: ApiClient) {
+  client.on("error", ({ error, config }) => {
+    // You can skip showing a toast for specific requests by adding `silent: true` to the request config
+    const cfg = config as ApiRequestConfig & ToastConfig;
+    if (cfg.silent) return;
+
+    const message = error.message || "Something went wrong with the request.";
+
+{{#ifEq toastLibrary "sonner"}}
+    toast.error(message);
+{{/ifEq}}
+{{#ifEq toastLibrary "react-toastify"}}
+    toast.error(message);
+{{/ifEq}}
+{{#ifEq toastLibrary "react-hot-toast"}}
+    toast.error(message);
+{{/ifEq}}
+{{#ifEq toastLibrary "vue-toastification"}}
+    toast.error(message);
+{{/ifEq}}
+{{#ifEq toastLibrary "sweetalert2"}}
+    Swal.fire({ icon: 'error', title: 'Oops...', text: message });
+{{/ifEq}}
+{{#ifEq toastLibrary "alert"}}
+    alert(`API Error: ${message}`);
+{{/ifEq}}
+  });
+}

@@ -2,6 +2,7 @@
  * @typedef {Object} TemplateData
  * @property {"react-query" | "swr" | "none"} [hook] - Which hooks framework to scaffold: 'react-query', 'swr', or 'none'
  * @property {("bearer" | "logger" | "request-id" | "circuit-breaker")[]} [pluginNames] - List of plugins to generate
+ * @property {"none" | "sonner" | "react-toastify" | "react-hot-toast" | "vue-toastification" | "sweetalert2" | "alert"} [toastLibrary] - Select a UI library to automatically handle global API error toasts
  * @property {"types-only" | "zod-schemas" | "zod-runtime"} [validation] - Validation strictness mode
  */
 /**
@@ -24,10 +25,10 @@ export default {
       openapiUrl: "openapi.json",
     },
   },
-  alias: "@/api",
   templateData: {
     hook: "none",
     pluginNames: ["bearer", "logger", "request-id", "circuit-breaker"],
     validation: "zod-runtime",
+    toastLibrary: "sonner",
   },
 };
