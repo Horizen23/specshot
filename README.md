@@ -12,21 +12,19 @@ Drop an OpenAPI spec in, get production-ready TypeScript out. No SDKs to install
 
 ### Why SpecShot?
 
-| Instead of...           | You get...                        |
-| ----------------------- | --------------------------------- |
-| `fetch()` with no types | Fully typed `{ data, error, ok }` |
-| `try/catch` everywhere  | Clean result pattern              |
-| Manual Zod schemas      | Multi-mode auto-validation        |
-| Vendor lock-in          | Code you own, edit, and extend    |
+| Instead of...          | You get...                                          |
+| ---------------------- | --------------------------------------------------- |
+| Vendor lock-in SDKs    | Code you own, edit, and extend                      |
+| Black-box generators   | 100% customizable Handlebars templates              |
+| Hardcoded architecture | Bring your own patterns (Classes, Hooks, Functions) |
+| Untyped `fetch()`      | Strictly typed endpoints and models                 |
 
 ### What you get
 
-- **Typed API client** — every endpoint, param, body, and response strictly typed
-- **Multi-mode Validation** — `types-only` (zero deps), `zod-schemas`, or full `zod-runtime` validation
-- **Result pattern** — `{ data, error, ok }` pattern. No exceptions. No guessing.
-- **Plugin Architecture** — Easily extend the client. Bearer auth with auto-refresh and logger built-in.
-- **Hooks ready** — optional SWR or TanStack React Query hooks out of the box
-- **Zero deps (optional)** — generate pure fetch functions, or opt into Zod for runtime safety
+- **Template-Driven Engine** — SpecShot doesn't dictate your architecture. It ships with robust built-in presets (`class`, `functional`), but you can easily eject and modify the Handlebars templates to match your exact team standards.
+- **Custom Code Preservation** — Write your own custom methods directly inside the generated files using magic comments (`// --- CUSTOM CODE START ---`). Your code survives the next generation.
+- **100% Code Ownership** — Generate it once, own it forever. No proprietary libraries or hidden runtime dependencies injected into your project unless your chosen template requires them.
+- **Built-in Mock Server** — Instantly spin up a local Mock API dashboard that serves realistic data generated from your OpenAPI spec.
 
 ---
 
@@ -95,10 +93,10 @@ Installs the API core infrastructure (if missing), then reads your OpenAPI spec 
 
 Choose a built-in code style with `--preset`:
 
-| Preset            | Style                                          | Dependencies | Result pattern                 |
-| ----------------- | ---------------------------------------------- | ------------ | ------------------------------ |
-| `class` (default) | `BaseService` + `ApiClient` + Zod              | `zod`        | `Promise<{ data, error, ok }>` |
-| `functional`      | Standalone `async function` + native `fetch()` | none         | `Promise<T>` (throws on error) |
+| Preset                                                 | Style                                          | Dependencies | Result pattern                 |
+| ------------------------------------------------------ | ---------------------------------------------- | ------------ | ------------------------------ |
+| [`class`](templates/presets/class/README.md) (default) | `BaseService` + `ApiClient` + Zod              | `zod`        | `Promise<{ data, error, ok }>` |
+| [`functional`](templates/presets/functional/README.md) | Standalone `async function` + native `fetch()` | none         | `Promise<T>` (throws on error) |
 
 ```bash
 npx specshot generate --preset functional
