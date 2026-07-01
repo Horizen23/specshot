@@ -8,3 +8,20 @@ coverage
 src/
 ui/mock-ui/node_modules/
 ui/mock-ui/src/
+
+# Repository and Development Folders
+examples/
+scratch/
+docs/
+assets/
+github-action/
+.github/
+.husky/
+.vscode/
+.opencode/
+
+# Development Config Files
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.prettierignore
