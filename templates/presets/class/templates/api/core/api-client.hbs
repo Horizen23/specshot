@@ -113,8 +113,10 @@ export class ApiClient {
     }
   }
 
-  public plugin<T = unknown>(name: string): T | undefined {
-    return this.plugins.get(name) as T | undefined;
+  public plugin<K extends keyof import("./types").PluginRegistry>(name: K): import("./types").PluginRegistry[K];
+  public plugin<T = unknown>(name: string): T | undefined;
+  public plugin(name: string): unknown {
+    return this.plugins.get(name);
   }
 
   public use(plugin: ApiPlugin): this;

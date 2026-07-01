@@ -176,6 +176,12 @@ export interface ApiPlugin {
   onResponse?: ResponseInterceptor;
 }
 
+/**
+ * Declaration merging target for plugins.
+ * Plugins can extend this interface to provide strong typing for `client.plugin("name")`.
+ */
+export interface PluginRegistry {}
+
 export class InterceptorManager<TInterceptor> {
   private interceptors = new Map<number, TInterceptor>();
   private nextId = 0;

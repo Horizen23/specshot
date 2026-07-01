@@ -6,6 +6,12 @@ export interface AuthConfig {
   skip?: { auth?: boolean; refreshToken?: boolean };
 }
 
+declare module "../../core/types" {
+  interface PluginRegistry {
+    auth: AuthManager;
+  }
+}
+
 const retried = new WeakMap<object, boolean>();
 
 export function installBearer(client: ApiClient) {
