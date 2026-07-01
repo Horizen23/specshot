@@ -182,5 +182,6 @@ export class MemesService extends BaseService<"memes"> {
 
   // --- CUSTOM CODE START ---
   // Add your custom methods here. Do not remove these comments.
+
   // --- CUSTOM CODE END ---
 }

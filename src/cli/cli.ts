@@ -54,6 +54,9 @@ program
     "--preset <name>",
     "Preset name (built-in: class, functional; or community/custom)",
   )
+  .option("-y, --yes", "Skip interactive prompts and use defaults")
+  .option("--data <json>", "JSON string of template configuration answers")
+  .option("--api-name <name>", "Name of the API (default: 'api')")
   .action(initCommand);
 
 program

@@ -6,7 +6,8 @@
   "scripts": {
     "specshot:mock": "specshot mock --web",
     "specshot:generate": "specshot generate --force-scaffold",
-    "specshot:init": "specshot init"
+    "specshot:init": "specshot init",
+    "reset": "rm -rf src/api src/mocks && npm run specshot:generate"
   },
   "dependencies": {
     "sonner": "^2.0.7",

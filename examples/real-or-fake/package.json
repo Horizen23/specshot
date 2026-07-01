@@ -4,7 +4,8 @@
   "scripts": {
     "specshot:mock": "npm run specshot:mock --prefix client",
     "specshot:generate": "npm run specshot:generate --prefix client",
-    "specshot:init": "npm run specshot:init --prefix client"
+    "specshot:init": "npm run specshot:init --prefix client",
+    "reset": "npm run reset --prefix client"
   },
   "dependencies": {
     "specshot": "file:../.."

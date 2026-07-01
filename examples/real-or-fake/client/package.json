@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "specshot:mock": "specshot mock --proxy http://localhost:3000 --web",
     "specshot:generate": "specshot generate",
-    "specshot:init": "specshot init"
+    "specshot:init": "specshot init",
+    "reset": "rm -rf src/api src/mocks && npm run specshot:generate"
   },
   "dependencies": {
     "react": "^18.3.1",

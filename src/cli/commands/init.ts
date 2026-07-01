@@ -20,6 +20,9 @@ interface InitOptions {
   url?: string;
   templates?: string;
   preset?: string;
+  yes?: boolean;
+  data?: string;
+  apiName?: string;
 }
 
 export async function initCommand(options: InitOptions = {}) {
@@ -48,96 +51,107 @@ export async function initCommand(options: InitOptions = {}) {
   let apisToGenerate: { name: string; url: string }[] = [];
 
   if (!hasMultiApi) {
-    const globalAnswers = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "isMultiApi",
-        message:
-          "Do you want to configure multiple APIs? (e.g. Auth API, Product API)",
-        default: false,
-        when: options.url === undefined,
-      },
-    ]);
-
-    if (globalAnswers.isMultiApi) {
-      let addMore = true;
-      let count = 1;
-      while (addMore) {
-        console.log(chalk.cyan(`\n--- Configure API #${count} ---`));
-        const apiAnswers = await inquirer.prompt([
-          {
-            type: "input",
-            name: "apiName",
-            message: "What is the name of this API? (e.g. 'auth', 'payment')",
-            validate: (input) => (input ? true : "Name is required"),
-          },
-          {
-            type: "input",
-            name: "openapiUrl",
-            message: "What is the OpenAPI JSON URL?",
-          },
-          {
-            type: "confirm",
-            name: "addMore",
-            message: "Do you want to configure another API?",
-            default: false,
-          },
-        ]);
-
-        apisToGenerate.push({
-          name: apiAnswers.apiName,
-          url: apiAnswers.openapiUrl,
-        });
-        addMore = apiAnswers.addMore;
-        count++;
-      }
+    if (options.yes) {
+      apisToGenerate.push({
+        name: options.apiName || "api",
+        url: finalOpenapiUrl || "http://localhost:8080/openapi.json",
+      });
+      finalOpenapiUrl = finalOpenapiUrl || "http://localhost:8080/openapi.json";
     } else {
-      const singleAnswers = await inquirer.prompt([
+      const globalAnswers = await inquirer.prompt([
         {
-          type: "input",
-          name: "apiName",
-          message: "What is the name of this API? (e.g. 'petstore', 'auth')",
-          default: "api",
-        },
-        {
-          type: "input",
-          name: "openapiUrl",
+          type: "confirm",
+          name: "isMultiApi",
           message:
-            "What is your OpenAPI JSON URL? (Leave blank to skip auto-generation)",
-          default: options.url || "http://localhost:8080/openapi.json",
+            "Do you want to configure multiple APIs? (e.g. Auth API, Product API)",
+          default: false,
           when: options.url === undefined,
         },
       ]);
 
-      apisToGenerate.push({
-        name: singleAnswers.apiName,
-        url:
+      if (globalAnswers.isMultiApi) {
+        let addMore = true;
+        let count = 1;
+        while (addMore) {
+          console.log(chalk.cyan(`\n--- Configure API #${count} ---`));
+          const apiAnswers = await inquirer.prompt([
+            {
+              type: "input",
+              name: "apiName",
+              message: "What is the name of this API? (e.g. 'auth', 'payment')",
+              validate: (input) => (input ? true : "Name is required"),
+            },
+            {
+              type: "input",
+              name: "openapiUrl",
+              message: "What is the OpenAPI JSON URL?",
+            },
+            {
+              type: "confirm",
+              name: "addMore",
+              message: "Do you want to configure another API?",
+              default: false,
+            },
+          ]);
+
+          apisToGenerate.push({
+            name: apiAnswers.apiName,
+            url: apiAnswers.openapiUrl,
+          });
+          addMore = apiAnswers.addMore;
+          count++;
+        }
+      } else {
+        const singleAnswers = await inquirer.prompt([
+          {
+            type: "input",
+            name: "apiName",
+            message: "What is the name of this API? (e.g. 'petstore', 'auth')",
+            default: "api",
+          },
+          {
+            type: "input",
+            name: "openapiUrl",
+            message:
+              "What is your OpenAPI JSON URL? (Leave blank to skip auto-generation)",
+            default: options.url || "http://localhost:8080/openapi.json",
+            when: options.url === undefined,
+          },
+        ]);
+
+        apisToGenerate.push({
+          name: singleAnswers.apiName,
+          url:
+            finalOpenapiUrl !== undefined
+              ? finalOpenapiUrl
+              : singleAnswers.openapiUrl || "",
+        });
+
+        finalOpenapiUrl =
           finalOpenapiUrl !== undefined
             ? finalOpenapiUrl
-            : singleAnswers.openapiUrl || "",
-      });
-
-      finalOpenapiUrl =
-        finalOpenapiUrl !== undefined
-          ? finalOpenapiUrl
-          : singleAnswers.openapiUrl;
+            : singleAnswers.openapiUrl;
+      }
     }
   }
 
   // ── Select preset ──
-  const presetAnswer = await inquirer.prompt([
-    {
-      type: "list",
-      name: "preset",
-      message: "Which template preset would you like to use?",
-      default: config.preset || DEFAULT_PRESET,
-      choices: getAvailablePresets().map((p) => ({
-        name: `${p.name.padEnd(18)} ${chalk.gray(p.description)}`,
-        value: p.name,
-      })),
-    },
-  ]);
-  const selectedPreset = presetAnswer.preset;
+  let selectedPreset = options.preset || config?.preset || DEFAULT_PRESET;
+  if (!options.yes && !options.preset) {
+    const presetAnswer = await inquirer.prompt([
+      {
+        type: "list",
+        name: "preset",
+        message: "Which template preset would you like to use?",
+        default: selectedPreset,
+        choices: getAvailablePresets().map((p) => ({
+          name: `${p.name.padEnd(18)} ${chalk.gray(p.description)}`,
+          value: p.name,
+        })),
+      },
+    ]);
+    selectedPreset = presetAnswer.preset;
+  }
 
   // Validate preset has required structure
   const errors = (await import("../../core/presets")).validatePresetStructure(
@@ -180,62 +194,86 @@ export async function initCommand(options: InitOptions = {}) {
 
   const templateDataAnswers: Record<string, unknown> = {};
   if (Object.keys(mergedProps).length > 0) {
-    console.log(chalk.cyan("\n--- Template Configuration ---"));
-    const questions: Record<string, unknown>[] = [];
+    if (options.yes) {
+      // In non-interactive mode, use defaults and merge with --data
+      let providedData: Record<string, unknown> = {};
+      if (options.data) {
+        try {
+          providedData = JSON.parse(options.data);
+        } catch (err) {
+          console.error(chalk.red("Failed to parse --data as JSON"));
+        }
+      }
+      for (const [key, prop] of Object.entries(mergedProps)) {
+        templateDataAnswers[key] =
+          providedData[key] !== undefined
+            ? providedData[key]
+            : presetDefaults[key] !== undefined
+              ? presetDefaults[key]
+              : prop.default;
+      }
+    } else {
+      console.log(chalk.cyan("\n--- Template Configuration ---"));
+      const questions: Record<string, unknown>[] = [];
 
-    for (const [key, prop] of Object.entries(mergedProps)) {
-      const defaultValue =
-        presetDefaults[key] !== undefined ? presetDefaults[key] : prop.default;
+      for (const [key, prop] of Object.entries(mergedProps)) {
+        const defaultValue =
+          presetDefaults[key] !== undefined
+            ? presetDefaults[key]
+            : prop.default;
 
-      if (prop.enum) {
-        questions.push({
-          type: "list",
-          name: key,
-          message: prop.description || key,
-          default: defaultValue as string,
-          choices: prop.enum,
-        });
-      } else if (prop.type === "array") {
-        if (prop.items?.enum) {
+        if (prop.enum) {
           questions.push({
-            type: "checkbox",
+            type: "list",
             name: key,
             message: prop.description || key,
-            default: defaultValue as string[],
-            choices: prop.items.enum,
+            default: defaultValue as string,
+            choices: prop.enum,
+          });
+        } else if (prop.type === "array") {
+          if (prop.items?.enum) {
+            questions.push({
+              type: "checkbox",
+              name: key,
+              message: prop.description || key,
+              default: defaultValue as string[],
+              choices: prop.items.enum,
+            });
+          } else {
+            questions.push({
+              type: "input",
+              name: key,
+              message: `${prop.description || key} (comma-separated)`,
+              default: Array.isArray(defaultValue)
+                ? defaultValue.join(", ")
+                : "",
+              filter: (input: string) =>
+                input
+                  .split(",")
+                  .map((s: string) => s.trim())
+                  .filter(Boolean),
+            });
+          }
+        } else if (prop.type === "boolean") {
+          questions.push({
+            type: "confirm",
+            name: key,
+            message: prop.description || key,
+            default: defaultValue as boolean,
           });
         } else {
           questions.push({
             type: "input",
             name: key,
-            message: `${prop.description || key} (comma-separated)`,
-            default: Array.isArray(defaultValue) ? defaultValue.join(", ") : "",
-            filter: (input: string) =>
-              input
-                .split(",")
-                .map((s: string) => s.trim())
-                .filter(Boolean),
+            message: prop.description || key,
+            default: defaultValue as string,
           });
         }
-      } else if (prop.type === "boolean") {
-        questions.push({
-          type: "confirm",
-          name: key,
-          message: prop.description || key,
-          default: defaultValue as boolean,
-        });
-      } else {
-        questions.push({
-          type: "input",
-          name: key,
-          message: prop.description || key,
-          default: defaultValue as string,
-        });
       }
-    }
 
-    const answers = await inquirer.prompt(questions);
-    Object.assign(templateDataAnswers, answers);
+      const answers = await inquirer.prompt(questions);
+      Object.assign(templateDataAnswers, answers);
+    }
   }
 
   // ── Write config file ──
@@ -289,17 +327,19 @@ ${options.templates ? `  templates: ${JSON.stringify(options.templates)},\n` : "
 
   const configPath = path.resolve(cwd, DEFAULT_CONFIG_FILE);
   if (fs.existsSync(configPath)) {
-    const { overwrite } = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "overwrite",
-        message: `${DEFAULT_CONFIG_FILE} already exists. Overwrite?`,
-        default: false,
-      },
-    ]);
-    if (!overwrite) {
-      console.log(chalk.gray("  Cancelled.\n"));
-      return;
+    if (!options.yes) {
+      const { overwrite } = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "overwrite",
+          message: `${DEFAULT_CONFIG_FILE} already exists. Overwrite?`,
+          default: false,
+        },
+      ]);
+      if (!overwrite) {
+        console.log(chalk.gray("  Cancelled.\n"));
+        return;
+      }
     }
   }
 

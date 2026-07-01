@@ -9,7 +9,8 @@
     "specshot:generate:singleton": "specshot generate --config specshot.singleton.config.mjs",
     "specshot:generate:factory": "specshot generate --config specshot.factory.config.mjs",
     "specshot:generate:observer": "specshot generate --config specshot.observer.config.mjs",
-    "specshot:generate:builder": "specshot generate --config specshot.builder.config.mjs"
+    "specshot:generate:builder": "specshot generate --config specshot.builder.config.mjs",
+    "reset": "rm -rf src && npm run specshot:generate"
   },
   "dependencies": {
     "specshot": "file:../.."

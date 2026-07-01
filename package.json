@@ -35,7 +35,8 @@
     "format": "prettier --write .",
     "clean": "rm -rf dist ui/mock-ui/dist",
     "prepublishOnly": "npm run build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "example:reset": "npm --prefix examples/design-patterns run reset && npm --prefix examples/local-file run reset && npm --prefix examples/real-or-fake run reset"
   },
   "keywords": [
     "openapi",
