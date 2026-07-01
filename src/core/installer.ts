@@ -33,7 +33,9 @@ function getScaffoldDirs(preset: string): string[] {
   return dirs;
 }
 
-export function installScaffold(options: InstallOptions): boolean {
+export async function installScaffold(
+  options: InstallOptions,
+): Promise<boolean> {
   const scaffoldDirs = getScaffoldDirs(options.preset);
   if (scaffoldDirs.length === 0) return false;
 
@@ -53,8 +55,9 @@ export function installScaffold(options: InstallOptions): boolean {
   };
 
   let totalGenerated = 0;
+
   for (const scaffoldDir of scaffoldDirs) {
-    const generated = renderTemplates({
+    const generated = await renderTemplates({
       templateDir: scaffoldDir,
       data,
       skipIfExists: !options.forceScaffold,
@@ -77,7 +80,7 @@ export function hasCustomTemplateConfig(
   return Object.keys(templates).length > 0;
 }
 
-export function scaffoldInfrastructure(params: {
+export async function scaffoldInfrastructure(params: {
   preset: string;
   apiConfig: {
     openapiUrl?: string;
@@ -86,7 +89,7 @@ export function scaffoldInfrastructure(params: {
   apiName: string;
   templateData?: Record<string, unknown>;
   forceScaffold?: boolean;
-}): boolean {
+}): Promise<boolean> {
   const { preset, apiConfig, apiName, templateData, forceScaffold } = params;
 
   const scaffoldDirs = getScaffoldDirs(preset);
@@ -110,7 +113,7 @@ export function scaffoldInfrastructure(params: {
     ...apiConfig.templateData,
   };
 
-  return installScaffold({
+  return await installScaffold({
     preset,
     openapiUrl: apiConfig.openapiUrl,
     data: mergedData,

@@ -52,6 +52,8 @@ function renderFilter(
   return lines.length > 0 ? new Set(lines) : null;
 }
 
+import { formatContent } from "../utils/formatter";
+
 export interface TemplateRendererOptions {
   templateDir: string;
   data: Record<string, unknown>;
@@ -66,7 +68,9 @@ export interface TemplateRendererOptions {
   behavior?: "scaffold" | "generated";
 }
 
-export function renderTemplates(options: TemplateRendererOptions): string[] {
+export async function renderTemplates(
+  options: TemplateRendererOptions,
+): Promise<string[]> {
   registerNamingHelpers();
   const { templateDir, data, silent, behavior } = options;
   const hbsFiles = walkHbsFiles(templateDir);
@@ -182,9 +186,10 @@ export function renderTemplates(options: TemplateRendererOptions): string[] {
 
       const outDir = path.dirname(outputFullPath);
       if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-      fs.writeFileSync(outputFullPath, content);
+      const formattedContent = await formatContent(content, outputFullPath);
+      fs.writeFileSync(outputFullPath, formattedContent);
       if (!silent) console.log(`  Generated ${outputFileName}`);
-      generated.push(outputFileName);
+      generated.push(outputFullPath);
     }
   }
 

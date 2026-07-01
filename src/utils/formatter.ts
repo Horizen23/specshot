@@ -1,24 +1,27 @@
 /**
  * formatter.ts
  *
- * Utility for formatting generated TypeScript files with Prettier.
- * Isolates the child-process I/O side-effect from pure code-generation logic.
+ * Utility for formatting generated TypeScript files with Prettier in-memory.
  */
+import prettier from "prettier";
 
-/**
- * Runs `prettier --write` over all `.ts` / `.tsx` files inside the given
- * directory.  Silently no-ops when Prettier is not installed or fails.
- *
- * @param dir - Absolute path to the directory whose files should be formatted.
- */
-export async function formatGeneratedFiles(dir: string): Promise<void> {
+export async function formatContent(
+  content: string,
+  filepath: string,
+): Promise<string> {
   try {
-    const { execSync } = await import("child_process");
-    console.log(`\nFormatting generated files...`);
-    execSync(`npx prettier --write "${dir}/**/*.{ts,tsx}"`, {
-      stdio: "ignore",
+    const options = await prettier.resolveConfig(filepath);
+    if (!options) {
+      // If the project doesn't have a Prettier config, skip formatting.
+      return content;
+    }
+
+    return await prettier.format(content, {
+      ...options,
+      filepath,
     });
-  } catch (_e) {
-    // Prettier is optional — ignore failures silently.
+  } catch (e) {
+    // If formatting fails for any reason, return the unformatted content safely
+    return content;
   }
 }

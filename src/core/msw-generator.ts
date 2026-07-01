@@ -9,7 +9,7 @@ import { mockValueFromSchema } from "../utils/msw-utils";
 import { renderTemplates } from "./renderer";
 import type { FakerPlugin } from "./config-loader";
 
-export function generateMswHandlers(
+export async function generateMswHandlers(
   spec: OpenApiSpec,
   services: Record<string, ServiceGroup>,
   schemas: Record<string, OpenApiSchema>,
@@ -24,7 +24,7 @@ export function generateMswHandlers(
     templatesOverride?: string;
     perFile?: Record<string, string | undefined>;
   },
-): void {
+): Promise<void> {
   if (!fs.existsSync(mswDir)) fs.mkdirSync(mswDir, { recursive: true });
 
   const filter = opts?.mswEndpointFilter;
@@ -218,7 +218,7 @@ export function generateMswHandlers(
     usesFaker: globalUsesFaker,
   };
 
-  renderTemplates({
+  await renderTemplates({
     templateDir: renderDir,
     data: renderData,
   });

@@ -52,8 +52,8 @@ export const defaultClient = createApiClient();
 useAllPlugins(defaultClient);
 
 export const clientApi = createApi(defaultClient);
-
 {{#hasFile (concat outputDir "/../hooks.ts")}}
+
 export const useApi = createApiHooks(clientApi);
 {{/hasFile}}
 

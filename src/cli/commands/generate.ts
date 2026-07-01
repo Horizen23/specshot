@@ -45,7 +45,7 @@ export async function generateCommand(options: GenerateOptions) {
       const apiSpecUrl = apiConfig.openapiUrl;
 
       if (!hasCustomTemplateConfig(mergedTemplates)) {
-        const installed = scaffoldInfrastructure({
+        const installed = await scaffoldInfrastructure({
           preset: options.preset || config.preset || DEFAULT_PRESET,
           apiConfig,
           apiName,
@@ -132,7 +132,7 @@ export async function generateCommand(options: GenerateOptions) {
   if (!alias && config.alias) alias = config.alias;
 
   if (firstApi && !hasCustomTemplateConfig(mergedTemplates)) {
-    const installed = scaffoldInfrastructure({
+    const installed = await scaffoldInfrastructure({
       preset: options.preset || config.preset || DEFAULT_PRESET,
       apiConfig: firstApi,
       apiName: firstApiName || "api",

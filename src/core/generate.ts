@@ -30,7 +30,6 @@ import type { TemplateOverrides } from "./config-loader";
 import { getRegistry } from "./template-registry";
 import { getOutputTypeDir, assertPresetHasTemplates } from "./paths";
 import { DEFAULT_PRESET } from "./presets";
-import { formatGeneratedFiles } from "../utils/formatter";
 import { renderTemplates } from "./renderer";
 import { extractCustomCode } from "../utils/file-writer";
 import type { MockEndpointEntry } from "../types/mock-config";
@@ -355,7 +354,7 @@ export async function generateApi(
     const hasHbs = entries.some((e) => e.isFile() && e.name.endsWith(".hbs"));
     if (!hasHbs) renderDir = defaultTemplatesDir;
   }
-  renderTemplates({
+  await renderTemplates({
     templateDir: renderDir,
     data: renderData,
     defaultTarget: path.relative(process.cwd(), outputDir),
@@ -388,7 +387,7 @@ export async function generateApi(
     const mswDir = path.join(path.dirname(outputDir), "msw", "handlers");
     const defaultMswTemplatesDir = getOutputTypeDir(preset, "mocks");
 
-    generateMswHandlers(
+    await generateMswHandlers(
       spec,
       services,
       schemas,
@@ -416,12 +415,6 @@ export async function generateApi(
         ),
       },
     );
-  }
-
-  // ── Format generated files (scan outputDir tree for generated .ts files) ──
-  await formatGeneratedFiles(outputDir);
-  if (opts?.msw) {
-    await formatGeneratedFiles(path.join(path.dirname(outputDir), "msw"));
   }
 
   console.log(`\nSmart generation complete!`);
