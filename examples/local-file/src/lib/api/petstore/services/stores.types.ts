@@ -6,32 +6,15 @@ export const StoreSchema = z.object({
   id: z.string(),
   name: z.string(),
   address: z.string(),
+  isActive: z.boolean().optional(),
 });
 export type Store = z.infer<typeof StoreSchema>;
-
-export const CreateStoreRequestSchema = z.object({
-  name: z.string(),
-  address: z.string(),
-});
-export type CreateStoreRequest = z.infer<typeof CreateStoreRequestSchema>;
 
 // -- Request & Response Types --
 
 export const StoresListStoresResponseSchema = z.array(StoreSchema);
 export type StoresListStoresResponse = z.infer<
   typeof StoresListStoresResponseSchema
->;
-
-export type StoresCreateStorePayload = CreateStoreRequest;
-
-export const StoresCreateStoreResponseSchema = StoreSchema;
-export type StoresCreateStoreResponse = z.infer<
-  typeof StoresCreateStoreResponseSchema
->;
-
-export const StoresGetStoreResponseSchema = StoreSchema;
-export type StoresGetStoreResponse = z.infer<
-  typeof StoresGetStoreResponseSchema
 >;
 
 // --- CUSTOM CODE START ---

@@ -5,52 +5,49 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  Meme,
-  CreateMemeRequest,
-  VoteRequest,
-  VoteResult,
-  MemesListMemesParams,
-  MemesListMemesResponse,
-  MemesCreateMemePayload,
-  MemesCreateMemeResponse,
-  MemesGetMemeResponse,
-  MemesVoteMemePayload,
-  MemesVoteMemeResponse,
-} from "./memes.types";
+  User,
+  UsersListUsersResponse,
+  UsersCreateUserPayload,
+  UsersCreateUserResponse,
+  UsersLoginUserParams,
+  UsersLoginUserResponse,
+  UsersLogoutUserResponse,
+} from "./users.types";
+import {
+  UsersListUsersResponseSchema,
+  UsersCreateUserResponseSchema,
+  UsersLoginUserResponseSchema,
+  UsersLogoutUserResponseSchema,
+} from "./users.types";
 
 export type {
-  Meme,
-  CreateMemeRequest,
-  VoteRequest,
-  VoteResult,
-  MemesListMemesParams,
-  MemesListMemesResponse,
-  MemesCreateMemePayload,
-  MemesCreateMemeResponse,
-  MemesGetMemeResponse,
-  MemesVoteMemePayload,
-  MemesVoteMemeResponse,
+  User,
+  UsersListUsersResponse,
+  UsersCreateUserPayload,
+  UsersCreateUserResponse,
+  UsersLoginUserParams,
+  UsersLoginUserResponse,
+  UsersLogoutUserResponse,
 };
 
-export class MemesService extends BaseService<"memes"> {
+export class UsersService extends BaseService<"users"> {
   constructor(client: ApiClient) {
-    super(client, "memes");
+    super(client, "users");
   }
 
   /**
-   * listMemes
-   * List memes to vote on
-   * @param params - Query parameters
+   * listUsers
+   * List users
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `MemesListMemesResponse` (null on error)
+   *   - `data`: `UsersListUsersResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.memes.listMemes(...);
+   * const req = api.users.listUsers(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -60,31 +57,30 @@ export class MemesService extends BaseService<"memes"> {
    * }
    * // use `data` safely here
    */
-  public listMemes(
-    params?: MemesListMemesParams,
-    config?: Omit<AppRequestConfig, "params">,
-  ): CancelablePromise<ApiResult<MemesListMemesResponse, AppApiErrorData>> {
-    return this.client.get<MemesListMemesResponse, AppApiErrorData>(`/memes`, {
+  public listUsers(
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<UsersListUsersResponse, AppApiErrorData>> {
+    return this.client.get<UsersListUsersResponse, AppApiErrorData>(`/users`, {
       ...this.withSignal(config),
-      params,
+      zodSchema: UsersListUsersResponseSchema,
     });
   }
 
   /**
-   * createMeme
-   * Submit a new meme for voting
+   * createUser
+   * Create user
 
-   * @param payload - Request body (`MemesCreateMemePayload`)
+   * @param payload - Request body (`UsersCreateUserPayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `MemesCreateMemeResponse` (null on error)
+   *   - `data`: `UsersCreateUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.memes.createMeme(...);
+   * const req = api.users.createUser(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -94,33 +90,34 @@ export class MemesService extends BaseService<"memes"> {
    * }
    * // use `data` safely here
    */
-  public createMeme(
-    payload: MemesCreateMemePayload,
+  public createUser(
+    payload: UsersCreateUserPayload,
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<MemesCreateMemeResponse, AppApiErrorData>> {
-    return this.client.post<MemesCreateMemeResponse, AppApiErrorData>(
-      `/memes`,
+  ): CancelablePromise<ApiResult<UsersCreateUserResponse, AppApiErrorData>> {
+    return this.client.post<UsersCreateUserResponse, AppApiErrorData>(
+      `/users`,
       payload,
       {
         ...this.withSignal(config),
+        zodSchema: UsersCreateUserResponseSchema,
       },
     );
   }
 
   /**
-   * getMeme
-   * Get a single meme by ID
-   * @param memeId - Path parameter
+   * loginUser
+   * Logs user into the system
+   * @param params - Query parameters
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `MemesGetMemeResponse` (null on error)
+   *   - `data`: `UsersLoginUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.memes.getMeme(...);
+   * const req = api.users.loginUser(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -130,34 +127,33 @@ export class MemesService extends BaseService<"memes"> {
    * }
    * // use `data` safely here
    */
-  public getMeme(
-    memeId: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<MemesGetMemeResponse, AppApiErrorData>> {
-    return this.client.get<MemesGetMemeResponse, AppApiErrorData>(
-      `/memes/${memeId}`,
+  public loginUser(
+    params?: UsersLoginUserParams,
+    config?: Omit<AppRequestConfig, "params">,
+  ): CancelablePromise<ApiResult<UsersLoginUserResponse, AppApiErrorData>> {
+    return this.client.get<UsersLoginUserResponse, AppApiErrorData>(
+      `/users/login`,
       {
         ...this.withSignal(config),
+        params,
+        zodSchema: UsersLoginUserResponseSchema,
       },
     );
   }
 
   /**
-   * voteMeme
-   * Vote whether a meme is real or fake
-   * @param memeId - Path parameter
-
-   * @param payload - Request body (`MemesVoteMemePayload`)
+   * logoutUser
+   * Logs out current logged in user session
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `MemesVoteMemeResponse` (null on error)
+   *   - `data`: `UsersLogoutUserResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.memes.voteMeme(...);
+   * const req = api.users.logoutUser(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -167,16 +163,14 @@ export class MemesService extends BaseService<"memes"> {
    * }
    * // use `data` safely here
    */
-  public voteMeme(
-    memeId: string | number,
-    payload: MemesVoteMemePayload,
+  public logoutUser(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<MemesVoteMemeResponse, AppApiErrorData>> {
-    return this.client.post<MemesVoteMemeResponse, AppApiErrorData>(
-      `/memes/${memeId}/vote`,
-      payload,
+  ): CancelablePromise<ApiResult<UsersLogoutUserResponse, AppApiErrorData>> {
+    return this.client.get<UsersLogoutUserResponse, AppApiErrorData>(
+      `/users/logout`,
       {
         ...this.withSignal(config),
+        zodSchema: UsersLogoutUserResponseSchema,
       },
     );
   }

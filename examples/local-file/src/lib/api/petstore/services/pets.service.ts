@@ -7,24 +7,55 @@ import { AppRequestConfig, AppApiErrorData } from "../types";
 import type {
   Pet,
   CreatePetRequest,
+  UpdatePetRequest,
+  Category,
+  Tag,
+  ApiResponse,
+  PetsListPetsParams,
   PetsListPetsResponse,
   PetsCreatePetPayload,
   PetsCreatePetResponse,
+  PetsUpdatePetsBulkPayload,
+  PetsUpdatePetsBulkResponse,
+  PetsGetPetParams,
   PetsGetPetResponse,
+  PetsUpdatePetPayload,
+  PetsUpdatePetResponse,
+  PetsDeletePetParams,
+  PetsDeletePetResponse,
+  PetsUploadPetImagePayload,
+  PetsUploadPetImageResponse,
 } from "./pets.types";
 import {
   PetsListPetsResponseSchema,
   PetsCreatePetResponseSchema,
+  PetsUpdatePetsBulkResponseSchema,
   PetsGetPetResponseSchema,
+  PetsUpdatePetResponseSchema,
+  PetsUploadPetImageResponseSchema,
 } from "./pets.types";
 
 export type {
   Pet,
   CreatePetRequest,
+  UpdatePetRequest,
+  Category,
+  Tag,
+  ApiResponse,
+  PetsListPetsParams,
   PetsListPetsResponse,
   PetsCreatePetPayload,
   PetsCreatePetResponse,
+  PetsUpdatePetsBulkPayload,
+  PetsUpdatePetsBulkResponse,
+  PetsGetPetParams,
   PetsGetPetResponse,
+  PetsUpdatePetPayload,
+  PetsUpdatePetResponse,
+  PetsDeletePetParams,
+  PetsDeletePetResponse,
+  PetsUploadPetImagePayload,
+  PetsUploadPetImageResponse,
 };
 
 export class PetsService extends BaseService<"pets"> {
@@ -35,6 +66,7 @@ export class PetsService extends BaseService<"pets"> {
   /**
    * listPets
    * List all pets
+   * @param params - Query parameters
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
    *   - `data`: `PetsListPetsResponse` (null on error)
@@ -55,17 +87,19 @@ export class PetsService extends BaseService<"pets"> {
    * // use `data` safely here
    */
   public listPets(
-    config?: AppRequestConfig,
+    params?: PetsListPetsParams,
+    config?: Omit<AppRequestConfig, "params">,
   ): CancelablePromise<ApiResult<PetsListPetsResponse, AppApiErrorData>> {
     return this.client.get<PetsListPetsResponse, AppApiErrorData>(`/pets`, {
       ...this.withSignal(config),
+      params,
       zodSchema: PetsListPetsResponseSchema,
     });
   }
 
   /**
    * createPet
-   * Create a pet
+   * Create a new pet
 
    * @param payload - Request body (`PetsCreatePetPayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
@@ -102,9 +136,48 @@ export class PetsService extends BaseService<"pets"> {
   }
 
   /**
+   * updatePetsBulk
+   * Bulk update pets
+
+   * @param payload - Request body (`PetsUpdatePetsBulkPayload`)
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `PetsUpdatePetsBulkResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.pets.updatePetsBulk(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public updatePetsBulk(
+    payload: PetsUpdatePetsBulkPayload,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<PetsUpdatePetsBulkResponse, AppApiErrorData>> {
+    return this.client.put<PetsUpdatePetsBulkResponse, AppApiErrorData>(
+      `/pets`,
+      payload,
+      {
+        ...this.withSignal(config),
+        zodSchema: PetsUpdatePetsBulkResponseSchema,
+      },
+    );
+  }
+
+  /**
    * getPet
    * Get a pet by ID
    * @param petId - Path parameter
+   * @param params - Query parameters
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
    *   - `data`: `PetsGetPetResponse` (null on error)
@@ -126,13 +199,130 @@ export class PetsService extends BaseService<"pets"> {
    */
   public getPet(
     petId: string | number,
-    config?: AppRequestConfig,
+    params?: PetsGetPetParams,
+    config?: Omit<AppRequestConfig, "params">,
   ): CancelablePromise<ApiResult<PetsGetPetResponse, AppApiErrorData>> {
     return this.client.get<PetsGetPetResponse, AppApiErrorData>(
       `/pets/${petId}`,
       {
         ...this.withSignal(config),
+        params,
         zodSchema: PetsGetPetResponseSchema,
+      },
+    );
+  }
+
+  /**
+   * updatePet
+   * Partially update a pet
+   * @param petId - Path parameter
+
+   * @param payload - Request body (`PetsUpdatePetPayload`)
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `PetsUpdatePetResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.pets.updatePet(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public updatePet(
+    petId: string | number,
+    payload: PetsUpdatePetPayload,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<PetsUpdatePetResponse, AppApiErrorData>> {
+    return this.client.patch<PetsUpdatePetResponse, AppApiErrorData>(
+      `/pets/${petId}`,
+      payload,
+      {
+        ...this.withSignal(config),
+        zodSchema: PetsUpdatePetResponseSchema,
+      },
+    );
+  }
+
+  /**
+   * deletePet
+   * Delete a pet
+   * @param petId - Path parameter
+   * @param params - Query parameters
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: void (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.pets.deletePet(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public deletePet(
+    petId: string | number,
+    params?: PetsDeletePetParams,
+    config?: Omit<AppRequestConfig, "params">,
+  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
+    return this.client.delete<AppApiErrorData>(`/pets/${petId}`, {
+      ...this.withSignal(config),
+      params,
+    });
+  }
+
+  /**
+   * uploadPetImage
+   * Upload an image
+   * @param petId - Path parameter
+
+   * @param payload - Request body (`PetsUploadPetImagePayload`)
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `PetsUploadPetImageResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.pets.uploadPetImage(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public uploadPetImage(
+    petId: string | number,
+    payload: PetsUploadPetImagePayload,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<PetsUploadPetImageResponse, AppApiErrorData>> {
+    return this.client.post<PetsUploadPetImageResponse, AppApiErrorData>(
+      `/pets/${petId}/uploadImage`,
+      payload,
+      {
+        ...this.withSignal(config),
+        zodSchema: PetsUploadPetImageResponseSchema,
       },
     );
   }

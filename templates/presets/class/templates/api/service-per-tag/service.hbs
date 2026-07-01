@@ -34,6 +34,9 @@ export class {{className}} extends BaseService<"{{tagPrefix}}"> {
 {{/each}}{{#if hasBody}}
    * @param payload - Request body (`{{typeNamePayload}}`)
 {{/if}}
+{{#if hasQuery}}
+   * @param params - Query parameters
+{{/if}}
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
    *   - `data`: {{#if isDelete}}void{{else}}`{{typeNameResponse}}`{{/if}} (null on error)
@@ -60,6 +63,9 @@ export class {{className}} extends BaseService<"{{tagPrefix}}"> {
 {{#if hasBody}}
     payload: {{typeNamePayload}},
 {{/if}}
+{{#if hasQuery}}
+    params?: {{typeNameParams}},
+{{/if}}
     config?: {{{configType}}}
   ): CancelablePromise<ApiResult<{{#if isDelete}}void{{else}}{{typeNameResponse}}{{/if}}, AppApiErrorData>> {
     return this.client.{{methodLower}}<{{#if isDelete}}AppApiErrorData{{else}}{{typeNameResponse}}, AppApiErrorData{{/if}}>(
@@ -69,9 +75,12 @@ export class {{className}} extends BaseService<"{{tagPrefix}}"> {
 {{/if}}
       {
         ...this.withSignal(config),
+{{#if hasQuery}}
+        params,
+{{/if}}
         {{#ifEq ../validation "zod-runtime"}}
         {{#unless isDelete}}
-        zodSchema: {{typeNameResponse}}Schema
+        zodSchema: {{typeNameResponse}}Schema,
         {{/unless}}
         {{/ifEq}}
       }

@@ -48,7 +48,7 @@ export interface RequestConfig extends Omit<RequestInit, "method" | "body"> {
   /** Request timeout in milliseconds. Triggers AbortSignal.timeout() internally. */
   timeout?: number;
   /** URL query params — appended to the URL before fetch */
-  params?: Record<string, string | number | boolean>;
+  params?: Record<string, unknown>;
 }
 
 export interface SchemaParser<T> {

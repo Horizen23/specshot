@@ -1,15 +1,55 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Petstore API",
-    "version": "1.0.0"
+    "title": "Mega Petstore API",
+    "version": "2.0.0",
+    "description": "A massive API spec for testing generation."
   },
+  "tags": [
+    { "name": "pets", "description": "Pet operations" },
+    { "name": "stores", "description": "Store operations" },
+    { "name": "users", "description": "User operations" },
+    { "name": "orders", "description": "Order management" },
+    { "name": "inventory", "description": "Inventory tracking" }
+  ],
   "paths": {
     "/pets": {
       "get": {
         "tags": ["pets"],
         "operationId": "listPets",
         "summary": "List all pets",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 20 }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["available", "pending", "sold"]
+              }
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
         "responses": {
           "200": {
             "description": "A list of pets",
@@ -17,9 +57,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Pet"
-                  }
+                  "items": { "$ref": "#/components/schemas/Pet" }
                 }
               }
             }
@@ -29,24 +67,49 @@
       "post": {
         "tags": ["pets"],
         "operationId": "createPet",
-        "summary": "Create a pet",
+        "summary": "Create a new pet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePetRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created pet",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Pet" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["pets"],
+        "operationId": "updatePetsBulk",
+        "summary": "Bulk update pets",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePetRequest"
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/Pet" }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "The created pet",
+            "description": "Updated pets",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pet"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Pet" }
                 }
               }
             }
@@ -64,9 +127,13 @@
             "name": "petId",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "includeDetails",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean" }
           }
         ],
         "responses": {
@@ -74,9 +141,94 @@
             "description": "A single pet",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Pet"
-                }
+                "schema": { "$ref": "#/components/schemas/Pet" }
+              }
+            }
+          },
+          "404": { "description": "Pet not found" }
+        }
+      },
+      "patch": {
+        "tags": ["pets"],
+        "operationId": "updatePet",
+        "summary": "Partially update a pet",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdatePetRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated pet",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Pet" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["pets"],
+        "operationId": "deletePet",
+        "summary": "Delete a pet",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Pet deleted successfully" }
+        }
+      }
+    },
+    "/pets/{petId}/uploadImage": {
+      "post": {
+        "tags": ["pets"],
+        "operationId": "uploadPetImage",
+        "summary": "Upload an image",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": { "type": "string", "format": "binary" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upload successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiResponse" }
               }
             }
           }
@@ -95,36 +247,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Store"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["stores"],
-        "operationId": "createStore",
-        "summary": "Create a store",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateStoreRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The created store",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Store"
+                  "items": { "$ref": "#/components/schemas/Store" }
                 }
               }
             }
@@ -132,28 +255,205 @@
         }
       }
     },
-    "/stores/{storeId}": {
+    "/orders": {
       "get": {
-        "tags": ["stores"],
-        "operationId": "getStore",
-        "summary": "Get a store by ID",
+        "tags": ["orders"],
+        "operationId": "listOrders",
+        "summary": "List orders with filters",
         "parameters": [
           {
-            "name": "storeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" }
           }
         ],
         "responses": {
           "200": {
-            "description": "A single store",
+            "description": "List of orders",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Store"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Order" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["orders"],
+        "operationId": "placeOrder",
+        "summary": "Place a new order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Order" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order placed successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "get": {
+        "tags": ["orders"],
+        "operationId": "getOrder",
+        "summary": "Get order details",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["orders"],
+        "operationId": "cancelOrder",
+        "summary": "Cancel an order",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Order cancelled" }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["users"],
+        "operationId": "listUsers",
+        "summary": "List users",
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/User" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["users"],
+        "operationId": "createUser",
+        "summary": "Create user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/User" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created user",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "get": {
+        "tags": ["users"],
+        "operationId": "loginUser",
+        "summary": "Logs user into the system",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/users/logout": {
+      "get": {
+        "tags": ["users"],
+        "operationId": "logoutUser",
+        "summary": "Logs out current logged in user session",
+        "responses": {
+          "200": { "description": "Successful operation" }
+        }
+      }
+    },
+    "/inventory": {
+      "get": {
+        "tags": ["inventory"],
+        "operationId": "getInventory",
+        "summary": "Returns pet inventories by status",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": { "type": "integer" }
                 }
               }
             }
@@ -166,19 +466,62 @@
     "schemas": {
       "Pet": {
         "type": "object",
-        "required": ["id", "name", "species"],
+        "required": ["id", "name"],
         "properties": {
           "id": { "type": "string" },
           "name": { "type": "string" },
-          "species": { "type": "string" }
+          "category": { "$ref": "#/components/schemas/Category" },
+          "photoUrls": { "type": "array", "items": { "type": "string" } },
+          "tags": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Tag" }
+          },
+          "status": {
+            "type": "string",
+            "description": "pet status in the store",
+            "enum": ["available", "pending", "sold"]
+          }
         }
       },
       "CreatePetRequest": {
         "type": "object",
-        "required": ["name", "species"],
+        "required": ["name", "photoUrls"],
         "properties": {
           "name": { "type": "string" },
-          "species": { "type": "string" }
+          "category": { "$ref": "#/components/schemas/Category" },
+          "photoUrls": { "type": "array", "items": { "type": "string" } },
+          "tags": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Tag" }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "pending", "sold"]
+          }
+        }
+      },
+      "UpdatePetRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["available", "pending", "sold"]
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "name": { "type": "string" }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "name": { "type": "string" }
         }
       },
       "Store": {
@@ -187,15 +530,48 @@
         "properties": {
           "id": { "type": "string" },
           "name": { "type": "string" },
-          "address": { "type": "string" }
+          "address": { "type": "string" },
+          "isActive": { "type": "boolean", "default": true }
         }
       },
-      "CreateStoreRequest": {
+      "Order": {
         "type": "object",
-        "required": ["name", "address"],
         "properties": {
-          "name": { "type": "string" },
-          "address": { "type": "string" }
+          "id": { "type": "integer", "format": "int64" },
+          "petId": { "type": "integer", "format": "int64" },
+          "quantity": { "type": "integer", "format": "int32" },
+          "shipDate": { "type": "string", "format": "date-time" },
+          "status": {
+            "type": "string",
+            "description": "Order Status",
+            "enum": ["placed", "approved", "delivered"]
+          },
+          "complete": { "type": "boolean", "default": false }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "username": { "type": "string" },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "email": { "type": "string" },
+          "password": { "type": "string" },
+          "phone": { "type": "string" },
+          "userStatus": {
+            "type": "integer",
+            "format": "int32",
+            "description": "User Status"
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "integer", "format": "int32" },
+          "type": { "type": "string" },
+          "message": { "type": "string" }
         }
       }
     }

@@ -8,6 +8,12 @@ export * from "./services/pets.service";
 import { PetsService } from "./services/pets.service";
 export * from "./services/stores.service";
 import { StoresService } from "./services/stores.service";
+export * from "./services/orders.service";
+import { OrdersService } from "./services/orders.service";
+export * from "./services/users.service";
+import { UsersService } from "./services/users.service";
+export * from "./services/inventory.service";
+import { InventoryService } from "./services/inventory.service";
 
 // ==========================================
 // API Factory (For SSR and Client)
@@ -29,6 +35,30 @@ export function createApi(client: ApiClient) {
       if (!instance) {
         instance = new StoresService(client);
         instances.set("stores", instance);
+      }
+      return instance;
+    },
+    get orders(): OrdersService {
+      let instance = instances.get("orders");
+      if (!instance) {
+        instance = new OrdersService(client);
+        instances.set("orders", instance);
+      }
+      return instance;
+    },
+    get users(): UsersService {
+      let instance = instances.get("users");
+      if (!instance) {
+        instance = new UsersService(client);
+        instances.set("users", instance);
+      }
+      return instance;
+    },
+    get inventory(): InventoryService {
+      let instance = instances.get("inventory");
+      if (!instance) {
+        instance = new InventoryService(client);
+        instances.set("inventory", instance);
       }
       return instance;
     },

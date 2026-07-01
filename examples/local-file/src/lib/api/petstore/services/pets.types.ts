@@ -5,28 +5,96 @@ import { z } from "zod";
 export const PetSchema = z.object({
   id: z.string(),
   name: z.string(),
-  species: z.string(),
+  category: CategorySchema.optional(),
+  photoUrls: z.array(z.string()).optional(),
+  tags: z.array(TagSchema).optional(),
+  status: z.enum(["available", "pending", "sold"]).optional(),
 });
 export type Pet = z.infer<typeof PetSchema>;
 
 export const CreatePetRequestSchema = z.object({
   name: z.string(),
-  species: z.string(),
+  category: CategorySchema.optional(),
+  photoUrls: z.array(z.string()),
+  tags: z.array(TagSchema).optional(),
+  status: z.enum(["available", "pending", "sold"]).optional(),
 });
 export type CreatePetRequest = z.infer<typeof CreatePetRequestSchema>;
 
+export const UpdatePetRequestSchema = z.object({
+  name: z.string().optional(),
+  status: z.enum(["available", "pending", "sold"]).optional(),
+});
+export type UpdatePetRequest = z.infer<typeof UpdatePetRequestSchema>;
+
+export const CategorySchema = z.object({
+  id: z.number().optional(),
+  name: z.string().optional(),
+});
+export type Category = z.infer<typeof CategorySchema>;
+
+export const TagSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().optional(),
+});
+export type Tag = z.infer<typeof TagSchema>;
+
+export const ApiResponseSchema = z.object({
+  code: z.number().optional(),
+  type: z.string().optional(),
+  message: z.string().optional(),
+});
+export type ApiResponse = z.infer<typeof ApiResponseSchema>;
+
 // -- Request & Response Types --
+
+export type PetsListPetsParams = {
+  limit?: number;
+  page?: number;
+  status?: "available" | "pending" | "sold"[];
+  search?: string;
+};
 
 export const PetsListPetsResponseSchema = z.array(PetSchema);
 export type PetsListPetsResponse = z.infer<typeof PetsListPetsResponseSchema>;
 
 export type PetsCreatePetPayload = CreatePetRequest;
 
-export const PetsCreatePetResponseSchema = PetSchema;
+export const PetsCreatePetResponseSchema = z.any();
 export type PetsCreatePetResponse = z.infer<typeof PetsCreatePetResponseSchema>;
+
+export type PetsUpdatePetsBulkPayload = Pet[];
+
+export const PetsUpdatePetsBulkResponseSchema = z.array(PetSchema);
+export type PetsUpdatePetsBulkResponse = z.infer<
+  typeof PetsUpdatePetsBulkResponseSchema
+>;
+
+export type PetsGetPetParams = {
+  includeDetails?: boolean;
+};
 
 export const PetsGetPetResponseSchema = PetSchema;
 export type PetsGetPetResponse = z.infer<typeof PetsGetPetResponseSchema>;
+
+export type PetsUpdatePetPayload = UpdatePetRequest;
+
+export const PetsUpdatePetResponseSchema = PetSchema;
+export type PetsUpdatePetResponse = z.infer<typeof PetsUpdatePetResponseSchema>;
+
+export type PetsDeletePetParams = {
+  force?: boolean;
+};
+
+export const PetsDeletePetResponseSchema = z.any();
+export type PetsDeletePetResponse = z.infer<typeof PetsDeletePetResponseSchema>;
+
+export type PetsUploadPetImagePayload = any;
+
+export const PetsUploadPetImageResponseSchema = ApiResponseSchema;
+export type PetsUploadPetImageResponse = z.infer<
+  typeof PetsUploadPetImageResponseSchema
+>;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

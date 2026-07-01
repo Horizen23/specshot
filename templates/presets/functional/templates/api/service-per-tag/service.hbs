@@ -49,7 +49,12 @@ export async function {{methodName}}(
   if (params) {
     const _search = new URLSearchParams();
     for (const [_k, _v] of Object.entries(params)) {
-      if (_v != null) _search.append(_k, String(_v));
+      if (_v == null) continue;
+      if (Array.isArray(_v)) {
+        _v.forEach((_val) => _search.append(_k, String(_val)));
+      } else {
+        _search.append(_k, String(_v));
+      }
     }
     const _qs = _search.toString();
     if (_qs) _url += `?${_qs}`;

@@ -4,29 +4,29 @@ import { ApiClient } from "../../core/api-client";
 import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
-import type { Store, StoresListStoresResponse } from "./stores.types";
-import { StoresListStoresResponseSchema } from "./stores.types";
+import type { InventoryGetInventoryResponse } from "./inventory.types";
+import { InventoryGetInventoryResponseSchema } from "./inventory.types";
 
-export type { Store, StoresListStoresResponse };
+export type { InventoryGetInventoryResponse };
 
-export class StoresService extends BaseService<"stores"> {
+export class InventoryService extends BaseService<"inventory"> {
   constructor(client: ApiClient) {
-    super(client, "stores");
+    super(client, "inventory");
   }
 
   /**
-   * listStores
-   * List all stores
+   * getInventory
+   * Returns pet inventories by status
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `StoresListStoresResponse` (null on error)
+   *   - `data`: `InventoryGetInventoryResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.stores.listStores(...);
+   * const req = api.inventory.getInventory(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -36,14 +36,16 @@ export class StoresService extends BaseService<"stores"> {
    * }
    * // use `data` safely here
    */
-  public listStores(
+  public getInventory(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<StoresListStoresResponse, AppApiErrorData>> {
-    return this.client.get<StoresListStoresResponse, AppApiErrorData>(
-      `/stores`,
+  ): CancelablePromise<
+    ApiResult<InventoryGetInventoryResponse, AppApiErrorData>
+  > {
+    return this.client.get<InventoryGetInventoryResponse, AppApiErrorData>(
+      `/inventory`,
       {
         ...this.withSignal(config),
-        zodSchema: StoresListStoresResponseSchema,
+        zodSchema: InventoryGetInventoryResponseSchema,
       },
     );
   }

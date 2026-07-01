@@ -5,52 +5,49 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  Meme,
-  CreateMemeRequest,
-  VoteRequest,
-  VoteResult,
-  MemesListMemesParams,
-  MemesListMemesResponse,
-  MemesCreateMemePayload,
-  MemesCreateMemeResponse,
-  MemesGetMemeResponse,
-  MemesVoteMemePayload,
-  MemesVoteMemeResponse,
-} from "./memes.types";
+  Order,
+  OrdersListOrdersParams,
+  OrdersListOrdersResponse,
+  OrdersPlaceOrderPayload,
+  OrdersPlaceOrderResponse,
+  OrdersGetOrderResponse,
+  OrdersCancelOrderResponse,
+} from "./orders.types";
+import {
+  OrdersListOrdersResponseSchema,
+  OrdersPlaceOrderResponseSchema,
+  OrdersGetOrderResponseSchema,
+} from "./orders.types";
 
 export type {
-  Meme,
-  CreateMemeRequest,
-  VoteRequest,
-  VoteResult,
-  MemesListMemesParams,
-  MemesListMemesResponse,
-  MemesCreateMemePayload,
-  MemesCreateMemeResponse,
-  MemesGetMemeResponse,
-  MemesVoteMemePayload,
-  MemesVoteMemeResponse,
+  Order,
+  OrdersListOrdersParams,
+  OrdersListOrdersResponse,
+  OrdersPlaceOrderPayload,
+  OrdersPlaceOrderResponse,
+  OrdersGetOrderResponse,
+  OrdersCancelOrderResponse,
 };
 
-export class MemesService extends BaseService<"memes"> {
+export class OrdersService extends BaseService<"orders"> {
   constructor(client: ApiClient) {
-    super(client, "memes");
+    super(client, "orders");
   }
 
   /**
-   * listMemes
-   * List memes to vote on
+   * listOrders
+   * List orders with filters
    * @param params - Query parameters
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `MemesListMemesResponse` (null on error)
+   *   - `data`: `OrdersListOrdersResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.memes.listMemes(...);
+   * const req = api.orders.listOrders(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -60,125 +57,124 @@ export class MemesService extends BaseService<"memes"> {
    * }
    * // use `data` safely here
    */
-  public listMemes(
-    params?: MemesListMemesParams,
+  public listOrders(
+    params?: OrdersListOrdersParams,
     config?: Omit<AppRequestConfig, "params">,
-  ): CancelablePromise<ApiResult<MemesListMemesResponse, AppApiErrorData>> {
-    return this.client.get<MemesListMemesResponse, AppApiErrorData>(`/memes`, {
+  ): CancelablePromise<ApiResult<OrdersListOrdersResponse, AppApiErrorData>> {
+    return this.client.get<OrdersListOrdersResponse, AppApiErrorData>(
+      `/orders`,
+      {
+        ...this.withSignal(config),
+        params,
+        zodSchema: OrdersListOrdersResponseSchema,
+      },
+    );
+  }
+
+  /**
+   * placeOrder
+   * Place a new order
+
+   * @param payload - Request body (`OrdersPlaceOrderPayload`)
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `OrdersPlaceOrderResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.orders.placeOrder(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public placeOrder(
+    payload: OrdersPlaceOrderPayload,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<OrdersPlaceOrderResponse, AppApiErrorData>> {
+    return this.client.post<OrdersPlaceOrderResponse, AppApiErrorData>(
+      `/orders`,
+      payload,
+      {
+        ...this.withSignal(config),
+        zodSchema: OrdersPlaceOrderResponseSchema,
+      },
+    );
+  }
+
+  /**
+   * getOrder
+   * Get order details
+   * @param orderId - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `OrdersGetOrderResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.orders.getOrder(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public getOrder(
+    orderId: string | number,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<OrdersGetOrderResponse, AppApiErrorData>> {
+    return this.client.get<OrdersGetOrderResponse, AppApiErrorData>(
+      `/orders/${orderId}`,
+      {
+        ...this.withSignal(config),
+        zodSchema: OrdersGetOrderResponseSchema,
+      },
+    );
+  }
+
+  /**
+   * cancelOrder
+   * Cancel an order
+   * @param orderId - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: void (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.orders.cancelOrder(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public cancelOrder(
+    orderId: string | number,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
+    return this.client.delete<AppApiErrorData>(`/orders/${orderId}`, {
       ...this.withSignal(config),
-      params,
     });
-  }
-
-  /**
-   * createMeme
-   * Submit a new meme for voting
-
-   * @param payload - Request body (`MemesCreateMemePayload`)
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `MemesCreateMemeResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.memes.createMeme(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public createMeme(
-    payload: MemesCreateMemePayload,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<MemesCreateMemeResponse, AppApiErrorData>> {
-    return this.client.post<MemesCreateMemeResponse, AppApiErrorData>(
-      `/memes`,
-      payload,
-      {
-        ...this.withSignal(config),
-      },
-    );
-  }
-
-  /**
-   * getMeme
-   * Get a single meme by ID
-   * @param memeId - Path parameter
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `MemesGetMemeResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.memes.getMeme(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public getMeme(
-    memeId: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<MemesGetMemeResponse, AppApiErrorData>> {
-    return this.client.get<MemesGetMemeResponse, AppApiErrorData>(
-      `/memes/${memeId}`,
-      {
-        ...this.withSignal(config),
-      },
-    );
-  }
-
-  /**
-   * voteMeme
-   * Vote whether a meme is real or fake
-   * @param memeId - Path parameter
-
-   * @param payload - Request body (`MemesVoteMemePayload`)
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `MemesVoteMemeResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.memes.voteMeme(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public voteMeme(
-    memeId: string | number,
-    payload: MemesVoteMemePayload,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<MemesVoteMemeResponse, AppApiErrorData>> {
-    return this.client.post<MemesVoteMemeResponse, AppApiErrorData>(
-      `/memes/${memeId}/vote`,
-      payload,
-      {
-        ...this.withSignal(config),
-      },
-    );
   }
 
   // --- CUSTOM CODE START ---

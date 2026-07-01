@@ -279,8 +279,7 @@ export async function generateApi(
           pathParamsList.push({ original: p.name, safe: toCamelCase(p.name) });
         }
       }
-      if (op.hasQuery)
-        configType = `Omit<AppRequestConfig, "params"> & { params?: ${typeNameParams} }`;
+      if (op.hasQuery) configType = `Omit<AppRequestConfig, "params">`;
 
       let urlStr = op.path;
       for (const p of pathParamsList) {

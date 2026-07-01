@@ -148,10 +148,18 @@ export class ApiClient {
   private resolveUrl(url: string, params?: RequestConfig["params"]): string {
     const base = url.startsWith("http") ? url : `${this.options.baseUrl}${url}`;
     if (!params || Object.keys(params).length === 0) return base;
-    const search = new URLSearchParams(
-      Object.entries(params).map(([k, v]) => [k, String(v)]),
-    ).toString();
-    return `${base}?${search}`;
+
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null) continue;
+      if (Array.isArray(value)) {
+        value.forEach((v) => searchParams.append(key, String(v)));
+      } else {
+        searchParams.append(key, String(value));
+      }
+    }
+    const search = searchParams.toString();
+    return search ? `${base}?${search}` : base;
   }
 
   // ==========================================
@@ -393,53 +401,32 @@ export class ApiClient {
     } as ApiRequestConfig);
   }
 
-  public post<
-    TJson,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public post<TJson, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config?: ApiRequestConfig<"json">,
   ): CancelablePromise<ApiResult<TJson, TError>>;
-  public post<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public post<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"blob">,
   ): CancelablePromise<ApiResult<BlobResponse, TError>>;
-  public post<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public post<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"text">,
   ): CancelablePromise<ApiResult<string, TError>>;
-  public post<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public post<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"void">,
   ): CancelablePromise<ApiResult<void, TError>>;
-  public post<
-    TJson = unknown,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public post<TJson = unknown, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<ResponseType>,
   ): CancelablePromise<ApiResult<unknown, TError>>;
-  public post<
-    TJson = unknown,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public post<TJson = unknown, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config?: ApiRequestConfig,
@@ -453,53 +440,32 @@ export class ApiClient {
     } as ApiRequestConfig);
   }
 
-  public put<
-    TJson,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public put<TJson, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config?: ApiRequestConfig<"json">,
   ): CancelablePromise<ApiResult<TJson, TError>>;
-  public put<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public put<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"blob">,
   ): CancelablePromise<ApiResult<BlobResponse, TError>>;
-  public put<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public put<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"text">,
   ): CancelablePromise<ApiResult<string, TError>>;
-  public put<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public put<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"void">,
   ): CancelablePromise<ApiResult<void, TError>>;
-  public put<
-    TJson = unknown,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public put<TJson = unknown, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<ResponseType>,
   ): CancelablePromise<ApiResult<unknown, TError>>;
-  public put<
-    TJson = unknown,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public put<TJson = unknown, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config?: ApiRequestConfig,
@@ -513,53 +479,32 @@ export class ApiClient {
     } as ApiRequestConfig);
   }
 
-  public patch<
-    TJson,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public patch<TJson, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config?: ApiRequestConfig<"json">,
   ): CancelablePromise<ApiResult<TJson, TError>>;
-  public patch<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public patch<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"blob">,
   ): CancelablePromise<ApiResult<BlobResponse, TError>>;
-  public patch<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public patch<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"text">,
   ): CancelablePromise<ApiResult<string, TError>>;
-  public patch<
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public patch<TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<"void">,
   ): CancelablePromise<ApiResult<void, TError>>;
-  public patch<
-    TJson = unknown,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public patch<TJson = unknown, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config: ApiRequestConfig<ResponseType>,
   ): CancelablePromise<ApiResult<unknown, TError>>;
-  public patch<
-    TJson = unknown,
-    TError = unknown,
-    TBody extends object | FormData = Record<string, unknown>,
-  >(
+  public patch<TJson = unknown, TError = unknown, TBody = unknown>(
     url: string,
     body: TBody,
     config?: ApiRequestConfig,
