@@ -14,20 +14,7 @@ export type { {{#each exportsToReExport}}{{this}}{{#unless @last}}, {{/unless}}{
 {{/if}}
 import { ApiError } from "./models";
 
-// ─────────────────────────────────────────────
-// Base URL — configure via setBaseUrl()
-// ─────────────────────────────────────────────
-let _baseUrl = "";
-
-/** Set the API base URL (e.g. "https://api.example.com"). */
-export function setBaseUrl(url: string): void {
-  _baseUrl = url.replace(/\/+$/, "");
-}
-
-/** Get the current base URL. */
-export function getBaseUrl(): string {
-  return _baseUrl;
-}
+import { getBaseUrl } from "../config";
 
 {{#each operations}}
 /**
@@ -57,7 +44,7 @@ export async function {{methodName}}(
 {{/if}}
   init?: RequestInit
 ): Promise<{{#if isDelete}}void{{else}}{{typeNameResponse}}{{/if}}> {
-  let _url = `${_baseUrl}{{{urlStr}}}`;
+  let _url = `${getBaseUrl()}{{{urlStr}}}`;
 {{#if hasQuery}}
   if (params) {
     const _search = new URLSearchParams();
@@ -70,11 +57,11 @@ export async function {{methodName}}(
 {{/if}}
   const _res = await fetch(_url, {
     method: "{{methodLower}}",
+    ...init,
 {{#if hasBody}}
     headers: { "Content-Type": "application/json", ...init?.headers },
     body: JSON.stringify(body),
 {{/if}}
-    ...init,
   });
   if (!_res.ok) {
     const _errBody = await _res.text().catch(() => "");
