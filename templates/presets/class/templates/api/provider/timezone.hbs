@@ -1,0 +1,34 @@
+{{!-- ---
+behavior: scaffold
+target: {{outDir}}/plugins
+filter:
+{{#each pluginNames}}
+  - {{this}}.hbs
+{{/each}}
+--- --}}
+import type { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{relPath (concat outDir "/plugins") coreOut}}/api-client{{/if}}";
+import type { ApiPlugin } from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath (concat outDir "/plugins") coreOut}}{{/if}}/types";
+
+export function installTimezone(client: ApiClient) {
+  const timezonePlugin: ApiPlugin = {
+    name: "timezone",
+    onRequest: async (config) => {
+      const headers = new Headers(config.headers);
+      
+      if (!headers.has("X-Timezone")) {
+        try {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          if (tz) {
+            headers.set("X-Timezone", tz);
+          }
+        } catch (e) {
+          // Fallback if Intl is not supported
+        }
+      }
+
+      return { ...config, headers };
+    }
+  };
+
+  client.use(timezonePlugin);
+}

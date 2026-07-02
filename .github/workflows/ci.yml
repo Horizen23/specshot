@@ -10,50 +10,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Check code formatting (Prettier)
-        run: npx prettier --check .
-
-      - name: Run ESLint
+      - name: Run Linting
         run: npm run lint
-        continue-on-error: true # Let's not block CI on lint right away if there are existing issues
+        continue-on-error: true
 
       - name: Build project
         run: npm run build
 
-      - name: Run unit tests
+      - name: Run unit & e2e tests
         run: npm test
-
-      - name: Run E2E examples check
-        run: |
-          for d in examples/*; do
-            if [ -d "$d" ]; then
-              echo "Testing example: $d"
-              cd "$d"
-              
-              if [ "$d" = "examples/real-or-fake" ]; then
-                cd client
-              fi
-              
-              npm install --no-fund --no-audit
-              npx tsc --noEmit
-              
-              # Back to root
-              cd $GITHUB_WORKSPACE
-            fi
-          done

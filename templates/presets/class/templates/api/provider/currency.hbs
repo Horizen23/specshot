@@ -1,0 +1,51 @@
+{{!-- ---
+behavior: scaffold
+target: {{outDir}}/plugins
+filter:
+{{#each pluginNames}}
+  - {{this}}.hbs
+{{/each}}
+--- --}}
+import type { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{relPath (concat outDir "/plugins") coreOut}}/api-client{{/if}}";
+import type { ApiPlugin } from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath (concat outDir "/plugins") coreOut}}{{/if}}/types";
+
+export class CurrencyManager {
+  private currency: string | null = null;
+
+  public setCurrency(currency: string | null) {
+    this.currency = currency;
+  }
+
+  public getCurrency(): string | null {
+    return this.currency;
+  }
+}
+
+declare module "{{#if importAlias}}{{importAlias}}/core/types{{else}}{{relPath (concat outDir "/plugins") coreOut}}/types{{/if}}" {
+  interface PluginRegistry {
+    currency: CurrencyManager;
+  }
+}
+
+export function installCurrency(client: ApiClient) {
+  const manager = new CurrencyManager();
+
+  const plugin: ApiPlugin = {
+    name: "currency",
+    onInit: (c) => {
+      c.use("currency", manager);
+    },
+    onRequest: async (config) => {
+      const headers = new Headers(config.headers);
+
+      const currency = manager.getCurrency();
+      if (currency && !headers.has("X-Currency")) {
+        headers.set("X-Currency", currency);
+      }
+      
+      return { ...config, headers };
+    }
+  };
+
+  client.use(plugin);
+}

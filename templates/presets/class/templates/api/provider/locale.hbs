@@ -1,0 +1,55 @@
+{{!-- ---
+behavior: scaffold
+target: {{outDir}}/plugins
+filter:
+{{#each pluginNames}}
+  - {{this}}.hbs
+{{/each}}
+--- --}}
+import type { ApiClient } from "{{#if importAlias}}{{importAlias}}/core/api-client{{else}}{{relPath (concat outDir "/plugins") coreOut}}/api-client{{/if}}";
+import type { ApiPlugin } from "{{#if importAlias}}{{importAlias}}/core{{else}}{{relPath (concat outDir "/plugins") coreOut}}{{/if}}/types";
+
+export class LocaleManager {
+  private locale: string | null = null;
+
+  public setLocale(locale: string | null) {
+    this.locale = locale;
+  }
+
+  public getLocale(): string | null {
+    return this.locale;
+  }
+}
+
+declare module "{{#if importAlias}}{{importAlias}}/core/types{{else}}{{relPath (concat outDir "/plugins") coreOut}}/types{{/if}}" {
+  interface PluginRegistry {
+    locale: LocaleManager;
+  }
+}
+
+export function installLocale(client: ApiClient) {
+  const manager = new LocaleManager();
+  
+  if (typeof window !== "undefined" && typeof navigator !== "undefined") {
+    manager.setLocale(navigator.language);
+  }
+
+  const plugin: ApiPlugin = {
+    name: "locale",
+    onInit: (c) => {
+      c.use("locale", manager);
+    },
+    onRequest: async (config) => {
+      const headers = new Headers(config.headers);
+      
+      const locale = manager.getLocale();
+      if (locale && !headers.has("Accept-Language")) {
+        headers.set("Accept-Language", locale);
+      }
+      
+      return { ...config, headers };
+    }
+  };
+
+  client.use(plugin);
+}

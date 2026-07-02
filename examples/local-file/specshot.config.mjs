@@ -27,7 +27,15 @@ export default {
   },
   templateData: {
     hook: "none",
-    pluginNames: ["bearer", "logger", "request-id", "circuit-breaker"],
+    pluginNames: [
+      "bearer",
+      "logger",
+      "request-id",
+      "circuit-breaker",
+      "timezone",
+      "locale",
+      "currency",
+    ],
     validation: "zod-runtime",
     toastLibrary: "sonner",
   },

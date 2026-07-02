@@ -29,7 +29,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "npm run lint:types && npm run lint:format",
+    "lint": "npm run lint:types && npm run lint:js && npm run lint:format",
+    "lint:js": "eslint 'src/**/*.ts'",
     "lint:types": "tsc --noEmit",
     "lint:format": "prettier --check .",
     "format": "prettier --write .",
@@ -78,10 +79,13 @@
     "@types/figlet": "^1.7.0",
     "@types/inquirer": "^9.0.9",
     "@types/node": "^25.9.2",
+    "@typescript-eslint/parser": "^5.0.1",
+    "eslint": "^8.52.0",
     "husky": "^9.1.7",
-    "prettier": "^3.9.4",
+    "prettier": "^3.1.0",
+    "prettier-eslint": "^16.1.2",
     "tsup": "^8.5.1",
-    "typescript": "^6.0.3",
+    "typescript": "^5.6.3",
     "vitest": "^1.6.0"
   }
 }

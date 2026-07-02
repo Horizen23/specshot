@@ -443,7 +443,8 @@ export async function startMockWebServer(options: {
       if (
         !options.noOpen &&
         !process.env.SPECSHOT_NO_BROWSER &&
-        !process.env.CI
+        !process.env.CI &&
+        process.env.NODE_ENV !== "test"
       ) {
         const platform = process.platform;
         const openCmd =

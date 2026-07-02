@@ -1,7 +1,10 @@
 import { installBearer } from "./bearer";
 import { installCircuitBreaker } from "./circuit-breaker";
+import { installCurrency } from "./currency";
+import { installLocale } from "./locale";
 import { installLogger } from "./logger";
 import { installRequestId } from "./request-id";
+import { installTimezone } from "./timezone";
 import { installToast } from "./toast";
 // Re-export for direct access
 export { AuthManager } from "./bearer-auth-manager";
@@ -16,8 +19,11 @@ type PluginInstaller = (client: ApiClient) => void;
 const registry: PluginInstaller[] = [];
 registry.push(installBearer);
 registry.push(installCircuitBreaker);
+registry.push(installCurrency);
+registry.push(installLocale);
 registry.push(installLogger);
 registry.push(installRequestId);
+registry.push(installTimezone);
 registry.push(installToast);
 
 export function useAllPlugins(client: ApiClient) {

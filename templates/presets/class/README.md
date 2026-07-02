@@ -75,6 +75,9 @@ An array of built-in interceptor plugins to scaffold into your project.
 - **`"logger"`**: Scaffolds a development logger that prints request/response details to the browser console.
 - **`"request-id"`**: Automatically attaches a unique `X-Request-Id` UUID to every outgoing request.
 - **`"circuit-breaker"`**: Scaffolds circuit breaker logic to temporarily stop calling endpoints if they fail repeatedly.
+- **`"timezone"`**: Automatically attaches an `X-Timezone` header based on the user's local timezone.
+- **`"locale"`**: Manages and injects the `Accept-Language` header automatically.
+- **`"currency"`**: Manages and injects the `X-Currency` header automatically.
 
 #### `toastLibrary`
 
@@ -171,7 +174,23 @@ You can bypass the auth header for specific requests (like login/signup):
 await api.auth.login({ body: { ... } }, { skip: { auth: true } });
 ```
 
-### 4. The Global Toast Plugin
+### 4. Locale and Currency Plugins
+
+If you enable the `"locale"` or `"currency"` plugins, they automatically inject `Accept-Language` and `X-Currency` headers into your requests. You can globally set them using their respective managers.
+
+```typescript
+import { api } from "@/lib/api";
+
+const currencyManager = api.plugin("currency");
+currencyManager.setCurrency("THB");
+// Next request will include `X-Currency: THB`
+
+const localeManager = api.plugin("locale");
+localeManager.setLocale("th-TH");
+// Next request will include `Accept-Language: th-TH`
+```
+
+### 5. The Global Toast Plugin
 
 If you selected a Toast library, the client will automatically trigger a UI toast whenever an API request fails. The message displayed will be the one extracted by your `setErrorExtractor`.
 
@@ -185,7 +204,7 @@ await api.notifications.getUnreadCount(
 );
 ```
 
-### 5. API Request Cancellation
+### 6. API Request Cancellation
 
 Every request made by the client returns a `CancelablePromise`. This means you can easily abort an in-flight request by calling `.cancel()` on the returned promise.
 
@@ -218,7 +237,7 @@ api.users.getUsers(
 controller.abort();
 ```
 
-### 6. Writing Custom Plugins
+### 7. Writing Custom Plugins
 
 You can easily extend the client by writing your own interceptors.
 
@@ -247,7 +266,7 @@ export const customHeaderPlugin: ApiPlugin = {
 // builder.addPlugin(customHeaderPlugin);
 ```
 
-### 6. Using React Hooks (SWR / React Query)
+### 8. Using React Hooks (SWR / React Query)
 
 If hook generation is enabled, Specshot generates ready-to-use hooks for all `GET` endpoints. These hooks handle caching, deduplication, and loading states automatically.
 
