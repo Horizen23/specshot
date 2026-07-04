@@ -9,6 +9,7 @@ import {
 import type {
   OpenApiSpec,
   OpenApiOperation,
+  OpenApiSchema,
   ServiceGroup,
 } from "../types/types";
 import {
@@ -240,16 +241,19 @@ export async function generateApi(
       let resZod = "z.any()";
       if (op.responseSchema?.$ref) {
         let refName = cleanRefName(op.responseSchema.$ref);
+        let dataSchema: OpenApiSchema | undefined;
         if (refName !== RESPONSE_BODY_STRUCT) {
           if (refName.startsWith(RESPONSE_BODY_PREFIX)) {
             const schemaKey = Object.keys(schemas).find(
               (k) => cleanRefName(k) === refName,
             );
             const wrapperSchema = schemaKey ? schemas[schemaKey] : undefined;
-            if (wrapperSchema?.properties?.data?.$ref) {
-              refName = cleanRefName(wrapperSchema.properties.data.$ref);
-            } else if (wrapperSchema?.properties?.data?.type) {
-              refName = schemaToTsType(wrapperSchema.properties.data);
+            const dataField = wrapperSchema?.properties?.data;
+            if (dataField?.$ref) {
+              refName = cleanRefName(dataField.$ref);
+            } else if (dataField?.type || dataField?.properties) {
+              dataSchema = dataField;
+              refName = schemaToTsType(dataField);
             }
           }
           if (
@@ -260,7 +264,11 @@ export async function generateApi(
             if (sharedSchemas.has(refName)) modelsToImport.add(refName);
           }
           resType = refName || "void";
-          resZod = refName ? `${refName}Schema` : "z.any()";
+          resZod = dataSchema
+            ? schemaToZod(dataSchema)
+            : refName
+              ? `${refName}Schema`
+              : "z.any()";
         }
       } else if (op.responseSchema) {
         const nestedRefs = extractRefs(op.responseSchema);

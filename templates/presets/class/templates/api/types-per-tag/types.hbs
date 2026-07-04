@@ -11,7 +11,7 @@ import { z } from "zod";
 
 {{#if imports.length}}
 // -- Shared Models --
-{{#each ../schemas}}
+{{#each schemas}}
 {{#if (includes ../imports name)}}
 {{#ifEq ../validation "types-only"}}
 export type {{name}} = {{{tsType}}};

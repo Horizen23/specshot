@@ -1,0 +1,50 @@
+import { ApiClient, ApiClientBuilder } from "../core/api-client";
+
+/**
+ * Default Base URL for all API requests.
+ *
+ * By default, this is set to the first `url` from the OpenAPI spec's `servers` array.
+ * You can hardcode this directly, or import it from your project's config folder.
+ */
+const API_BASE_URL: string = "";
+
+export interface ApiClientConfig {
+  /** Override the default API base URL */
+  baseUrl?: string;
+}
+
+export function createApiClientBuilder(config?: ApiClientConfig) {
+  return new ApiClientBuilder()
+    .setBaseUrl(config?.baseUrl ?? API_BASE_URL)
+    .setDataExtractor((data: unknown) => {
+      // If the server wraps responses in `{ request_id, data, errors }`,
+      // unwrap the `data` field. Otherwise return the response as-is.
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "data" in data &&
+        ("request_id" in data || "errors" in data)
+      ) {
+        return (data as Record<string, unknown>).data;
+      }
+      return data;
+    })
+    .setErrorExtractor((data: unknown) => {
+      if (typeof data !== "object" || data === null) return undefined;
+      const obj = data as Record<string, unknown>;
+      if (Array.isArray(obj.errors) && obj.errors.length > 0) {
+        const firstError = obj.errors[0] as Record<string, unknown>;
+        if (typeof firstError?.message === "string") return firstError.message;
+      }
+      if (typeof obj.message === "string") return obj.message;
+      return undefined;
+    });
+}
+
+/**
+ * Creates the default browser/client-side API client.
+ * For server-side rendering (SSR), it's recommended to create a new client per request using `createApiClientBuilder().build()`.
+ */
+export function createApiClient(config?: ApiClientConfig): ApiClient {
+  return createApiClientBuilder(config).build();
+}

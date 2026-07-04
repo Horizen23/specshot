@@ -1,0 +1,622 @@
+import {
+  ApiError,
+  ApiRequestConfig,
+  ApiResult,
+  BlobResponse,
+  ClientError,
+  HttpMethod,
+  InterceptorManager,
+  RequestConfig,
+  RequestInterceptor,
+  ResponseInterceptor,
+  ResponseType,
+  ResponseTypeMap,
+  ApiClientOptions,
+  CancelablePromise,
+  ApiPlugin,
+  ApiEventType,
+  ApiEventPayloads,
+  ApiEventListener,
+} from "./types";
+
+// ==========================================
+// Utilities
+// ==========================================
+/** Parse filename from Content-Disposition header */
+function parseFilename(headers: Headers): string {
+  const disposition = headers.get("content-disposition") ?? "";
+  const match = /filename\*?=(?:UTF-8''|")?([^";]+)/i.exec(disposition);
+  return match
+    ? decodeURIComponent(match[1].trim().replace(/"/g, ""))
+    : "download";
+}
+
+// ==========================================
+// Response parser — dispatched by responseType
+// ==========================================
+async function parseResponse<R extends ResponseType, TJson>(
+  response: Response,
+  responseType: R,
+): Promise<ResponseTypeMap<TJson>[R]> {
+  type Result = ResponseTypeMap<TJson>[R];
+
+  if (responseType === "void") return undefined as Result;
+
+  if (responseType === "blob") {
+    let blob: Blob;
+    try {
+      blob = await response.blob();
+    } catch (err) {
+      const cause = err instanceof Error ? err : undefined;
+      throw new ClientError("parse", "Failed to read response as Blob", cause);
+    }
+    return { blob, filename: parseFilename(response.headers) } as Result;
+  }
+
+  if (responseType === "text") {
+    try {
+      return (await response.text()) as Result;
+    } catch (err) {
+      const cause = err instanceof Error ? err : undefined;
+      throw new ClientError("parse", "Failed to read response as text", cause);
+    }
+  }
+
+  // Default: json
+  let json: unknown;
+  try {
+    json = await response.json();
+  } catch (err) {
+    const cause = err instanceof Error ? err : undefined;
+    throw new ClientError("parse", "Failed to parse response as JSON", cause);
+  }
+
+  return json as Result;
+}
+
+// ==========================================
+// ApiClient
+// ==========================================
+export class ApiClient {
+  public readonly interceptors = {
+    request: new InterceptorManager<RequestInterceptor>(),
+    response: new InterceptorManager<ResponseInterceptor>(),
+  };
+
+  private readonly plugins = new Map<string, unknown>();
+  private readonly listeners: {
+    [K in ApiEventType]?: Set<ApiEventListener<K>>;
+  } = {};
+
+  public constructor(public readonly options: ApiClientOptions) {}
+
+  public on<E extends ApiEventType>(
+    event: E,
+    listener: ApiEventListener<E>,
+  ): () => void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = new Set() as any;
+    }
+    this.listeners[event]!.add(listener as any);
+    return () => this.off(event, listener);
+  }
+
+  public off<E extends ApiEventType>(
+    event: E,
+    listener: ApiEventListener<E>,
+  ): void {
+    this.listeners[event]?.delete(listener as any);
+  }
+
+  private emit<E extends ApiEventType>(
+    event: E,
+    payload: ApiEventPayloads[E],
+  ): void {
+    const eventListeners = this.listeners[event] as
+      Set<ApiEventListener<E>> | undefined;
+    if (eventListeners) {
+      for (const listener of eventListeners) {
+        listener(payload);
+      }
+    }
+  }
+
+  public plugin<K extends keyof import("./types").PluginRegistry>(
+    name: K,
+  ): import("./types").PluginRegistry[K];
+  public plugin<T = unknown>(name: string): T | undefined;
+  public plugin(name: string): unknown {
+    return this.plugins.get(name);
+  }
+
+  public use(plugin: ApiPlugin): this;
+  public use(name: string, plugin: unknown): this;
+  public use(nameOrPlugin: string | ApiPlugin, pluginObj?: unknown): this {
+    if (typeof nameOrPlugin === "string") {
+      this.plugins.set(nameOrPlugin, pluginObj);
+    } else {
+      this.plugins.set(nameOrPlugin.name, nameOrPlugin);
+      if (nameOrPlugin.onInit) nameOrPlugin.onInit(this);
+      if (nameOrPlugin.onRequest)
+        this.interceptors.request.use(nameOrPlugin.onRequest);
+      if (nameOrPlugin.onResponse)
+        this.interceptors.response.use(nameOrPlugin.onResponse);
+    }
+    return this;
+  }
+
+  private resolveUrl(url: string, params?: RequestConfig["params"]): string {
+    const base = url.startsWith("http") ? url : `${this.options.baseUrl}${url}`;
+    if (!params || Object.keys(params).length === 0) return base;
+
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null) continue;
+      if (Array.isArray(value)) {
+        value.forEach((v) => searchParams.append(key, String(v)));
+      } else {
+        searchParams.append(key, String(value));
+      }
+    }
+    const search = searchParams.toString();
+    return search ? `${base}?${search}` : base;
+  }
+
+  // ==========================================
+  // Core request — overloads for each responseType
+  // ==========================================
+
+  public request<TJson, TError = unknown>(
+    url: string,
+    config?: ApiRequestConfig<"json">,
+  ): CancelablePromise<ApiResult<TJson, TError>>;
+
+  public request<TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<"blob">,
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
+
+  public request<TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<"text">,
+  ): CancelablePromise<ApiResult<string, TError>>;
+
+  public request<TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<"void">,
+  ): CancelablePromise<ApiResult<void, TError>>;
+
+  public request<TJson = unknown, TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<ResponseType>,
+  ): CancelablePromise<ApiResult<unknown, TError>>;
+
+  public request<TJson = unknown, TError = unknown>(
+    url: string,
+    initialConfig: ApiRequestConfig = {},
+  ): CancelablePromise<ApiResult<unknown, TError>> {
+    const controller = new AbortController();
+
+    const promise = (async () => {
+      let fullUrl = url;
+      try {
+        const {
+          timeout,
+          params,
+          responseType = "json",
+          ...restConfig
+        } = initialConfig;
+        fullUrl = this.resolveUrl(url, params);
+
+        // Run request interceptors
+        let config: ApiRequestConfig = restConfig;
+        for (const interceptor of this.interceptors.request.getAll()) {
+          config = await interceptor(config, fullUrl);
+        }
+
+        // Build combined abort signal
+        const signals: AbortSignal[] = [controller.signal];
+        if (timeout != null) signals.push(AbortSignal.timeout(timeout));
+        if (config.signal instanceof AbortSignal) signals.push(config.signal);
+        const signal = AbortSignal.any(signals);
+
+        // Build headers — skip Content-Type for FormData (browser sets it with boundary)
+        const headers = new Headers(config.headers ?? {});
+        if (
+          !headers.has("Content-Type") &&
+          config.body &&
+          typeof config.body === "string"
+        ) {
+          headers.set("Content-Type", "application/json");
+        }
+
+        this.emit("request", { url: fullUrl, config });
+
+        // Fetch — classify client-side errors
+        let response: Response;
+        try {
+          response = await fetch(fullUrl, { ...config, headers, signal });
+        } catch (err) {
+          if (err instanceof DOMException && err.name === "AbortError") {
+            const isTimeout = signals.some(
+              (s) =>
+                s.reason instanceof DOMException &&
+                s.reason.name === "TimeoutError",
+            );
+            if (isTimeout) {
+              throw new ClientError(
+                "timeout",
+                `Request timed out after ${timeout}ms`,
+                err,
+              );
+            }
+            throw new ClientError("abort", "Request was cancelled", err);
+          }
+          if (err instanceof TypeError) {
+            throw new ClientError(
+              "network",
+              "Network error — check your connection",
+              err,
+            );
+          }
+          throw new ClientError(
+            "network",
+            "Unexpected fetch error",
+            err instanceof Error ? err : new Error(String(err)),
+          );
+        }
+
+        // Run response interceptors
+        for (const interceptor of this.interceptors.response.getAll()) {
+          response = await interceptor(response, fullUrl, config);
+        }
+
+        // Handle HTTP errors
+        if (!response.ok) {
+          const errorData: unknown = await response.json().catch(() => null);
+          const message =
+            this.options.errorExtractor?.(errorData) || response.statusText;
+          throw new ApiError<TError>(
+            response.status,
+            errorData as TError,
+            fullUrl,
+            message,
+          );
+        }
+
+        if (response.status === 204)
+          return { data: undefined as any, error: null, ok: true };
+
+        const parsedData = await parseResponse<typeof responseType, TJson>(
+          response,
+          responseType,
+        );
+
+        let data = parsedData;
+        // Allow custom unwrapping of data if provided in options
+        if (this.options.dataExtractor && responseType === "json") {
+          data = this.options.dataExtractor(parsedData) as any;
+        }
+
+        // Optional Runtime Schema Validation (e.g. Zod)
+        const schema = config.responseSchema || config.zodSchema;
+        if (schema && responseType === "json") {
+          const validation = schema.safeParse(data);
+          if (!validation.success) {
+            let errorMessage = "Runtime Schema Validation Failed";
+
+            // Try to format Zod error if it's a ZodError-like object
+            if (
+              validation.error &&
+              Array.isArray((validation.error as any).issues)
+            ) {
+              const issues = (validation.error as any).issues;
+              const formattedIssues = issues
+                .map(
+                  (i: any) =>
+                    `\n  - Field: "${i.path.join(".") || "root"}" \n    Message: ${i.message}`,
+                )
+                .join("");
+
+              errorMessage = `[API Type Mismatch] ${initialConfig.method || "GET"} ${url}${formattedIssues}\n  (Please check with the backend team to update the types)`;
+              console.error(errorMessage);
+            }
+
+            throw new ClientError(
+              "parse",
+              errorMessage,
+              validation.error instanceof Error
+                ? validation.error
+                : new Error(JSON.stringify(validation.error)),
+            );
+          }
+          data = validation.data;
+        }
+
+        this.emit("success", {
+          url: fullUrl,
+          config,
+          data,
+          status: response.status,
+        });
+
+        return { data, error: null, ok: true };
+      } catch (err) {
+        const apiOrClientError =
+          err instanceof ApiError || err instanceof ClientError
+            ? err
+            : new ClientError(
+                "network",
+                "Unexpected internal error",
+                err instanceof Error ? err : new Error(String(err)),
+              );
+
+        this.emit("error", {
+          url: fullUrl,
+          config: initialConfig,
+          error: apiOrClientError,
+        });
+
+        return { data: null, error: apiOrClientError, ok: false };
+      }
+    })();
+
+    (promise as CancelablePromise<any>).cancel = (reason?: any) => {
+      controller.abort(reason);
+    };
+
+    return promise as CancelablePromise<ApiResult<unknown, TError>>;
+  }
+
+  // ==========================================
+  // Typed HTTP Methods
+  // ==========================================
+  public get<TJson, TError = unknown>(
+    url: string,
+    config?: ApiRequestConfig<"json">,
+  ): CancelablePromise<ApiResult<TJson, TError>>;
+  public get<TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<"blob">,
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
+  public get<TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<"text">,
+  ): CancelablePromise<ApiResult<string, TError>>;
+  public get<TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<"void">,
+  ): CancelablePromise<ApiResult<void, TError>>;
+  public get<TJson = unknown, TError = unknown>(
+    url: string,
+    config: ApiRequestConfig<ResponseType>,
+  ): CancelablePromise<ApiResult<unknown, TError>>;
+  public get<TJson = unknown, TError = unknown>(
+    url: string,
+    config?: ApiRequestConfig,
+  ): CancelablePromise<ApiResult<unknown, TError>> {
+    return this.request<TJson, TError>(url, {
+      ...config,
+      method: "GET" as HttpMethod,
+    } as ApiRequestConfig);
+  }
+
+  public post<TJson, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config?: ApiRequestConfig<"json">,
+  ): CancelablePromise<ApiResult<TJson, TError>>;
+  public post<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"blob">,
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
+  public post<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"text">,
+  ): CancelablePromise<ApiResult<string, TError>>;
+  public post<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"void">,
+  ): CancelablePromise<ApiResult<void, TError>>;
+  public post<TJson = unknown, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<ResponseType>,
+  ): CancelablePromise<ApiResult<unknown, TError>>;
+  public post<TJson = unknown, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config?: ApiRequestConfig,
+  ): CancelablePromise<ApiResult<unknown, TError>> {
+    const serializedBody =
+      body instanceof FormData ? body : JSON.stringify(body);
+    return this.request<TJson, TError>(url, {
+      ...config,
+      method: "POST" as HttpMethod,
+      body: serializedBody,
+    } as ApiRequestConfig);
+  }
+
+  public put<TJson, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config?: ApiRequestConfig<"json">,
+  ): CancelablePromise<ApiResult<TJson, TError>>;
+  public put<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"blob">,
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
+  public put<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"text">,
+  ): CancelablePromise<ApiResult<string, TError>>;
+  public put<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"void">,
+  ): CancelablePromise<ApiResult<void, TError>>;
+  public put<TJson = unknown, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<ResponseType>,
+  ): CancelablePromise<ApiResult<unknown, TError>>;
+  public put<TJson = unknown, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config?: ApiRequestConfig,
+  ): CancelablePromise<ApiResult<unknown, TError>> {
+    const serializedBody =
+      body instanceof FormData ? body : JSON.stringify(body);
+    return this.request<TJson, TError>(url, {
+      ...config,
+      method: "PUT" as HttpMethod,
+      body: serializedBody,
+    } as ApiRequestConfig);
+  }
+
+  public patch<TJson, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config?: ApiRequestConfig<"json">,
+  ): CancelablePromise<ApiResult<TJson, TError>>;
+  public patch<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"blob">,
+  ): CancelablePromise<ApiResult<BlobResponse, TError>>;
+  public patch<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"text">,
+  ): CancelablePromise<ApiResult<string, TError>>;
+  public patch<TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<"void">,
+  ): CancelablePromise<ApiResult<void, TError>>;
+  public patch<TJson = unknown, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config: ApiRequestConfig<ResponseType>,
+  ): CancelablePromise<ApiResult<unknown, TError>>;
+  public patch<TJson = unknown, TError = unknown, TBody = unknown>(
+    url: string,
+    body: TBody,
+    config?: ApiRequestConfig,
+  ): CancelablePromise<ApiResult<unknown, TError>> {
+    const serializedBody =
+      body instanceof FormData ? body : JSON.stringify(body);
+    return this.request<TJson, TError>(url, {
+      ...config,
+      method: "PATCH" as HttpMethod,
+      body: serializedBody,
+    } as ApiRequestConfig);
+  }
+
+  /** DELETE always returns void */
+  public delete<TError = unknown>(
+    url: string,
+    config?: ApiRequestConfig,
+  ): CancelablePromise<ApiResult<void, TError>> {
+    return this.request<void, TError>(url, {
+      ...config,
+      method: "DELETE" as HttpMethod,
+      responseType: "void",
+    } as ApiRequestConfig<"void">) as CancelablePromise<
+      ApiResult<void, TError>
+    >;
+  }
+}
+
+// ==========================================
+// ApiClientBuilder (Fluent API)
+// ==========================================
+export class ApiClientBuilder {
+  private options: Partial<ApiClientOptions> = {};
+  private requestInterceptors: RequestInterceptor[] = [];
+  private responseInterceptors: ResponseInterceptor[] = [];
+  private plugins = new Map<string, unknown>();
+
+  public setBaseUrl(baseUrl: string): this {
+    this.options.baseUrl = baseUrl;
+    return this;
+  }
+
+  public setDataExtractor(extractor: (data: unknown) => unknown): this {
+    this.options.dataExtractor = extractor;
+    return this;
+  }
+
+  public setErrorExtractor(
+    extractor: (data: unknown) => string | undefined,
+  ): this {
+    this.options.errorExtractor = extractor;
+    return this;
+  }
+
+  public addRequestInterceptor(interceptor: RequestInterceptor): this {
+    this.requestInterceptors.push(interceptor);
+    return this;
+  }
+
+  public addResponseInterceptor(interceptor: ResponseInterceptor): this {
+    this.responseInterceptors.push(interceptor);
+    return this;
+  }
+
+  public addHeader(key: string, value: string | (() => string)): this {
+    return this.addRequestInterceptor((config, url) => {
+      const headers = new Headers(config.headers || {});
+      headers.set(key, typeof value === "function" ? value() : value);
+      return { ...config, headers };
+    });
+  }
+
+  public addPlugin(plugin: ApiPlugin): this;
+  public addPlugin(name: string, plugin: unknown): this;
+  public addPlugin(
+    nameOrPlugin: string | ApiPlugin,
+    pluginObj?: unknown,
+  ): this {
+    if (typeof nameOrPlugin === "string") {
+      this.plugins.set(nameOrPlugin, pluginObj);
+    } else {
+      this.plugins.set(nameOrPlugin.name, nameOrPlugin);
+    }
+    return this;
+  }
+
+  public build(): ApiClient {
+    const client = new ApiClient({
+      baseUrl: this.options.baseUrl || "",
+      dataExtractor: this.options.dataExtractor,
+      errorExtractor: this.options.errorExtractor,
+    });
+
+    for (const interceptor of this.requestInterceptors) {
+      client.interceptors.request.use(interceptor);
+    }
+    for (const interceptor of this.responseInterceptors) {
+      client.interceptors.response.use(interceptor);
+    }
+    for (const [name, plugin] of this.plugins.entries()) {
+      // If it's an ApiPlugin (has a name field matching the key and maybe hooks)
+      if (
+        plugin &&
+        typeof plugin === "object" &&
+        (plugin as ApiPlugin).name === name
+      ) {
+        client.use(plugin as ApiPlugin);
+      } else {
+        client.use(name, plugin);
+      }
+    }
+
+    return client;
+  }
+}
