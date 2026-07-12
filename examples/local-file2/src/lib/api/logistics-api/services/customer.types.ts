@@ -11,6 +11,7 @@ export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
 export const CustomerDTOSchema = z.object({
   $schema: z.string().optional(),
   business_unit_code: z.string(),
+  code: z.string(),
   id: z.number().optional(),
   name: z.string(),
   phone: z.string(),

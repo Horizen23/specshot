@@ -10,18 +10,16 @@ export * from "./services/businessunit.service";
 import { BusinessUnitService } from "./services/businessunit.service";
 export * from "./services/customer.service";
 import { CustomerService } from "./services/customer.service";
-export * from "./services/dispatch.service";
-import { DispatchService } from "./services/dispatch.service";
+export * from "./services/fulfillment.service";
+import { FulfillmentService } from "./services/fulfillment.service";
 export * from "./services/item.service";
 import { ItemService } from "./services/item.service";
-export * from "./services/parcel.service";
-import { ParcelService } from "./services/parcel.service";
+export * from "./services/saleorderschedule.service";
+import { SaleorderscheduleService } from "./services/saleorderschedule.service";
 export * from "./services/saleorder.service";
 import { SaleOrderService } from "./services/saleorder.service";
 export * from "./services/test.service";
 import { TestService } from "./services/test.service";
-export * from "./services/fleet.service";
-import { FleetService } from "./services/fleet.service";
 export * from "./services/health.service";
 import { HealthService } from "./services/health.service";
 
@@ -48,11 +46,11 @@ export function createApi(client: ApiClient) {
       }
       return instance;
     },
-    get dispatch(): DispatchService {
-      let instance = instances.get("dispatch");
+    get fulfillment(): FulfillmentService {
+      let instance = instances.get("fulfillment");
       if (!instance) {
-        instance = new DispatchService(client);
-        instances.set("dispatch", instance);
+        instance = new FulfillmentService(client);
+        instances.set("fulfillment", instance);
       }
       return instance;
     },
@@ -64,11 +62,11 @@ export function createApi(client: ApiClient) {
       }
       return instance;
     },
-    get parcel(): ParcelService {
-      let instance = instances.get("parcel");
+    get saleorderschedule(): SaleorderscheduleService {
+      let instance = instances.get("saleorderschedule");
       if (!instance) {
-        instance = new ParcelService(client);
-        instances.set("parcel", instance);
+        instance = new SaleorderscheduleService(client);
+        instances.set("saleorderschedule", instance);
       }
       return instance;
     },
@@ -85,14 +83,6 @@ export function createApi(client: ApiClient) {
       if (!instance) {
         instance = new TestService(client);
         instances.set("test", instance);
-      }
-      return instance;
-    },
-    get fleet(): FleetService {
-      let instance = instances.get("fleet");
-      if (!instance) {
-        instance = new FleetService(client);
-        instances.set("fleet", instance);
       }
       return instance;
     },

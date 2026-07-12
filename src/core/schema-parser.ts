@@ -158,7 +158,16 @@ export function schemaToTsType(schema: OpenApiSchema | undefined): string {
       ({ safeKey, isRequired, schema: ps }) =>
         `  ${safeKey}${isRequired ? "" : "?"}: ${schemaToTsType(ps)};`,
     );
-    if (props.length === 0) return "Record<string, any>";
+    if (props.length === 0) {
+      if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+        return `Record<string, ${schemaToTsType(schema.additionalProperties)}>`;
+      }
+      return "Record<string, any>";
+    }
+    if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+      const addType = schemaToTsType(schema.additionalProperties);
+      return `{\n${props.join("\n")}\n} & Record<string, ${addType}>`;
+    }
     return `{\n${props.join("\n")}\n}`;
   }
 
@@ -194,7 +203,15 @@ export function schemaToZod(schema: OpenApiSchema | undefined): string {
         return `  ${safeKey}: ${zodType},`;
       },
     );
-    if (props.length === 0) return "z.record(z.any())";
+    if (props.length === 0) {
+      if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+        return `z.record(z.string(), ${schemaToZod(schema.additionalProperties)})`;
+      }
+      return "z.record(z.string(), z.any())";
+    }
+    if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+      return `z.object({\n${props.join("\n")}\n}).catchall(${schemaToZod(schema.additionalProperties)})`;
+    }
     return `z.object({\n${props.join("\n")}\n})`;
   }
   if (schema.type === "integer" || schema.type === "number")

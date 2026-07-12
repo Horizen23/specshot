@@ -6,6 +6,7 @@ export interface OpenApiSchema {
   properties?: Record<string, OpenApiSchema>;
   required?: string[];
   items?: OpenApiSchema;
+  additionalProperties?: OpenApiSchema | boolean;
 }
 
 export interface OpenApiMediaType {

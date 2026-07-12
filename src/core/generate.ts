@@ -251,7 +251,7 @@ export async function generateApi(
             const dataField = wrapperSchema?.properties?.data;
             if (dataField?.$ref) {
               refName = cleanRefName(dataField.$ref);
-            } else if (dataField?.type || dataField?.properties) {
+            } else if (dataField) {
               dataSchema = dataField;
               refName = schemaToTsType(dataField);
             }

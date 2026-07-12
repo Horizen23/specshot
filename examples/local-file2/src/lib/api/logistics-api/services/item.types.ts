@@ -10,11 +10,14 @@ export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
 // -- Specific Models for item --
 export const ItemDTOSchema = z.object({
   $schema: z.string().optional(),
+  base_uom: z.string().optional(),
   business_unit_code: z.string(),
   code: z.string(),
+  currency: z.string().optional(),
   default_price: z.number(),
   id: z.number().optional(),
   name: z.string(),
+  packing_factors: z.record(z.string(), z.number()).optional(),
 });
 export type ItemDTO = z.infer<typeof ItemDTOSchema>;
 
