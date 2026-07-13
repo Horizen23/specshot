@@ -135,7 +135,7 @@ export function getSchemaPropEntries(schema: OpenApiSchema): PropEntry[] {
   const required = schema.required || [];
   return Object.entries(schema.properties || {}).map(([key, propSchema]) => ({
     key,
-    safeKey: key.includes("-") || key.includes(" ") ? `"${key}"` : key,
+    safeKey: /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : JSON.stringify(key),
     isRequired: required.includes(key),
     schema: propSchema,
   }));

@@ -21,6 +21,8 @@ import {
 } from "./schema-parser";
 import {
   toClassName,
+  toSafeFileSlug,
+  toSafeIdentifier,
   capitalize,
   toCamelCase,
   toMethodName,
@@ -169,7 +171,7 @@ export async function generateApi(
 
   for (const [tag, data] of Object.entries(services)) {
     const className = toClassName(tag);
-    const tagPrefix = tag.toLowerCase();
+    const tagPrefix = toSafeFileSlug(tag.toLowerCase());
 
     const modelsToImport = new Set<string>();
     const specificSchemasList: { name: string; zod: string; tsType: string }[] =
@@ -200,7 +202,7 @@ export async function generateApi(
     for (const op of data.operations) {
       const methodName = toMethodName(op.operationId);
       const capMethod = capitalize(methodName);
-      const capTag = capitalize(tag);
+      const capTag = capitalize(toSafeIdentifier(tag));
 
       let typeNamePayload: string | null = null;
       let bodyType = "any";
