@@ -4,7 +4,12 @@ import os from "os";
 import type { OpenApiSpec, OpenApiSchema, ServiceGroup } from "../types/types";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { endpointKey } from "../types/mock-config";
-import { toMethodName, capitalize } from "../utils/naming-utils";
+import {
+  toMethodName,
+  capitalize,
+  toSafeFileSlug,
+  toSafeIdentifier,
+} from "../utils/naming-utils";
 import { mockValueFromSchema } from "../utils/msw-utils";
 import { renderTemplates } from "./renderer";
 import type { FakerPlugin } from "./config-loader";
@@ -39,7 +44,7 @@ export async function generateMswHandlers(
   }[] = [];
 
   for (const [tag, data] of Object.entries(services)) {
-    const tagLowerCase = tag.toLowerCase();
+    const tagLowerCase = toSafeFileSlug(tag.toLowerCase());
     const handlerFns: Record<string, unknown>[] = [];
     const typeImports: Set<string> = new Set();
     let usesFaker = false;
@@ -58,10 +63,13 @@ export async function generateMswHandlers(
           pathPattern = pathPattern.replace(`{${p.name}}`, `:${p.name}`);
         }
       }
+      pathPattern = pathPattern
+        .replace(/[`\\]/g, "\\$&")
+        .replace(/\$\{/g, "\\${");
 
       const methodName = toMethodName(op.operationId);
       const capMethod = capitalize(methodName);
-      const capTag = capitalize(tag);
+      const capTag = capitalize(toSafeIdentifier(tag));
       const typeNameResponse = `${capTag}${capMethod}Response`;
 
       let responseTypeName: string | null = null;
@@ -165,9 +173,11 @@ export async function generateMswHandlers(
       typesImportPath = `./${typesImportPath}`;
     typesImportPath = typesImportPath.replace(/\\/g, "/");
 
+    const capTagForIndex = capitalize(toSafeIdentifier(tag));
+
     tags.push({
       tag,
-      capTag: capitalize(tag),
+      capTag: capTagForIndex,
       tagLowerCase,
       handlers: handlerFns,
       typeImports: Array.from(typeImports),
@@ -175,7 +185,7 @@ export async function generateMswHandlers(
       typesImportPath,
     });
 
-    servicesForIndex.push({ tag, tagLowerCase, capTag: capitalize(tag) });
+    servicesForIndex.push({ tag, tagLowerCase, capTag: capTagForIndex });
   }
 
   // Handle per-file overrides by merging into a temp metadata structure

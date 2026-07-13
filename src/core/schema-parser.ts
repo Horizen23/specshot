@@ -135,7 +135,7 @@ export function getSchemaPropEntries(schema: OpenApiSchema): PropEntry[] {
   const required = schema.required || [];
   return Object.entries(schema.properties || {}).map(([key, propSchema]) => ({
     key,
-    safeKey: key.includes("-") || key.includes(" ") ? `"${key}"` : key,
+    safeKey: /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : JSON.stringify(key),
     isRequired: required.includes(key),
     schema: propSchema,
   }));
@@ -159,12 +159,18 @@ export function schemaToTsType(schema: OpenApiSchema | undefined): string {
         `  ${safeKey}${isRequired ? "" : "?"}: ${schemaToTsType(ps)};`,
     );
     if (props.length === 0) {
-      if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+      if (
+        schema.additionalProperties &&
+        typeof schema.additionalProperties === "object"
+      ) {
         return `Record<string, ${schemaToTsType(schema.additionalProperties)}>`;
       }
       return "Record<string, any>";
     }
-    if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+    if (
+      schema.additionalProperties &&
+      typeof schema.additionalProperties === "object"
+    ) {
       const addType = schemaToTsType(schema.additionalProperties);
       return `{\n${props.join("\n")}\n} & Record<string, ${addType}>`;
     }
@@ -204,12 +210,18 @@ export function schemaToZod(schema: OpenApiSchema | undefined): string {
       },
     );
     if (props.length === 0) {
-      if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+      if (
+        schema.additionalProperties &&
+        typeof schema.additionalProperties === "object"
+      ) {
         return `z.record(z.string(), ${schemaToZod(schema.additionalProperties)})`;
       }
       return "z.record(z.string(), z.any())";
     }
-    if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+    if (
+      schema.additionalProperties &&
+      typeof schema.additionalProperties === "object"
+    ) {
       return `z.object({\n${props.join("\n")}\n}).catchall(${schemaToZod(schema.additionalProperties)})`;
     }
     return `z.object({\n${props.join("\n")}\n})`;

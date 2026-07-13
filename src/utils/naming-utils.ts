@@ -3,6 +3,18 @@ export function toClassName(str: string): string {
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1) + "Service";
 }
 
+export function toSafeFileSlug(str: string): string {
+  if (!str || typeof str !== "string") return "unnamed";
+  const safe = str.replace(/[^a-zA-Z0-9_-]/g, "");
+  return safe.length > 0 ? safe : "unnamed";
+}
+
+export function toSafeIdentifier(str: string): string {
+  if (!str || typeof str !== "string") return "Unnamed";
+  const safe = str.replace(/[^a-zA-Z0-9]/g, "");
+  return safe.length > 0 ? safe : "Unnamed";
+}
+
 export function capitalize(str: string): string {
   if (!str || typeof str !== "string") return "";
   return str.charAt(0).toUpperCase() + str.slice(1);

@@ -162,11 +162,20 @@ export async function renderTemplates(
 
       const namePattern = renderValue(meta?.name, itemCtx);
       const outputFileName = namePattern || `${templateName}.ts`;
-      const outputFullPath = path.resolve(
-        process.cwd(),
-        target,
-        outputFileName,
-      );
+      const targetDir = path.resolve(process.cwd(), target);
+      const outputFullPath = path.resolve(targetDir, outputFileName);
+
+      const relativeToTarget = path.relative(targetDir, outputFullPath);
+      if (
+        relativeToTarget.startsWith("..") ||
+        path.isAbsolute(relativeToTarget)
+      ) {
+        if (!silent)
+          console.warn(
+            `  Skipping ${relPath}: computed output path "${outputFileName}" escapes target directory`,
+          );
+        continue;
+      }
 
       if (options.skipIfExists && fs.existsSync(outputFullPath)) continue;
 

@@ -15,6 +15,21 @@ export type {
 };
 export { traverseSchema };
 
+function safeNumberLiteral(value: unknown): string {
+  const n = Number(value);
+  return Number.isFinite(n) ? String(n) : "0";
+}
+
+/** Strips characters that could break out of a `/* ... *\/` block comment. */
+function safeBlockComment(text: string): string {
+  return String(text).replace(/\*\//g, "* /");
+}
+
+/** Strips characters that could break out of a `// ...` line comment. */
+function safeLineComment(text: string): string {
+  return String(text).replace(/[\r\n]/g, " ");
+}
+
 export function mockValueFromSchema(
   schema: OpenApiSchema | undefined,
   mockMode: "auto" | "faker" = "auto",
@@ -38,7 +53,7 @@ export function mockValueFromSchema(
     onUndefined: () => "null",
     onRef: (refName, isCycle) => {
       if (isCycle) return "null";
-      return `{} /* TODO: ${refName} */`;
+      return `{} /* TODO: ${safeBlockComment(refName)} */`;
     },
     onArray: (schema, items) => {
       if (items.length === 0) return "[]";
@@ -84,10 +99,10 @@ export function mockValueFromSchema(
               const val = plugin.generate(faker, pluginContext);
               if (typeof val === "string") {
                 if (val.startsWith("faker.")) return val;
-                return `"${val}"`;
+                return JSON.stringify(val);
               }
-              if (val instanceof Date) return `"${val.toISOString()}"`;
-              return String(val);
+              if (val instanceof Date) return JSON.stringify(val.toISOString());
+              return safeNumberLiteral(val);
             } catch (err) {
               console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
             }
@@ -105,10 +120,11 @@ export function mockValueFromSchema(
                 const val = plugin.generate(faker, pluginContext);
                 if (typeof val === "string") {
                   if (val.startsWith("faker.")) return val;
-                  return `"${val}"`;
+                  return JSON.stringify(val);
                 }
-                if (val instanceof Date) return `"${val.toISOString()}"`;
-                return String(val);
+                if (val instanceof Date)
+                  return JSON.stringify(val.toISOString());
+                return safeNumberLiteral(val);
               }
             } catch (err) {
               console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
@@ -117,11 +133,11 @@ export function mockValueFromSchema(
         }
 
         if (schema.type === "integer" || schema.type === "number") {
-          if (schema.enum) return String(schema.enum[0]);
+          if (schema.enum) return safeNumberLiteral(schema.enum[0]);
           return "faker.number.int({ min: 1, max: 1000 })";
         }
         if (schema.type === "string") {
-          if (schema.enum) return `"${schema.enum[0]}"`;
+          if (schema.enum) return JSON.stringify(String(schema.enum[0]));
           if (schema.format === "email") return "faker.internet.email()";
           if (schema.format === "uuid") return "faker.string.uuid()";
           if (schema.format === "date-time")
@@ -133,12 +149,12 @@ export function mockValueFromSchema(
       }
 
       if (schema.type === "integer" || schema.type === "number") {
-        if (schema.enum) return String(schema.enum[0]);
+        if (schema.enum) return safeNumberLiteral(schema.enum[0]);
         return "0";
       }
 
       if (schema.type === "string") {
-        if (schema.enum) return `"${schema.enum[0]}"`;
+        if (schema.enum) return JSON.stringify(String(schema.enum[0]));
         return '"mock_string"';
       }
 
@@ -174,7 +190,7 @@ export function mockJsonFromSchema(
     onUndefined: () => "null",
     onRef: (refName, isCycle) => {
       if (isCycle) return "null";
-      return `{} // TODO: ${refName}`;
+      return `{} // TODO: ${safeLineComment(refName)}`;
     },
     onArray: (schema, items) => {
       if (items.length === 0) return "[]";
@@ -218,9 +234,9 @@ export function mockJsonFromSchema(
           if (plugin) {
             try {
               const val = plugin.generate(faker, pluginContext);
-              if (typeof val === "string") return `"${val}"`;
-              if (val instanceof Date) return `"${val.toISOString()}"`;
-              return String(val);
+              if (typeof val === "string") return JSON.stringify(val);
+              if (val instanceof Date) return JSON.stringify(val.toISOString());
+              return safeNumberLiteral(val);
             } catch (err) {
               console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
             }
@@ -244,9 +260,10 @@ export function mockJsonFromSchema(
                 const val = (
                   fakerNs as unknown as Record<string, () => unknown>
                 )[fn]();
-                if (typeof val === "string") return `"${val}"`;
-                if (val instanceof Date) return `"${val.toISOString()}"`;
-                return String(val);
+                if (typeof val === "string") return JSON.stringify(val);
+                if (val instanceof Date)
+                  return JSON.stringify(val.toISOString());
+                return safeNumberLiteral(val);
               }
             }
           } catch (_e) {}
@@ -257,9 +274,10 @@ export function mockJsonFromSchema(
             try {
               if (plugin.match(pluginContext)) {
                 const val = plugin.generate(faker, pluginContext);
-                if (typeof val === "string") return `"${val}"`;
-                if (val instanceof Date) return `"${val.toISOString()}"`;
-                return String(val);
+                if (typeof val === "string") return JSON.stringify(val);
+                if (val instanceof Date)
+                  return JSON.stringify(val.toISOString());
+                return safeNumberLiteral(val);
               }
             } catch (err) {
               console.error(`\n[Specshot] Plugin "${plugin.name}" error:`, err);
@@ -268,11 +286,11 @@ export function mockJsonFromSchema(
         }
 
         if (schema.type === "integer" || schema.type === "number") {
-          if (schema.enum) return String(schema.enum[0]);
+          if (schema.enum) return safeNumberLiteral(schema.enum[0]);
           return String(faker.number.int({ min: 1, max: 1000 }));
         }
         if (schema.type === "string") {
-          if (schema.enum) return `"${schema.enum[0]}"`;
+          if (schema.enum) return JSON.stringify(String(schema.enum[0]));
           if (schema.format === "email") return `"${faker.internet.email()}"`;
           if (schema.format === "uuid") return `"${faker.string.uuid()}"`;
           if (schema.format === "date-time")
@@ -284,12 +302,12 @@ export function mockJsonFromSchema(
       }
 
       if (schema.type === "integer" || schema.type === "number") {
-        if (schema.enum) return String(schema.enum[0]);
+        if (schema.enum) return safeNumberLiteral(schema.enum[0]);
         return "0";
       }
 
       if (schema.type === "string") {
-        if (schema.enum) return `"${schema.enum[0]}"`;
+        if (schema.enum) return JSON.stringify(String(schema.enum[0]));
         return '"string"';
       }
 

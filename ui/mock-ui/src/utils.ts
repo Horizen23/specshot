@@ -101,10 +101,14 @@ export function registerPlugins(plugins: string[]) {
   }
 }
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 // Highlight JSON syntax via regex replacing to CSS classes
 export function highlightJson(json: string): string {
   if (!json) return "";
-  return json.replace(
+  return escapeHtml(json).replace(
     /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     function (match) {
       let cls = "hl-n";
