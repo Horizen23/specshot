@@ -63,7 +63,9 @@ export async function generateMswHandlers(
           pathPattern = pathPattern.replace(`{${p.name}}`, `:${p.name}`);
         }
       }
-      pathPattern = pathPattern.replace(/[`\\]/g, "\\$&").replace(/\$\{/g, "\\${");
+      pathPattern = pathPattern
+        .replace(/[`\\]/g, "\\$&")
+        .replace(/\$\{/g, "\\${");
 
       const methodName = toMethodName(op.operationId);
       const capMethod = capitalize(methodName);
