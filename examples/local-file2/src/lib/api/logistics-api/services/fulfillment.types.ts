@@ -2,34 +2,71 @@
 import { z } from "zod";
 
 // -- Specific Models for fulfillment --
-export const ListPendingFulfillmentsResponseSchema = z.object({
-  items: z.any(),
+export const FulfillmentItemResponseSchema = z.object({
+  currency: z.string().optional(),
+  item_code: z.string().optional(),
+  quantity: z.number().optional(),
+  unit_price: z.number().optional(),
+  uom: z.string().optional(),
 });
-export type ListPendingFulfillmentsResponse = z.infer<
-  typeof ListPendingFulfillmentsResponseSchema
+export type FulfillmentItemResponse = z.infer<
+  typeof FulfillmentItemResponseSchema
+>;
+
+export const FulfillmentRequestResponseSchema = z.object({
+  business_unit_code: z.string().optional(),
+  carrier: z.string().optional(),
+  customer_code: z.string().optional(),
+  id: z.string().optional(),
+  items: z.array(FulfillmentItemResponseSchema).optional(),
+  marketplace: z.string().optional(),
+  marketplace_order_id: z.string().optional(),
+  sale_order_id: z.string().optional(),
+  status: z.string().optional(),
+});
+export type FulfillmentRequestResponse = z.infer<
+  typeof FulfillmentRequestResponseSchema
+>;
+
+export const ListFulfillmentsPageResponseSchema = z.object({
+  items: z.array(FulfillmentRequestResponseSchema).optional(),
+  page: z.number().optional(),
+  size: z.number().optional(),
+  total: z.number().optional(),
+  total_pages: z.number().optional(),
+});
+export type ListFulfillmentsPageResponse = z.infer<
+  typeof ListFulfillmentsPageResponseSchema
 >;
 
 export const ProcessFulfillmentRequestBodySchema = z.object({
-  $schema: z.string().optional(),
-  ids: z.any(),
+  ids: z.array(z.string()),
 });
 export type ProcessFulfillmentRequestBody = z.infer<
   typeof ProcessFulfillmentRequestBodySchema
 >;
 
 export const ProcessFulfillmentResponseSchema = z.object({
-  generated_sale_order_ids: z.any(),
+  generated_sale_order_ids: z.array(z.string()).optional(),
 });
 export type ProcessFulfillmentResponse = z.infer<
   typeof ProcessFulfillmentResponseSchema
 >;
 
+export const ReceiveItemDTOSchema = z.object({
+  currency: z.string().optional(),
+  item_code: z.string(),
+  quantity: z.number(),
+  unit_price: z.number(),
+  uom: z.string().optional(),
+});
+export type ReceiveItemDTO = z.infer<typeof ReceiveItemDTOSchema>;
+
 export const ReceiveMarketplaceOrderBodySchema = z.object({
-  $schema: z.string().optional(),
   business_unit_code: z.string(),
   carrier: z.string(),
   customer_code: z.string(),
-  items: z.any(),
+  items: z.array(ReceiveItemDTOSchema),
   marketplace: z.string(),
   marketplace_order_id: z.string(),
 });
@@ -38,7 +75,7 @@ export type ReceiveMarketplaceOrderBody = z.infer<
 >;
 
 export const ReceiveMarketplaceOrderResponseSchema = z.object({
-  id: z.number(),
+  id: z.string().optional(),
 });
 export type ReceiveMarketplaceOrderResponse = z.infer<
   typeof ReceiveMarketplaceOrderResponseSchema
@@ -46,10 +83,10 @@ export type ReceiveMarketplaceOrderResponse = z.infer<
 
 // -- Request & Response Types --
 
-export const FulfillmentFulfillmentListPendingResponseSchema =
-  ListPendingFulfillmentsResponseSchema;
-export type FulfillmentFulfillmentListPendingResponse = z.infer<
-  typeof FulfillmentFulfillmentListPendingResponseSchema
+export const FulfillmentFulfillmentListResponseSchema =
+  ListFulfillmentsPageResponseSchema;
+export type FulfillmentFulfillmentListResponse = z.infer<
+  typeof FulfillmentFulfillmentListResponseSchema
 >;
 
 export type FulfillmentFulfillmentProcessPayload =
@@ -61,12 +98,13 @@ export type FulfillmentFulfillmentProcessResponse = z.infer<
   typeof FulfillmentFulfillmentProcessResponseSchema
 >;
 
-export type FulfillmentFulfillmentWebhookPayload = ReceiveMarketplaceOrderBody;
+export type FulfillmentFulfillmentReceiveWebhookPayload =
+  ReceiveMarketplaceOrderBody;
 
-export const FulfillmentFulfillmentWebhookResponseSchema =
+export const FulfillmentFulfillmentReceiveWebhookResponseSchema =
   ReceiveMarketplaceOrderResponseSchema;
-export type FulfillmentFulfillmentWebhookResponse = z.infer<
-  typeof FulfillmentFulfillmentWebhookResponseSchema
+export type FulfillmentFulfillmentReceiveWebhookResponse = z.infer<
+  typeof FulfillmentFulfillmentReceiveWebhookResponseSchema
 >;
 
 // --- CUSTOM CODE START ---

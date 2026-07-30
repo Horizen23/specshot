@@ -3,11 +3,15 @@ import { z } from "zod";
 
 // -- Request & Response Types --
 
-export const TestErrorResponseSchema = z.string();
-export type TestErrorResponse = z.infer<typeof TestErrorResponseSchema>;
+export const TestTestTriggerErrorResponseSchema = z.record(z.string(), z.any());
+export type TestTestTriggerErrorResponse = z.infer<
+  typeof TestTestTriggerErrorResponseSchema
+>;
 
-export const TestPanicResponseSchema = z.string();
-export type TestPanicResponse = z.infer<typeof TestPanicResponseSchema>;
+export const TestTestTriggerPanicResponseSchema = z.record(z.string(), z.any());
+export type TestTestTriggerPanicResponse = z.infer<
+  typeof TestTestTriggerPanicResponseSchema
+>;
 
 // --- CUSTOM CODE START ---
 // Add your custom types here. Do not remove these comments.

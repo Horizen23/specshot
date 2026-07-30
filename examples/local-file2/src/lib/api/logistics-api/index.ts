@@ -6,16 +6,12 @@ export * from "./hooks";
 import { createApiHooks } from "./hooks";
 export * from "./plugins";
 
-export * from "./services/businessunit.service";
-import { BusinessUnitService } from "./services/businessunit.service";
-export * from "./services/customer.service";
-import { CustomerService } from "./services/customer.service";
+export * from "./services/master.service";
+import { MasterService } from "./services/master.service";
 export * from "./services/fulfillment.service";
 import { FulfillmentService } from "./services/fulfillment.service";
-export * from "./services/item.service";
-import { ItemService } from "./services/item.service";
 export * from "./services/saleorderschedule.service";
-import { SaleorderscheduleService } from "./services/saleorderschedule.service";
+import { SaleOrderScheduleService } from "./services/saleorderschedule.service";
 export * from "./services/saleorder.service";
 import { SaleOrderService } from "./services/saleorder.service";
 export * from "./services/test.service";
@@ -30,19 +26,11 @@ export function createApi(client: ApiClient) {
   const instances = new Map<string, any>();
   return {
     client,
-    get businessunit(): BusinessUnitService {
-      let instance = instances.get("businessunit");
+    get master(): MasterService {
+      let instance = instances.get("master");
       if (!instance) {
-        instance = new BusinessUnitService(client);
-        instances.set("businessunit", instance);
-      }
-      return instance;
-    },
-    get customer(): CustomerService {
-      let instance = instances.get("customer");
-      if (!instance) {
-        instance = new CustomerService(client);
-        instances.set("customer", instance);
+        instance = new MasterService(client);
+        instances.set("master", instance);
       }
       return instance;
     },
@@ -54,18 +42,10 @@ export function createApi(client: ApiClient) {
       }
       return instance;
     },
-    get item(): ItemService {
-      let instance = instances.get("item");
-      if (!instance) {
-        instance = new ItemService(client);
-        instances.set("item", instance);
-      }
-      return instance;
-    },
-    get saleorderschedule(): SaleorderscheduleService {
+    get saleorderschedule(): SaleOrderScheduleService {
       let instance = instances.get("saleorderschedule");
       if (!instance) {
-        instance = new SaleorderscheduleService(client);
+        instance = new SaleOrderScheduleService(client);
         instances.set("saleorderschedule", instance);
       }
       return instance;

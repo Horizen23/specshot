@@ -7,47 +7,45 @@ import { AppRequestConfig, AppApiErrorData } from "../types";
 import type {
   BulkSendToWMSRequestBody,
   BulkSendToWMSResponse,
-  CreateSaleOrderBody,
+  SaleOrderItemResponse,
   SaleOrderPageResponse,
   SaleOrderResponse,
-  SaleOrderSaleorderListParams,
-  SaleOrderSaleorderListResponse,
-  SaleOrderSaleorderCreatePayload,
-  SaleOrderSaleorderCreateResponse,
-  SaleOrderSaleorderWmsPayload,
-  SaleOrderSaleorderWmsResponse,
-  SaleOrderSaleorderDeleteResponse,
-  SaleOrderSaleorderGetResponse,
-  SaleOrderSaleorderUpdatePayload,
-  SaleOrderSaleorderUpdateResponse,
-  SaleOrderSaleorderAuditlogsResponse,
+  SaleOrderSaleOrderListResponse,
+  SaleOrderSaleOrderCreatePayload,
+  SaleOrderSaleOrderCreateResponse,
+  SaleOrderSaleOrderSendToWMSPayload,
+  SaleOrderSaleOrderSendToWMSResponse,
+  SaleOrderSaleOrderGetResponse,
+  SaleOrderSaleOrderUpdatePayload,
+  SaleOrderSaleOrderUpdateResponse,
+  SaleOrderSaleOrderDeleteResponse,
+  SaleOrderSaleOrderGetAuditLogsResponse,
 } from "./saleorder.types";
 import {
-  SaleOrderSaleorderListResponseSchema,
-  SaleOrderSaleorderCreateResponseSchema,
-  SaleOrderSaleorderWmsResponseSchema,
-  SaleOrderSaleorderGetResponseSchema,
-  SaleOrderSaleorderUpdateResponseSchema,
-  SaleOrderSaleorderAuditlogsResponseSchema,
+  SaleOrderSaleOrderListResponseSchema,
+  SaleOrderSaleOrderCreateResponseSchema,
+  SaleOrderSaleOrderSendToWMSResponseSchema,
+  SaleOrderSaleOrderGetResponseSchema,
+  SaleOrderSaleOrderUpdateResponseSchema,
+  SaleOrderSaleOrderGetAuditLogsResponseSchema,
 } from "./saleorder.types";
 
 export type {
   BulkSendToWMSRequestBody,
   BulkSendToWMSResponse,
-  CreateSaleOrderBody,
+  SaleOrderItemResponse,
   SaleOrderPageResponse,
   SaleOrderResponse,
-  SaleOrderSaleorderListParams,
-  SaleOrderSaleorderListResponse,
-  SaleOrderSaleorderCreatePayload,
-  SaleOrderSaleorderCreateResponse,
-  SaleOrderSaleorderWmsPayload,
-  SaleOrderSaleorderWmsResponse,
-  SaleOrderSaleorderDeleteResponse,
-  SaleOrderSaleorderGetResponse,
-  SaleOrderSaleorderUpdatePayload,
-  SaleOrderSaleorderUpdateResponse,
-  SaleOrderSaleorderAuditlogsResponse,
+  SaleOrderSaleOrderListResponse,
+  SaleOrderSaleOrderCreatePayload,
+  SaleOrderSaleOrderCreateResponse,
+  SaleOrderSaleOrderSendToWMSPayload,
+  SaleOrderSaleOrderSendToWMSResponse,
+  SaleOrderSaleOrderGetResponse,
+  SaleOrderSaleOrderUpdatePayload,
+  SaleOrderSaleOrderUpdateResponse,
+  SaleOrderSaleOrderDeleteResponse,
+  SaleOrderSaleOrderGetAuditLogsResponse,
 };
 
 export class SaleOrderService extends BaseService<"saleorder"> {
@@ -56,19 +54,19 @@ export class SaleOrderService extends BaseService<"saleorder"> {
   }
 
   /**
-   * saleorder-list
-   * List sale orders
-   * @param params - Query parameters
+   * saleOrderList
+   * List
+   * Requires permission: saleorder:list
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleOrderSaleorderListResponse` (null on error)
+   *   - `data`: `SaleOrderSaleOrderListResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorder.saleorderList(...);
+   * const req = api.saleorder.saleOrderList(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -78,37 +76,36 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * }
    * // use `data` safely here
    */
-  public saleorderList(
-    params?: SaleOrderSaleorderListParams,
-    config?: Omit<AppRequestConfig, "params">,
+  public saleOrderList(
+    config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<SaleOrderSaleorderListResponse, AppApiErrorData>
+    ApiResult<SaleOrderSaleOrderListResponse, AppApiErrorData>
   > {
-    return this.client.get<SaleOrderSaleorderListResponse, AppApiErrorData>(
+    return this.client.get<SaleOrderSaleOrderListResponse, AppApiErrorData>(
       `/api/v1/sales-orders`,
       {
         ...this.withSignal(config),
-        params,
-        zodSchema: SaleOrderSaleorderListResponseSchema,
+        zodSchema: SaleOrderSaleOrderListResponseSchema,
       },
     );
   }
 
   /**
-   * saleorder-create
-   * Create a sale order
+   * saleOrderCreate
+   * Create เป็นการสร้างใบสั่งซื้อใหม่
+   * Requires permission: saleorder:create
 
-   * @param payload - Request body (`SaleOrderSaleorderCreatePayload`)
+   * @param payload - Request body (`SaleOrderSaleOrderCreatePayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleOrderSaleorderCreateResponse` (null on error)
+   *   - `data`: `SaleOrderSaleOrderCreateResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorder.saleorderCreate(...);
+   * const req = api.saleorder.saleOrderCreate(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -118,37 +115,38 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * }
    * // use `data` safely here
    */
-  public saleorderCreate(
-    payload: SaleOrderSaleorderCreatePayload,
+  public saleOrderCreate(
+    payload: SaleOrderSaleOrderCreatePayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<SaleOrderSaleorderCreateResponse, AppApiErrorData>
+    ApiResult<SaleOrderSaleOrderCreateResponse, AppApiErrorData>
   > {
-    return this.client.post<SaleOrderSaleorderCreateResponse, AppApiErrorData>(
+    return this.client.post<SaleOrderSaleOrderCreateResponse, AppApiErrorData>(
       `/api/v1/sales-orders`,
       payload,
       {
         ...this.withSignal(config),
-        zodSchema: SaleOrderSaleorderCreateResponseSchema,
+        zodSchema: SaleOrderSaleOrderCreateResponseSchema,
       },
     );
   }
 
   /**
-   * saleorder-wms
-   * Bulk send sale orders to WMS SFTP
+   * saleOrderSendToWMS
+   * SendToWMS
+   * Requires permission: saleorder:wms
 
-   * @param payload - Request body (`SaleOrderSaleorderWmsPayload`)
+   * @param payload - Request body (`SaleOrderSaleOrderSendToWMSPayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleOrderSaleorderWmsResponse` (null on error)
+   *   - `data`: `SaleOrderSaleOrderSendToWMSResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorder.saleorderWms(...);
+   * const req = api.saleorder.saleOrderSendToWMS(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -158,25 +156,107 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * }
    * // use `data` safely here
    */
-  public saleorderWms(
-    payload: SaleOrderSaleorderWmsPayload,
+  public saleOrderSendToWMS(
+    payload: SaleOrderSaleOrderSendToWMSPayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<SaleOrderSaleorderWmsResponse, AppApiErrorData>
+    ApiResult<SaleOrderSaleOrderSendToWMSResponse, AppApiErrorData>
   > {
-    return this.client.post<SaleOrderSaleorderWmsResponse, AppApiErrorData>(
-      `/api/v1/sales-orders/wms`,
-      payload,
+    return this.client.post<
+      SaleOrderSaleOrderSendToWMSResponse,
+      AppApiErrorData
+    >(`/api/v1/sales-orders/wms`, payload, {
+      ...this.withSignal(config),
+      zodSchema: SaleOrderSaleOrderSendToWMSResponseSchema,
+    });
+  }
+
+  /**
+   * saleOrderGet
+   * Get
+   * Requires permission: saleorder:get
+   * @param id - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `SaleOrderSaleOrderGetResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.saleorder.saleOrderGet(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public saleOrderGet(
+    id: string | number,
+    config?: AppRequestConfig,
+  ): CancelablePromise<
+    ApiResult<SaleOrderSaleOrderGetResponse, AppApiErrorData>
+  > {
+    return this.client.get<SaleOrderSaleOrderGetResponse, AppApiErrorData>(
+      `/api/v1/sales-orders/${id}`,
       {
         ...this.withSignal(config),
-        zodSchema: SaleOrderSaleorderWmsResponseSchema,
+        zodSchema: SaleOrderSaleOrderGetResponseSchema,
       },
     );
   }
 
   /**
-   * saleorder-delete
-   * Delete a sale order
+   * saleOrderUpdate
+   * Update
+   * Requires permission: saleorder:update
+   * @param id - Path parameter
+
+   * @param payload - Request body (`SaleOrderSaleOrderUpdatePayload`)
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `SaleOrderSaleOrderUpdateResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.saleorder.saleOrderUpdate(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public saleOrderUpdate(
+    id: string | number,
+    payload: SaleOrderSaleOrderUpdatePayload,
+    config?: AppRequestConfig,
+  ): CancelablePromise<
+    ApiResult<SaleOrderSaleOrderUpdateResponse, AppApiErrorData>
+  > {
+    return this.client.put<SaleOrderSaleOrderUpdateResponse, AppApiErrorData>(
+      `/api/v1/sales-orders/${id}`,
+      payload,
+      {
+        ...this.withSignal(config),
+        zodSchema: SaleOrderSaleOrderUpdateResponseSchema,
+      },
+    );
+  }
+
+  /**
+   * saleOrderDelete
+   * Delete
+   * Requires permission: saleorder:delete
    * @param id - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
@@ -187,7 +267,7 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorder.saleorderDelete(...);
+   * const req = api.saleorder.saleOrderDelete(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -197,7 +277,7 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * }
    * // use `data` safely here
    */
-  public saleorderDelete(
+  public saleOrderDelete(
     id: string | number,
     config?: AppRequestConfig,
   ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
@@ -207,19 +287,20 @@ export class SaleOrderService extends BaseService<"saleorder"> {
   }
 
   /**
-   * saleorder-get
-   * Get a sale order by ID
+   * saleOrderGetAuditLogs
+   * GetAuditLogs
+   * Requires permission: saleorder:auditlogs
    * @param id - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleOrderSaleorderGetResponse` (null on error)
+   *   - `data`: `SaleOrderSaleOrderGetAuditLogsResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorder.saleorderGet(...);
+   * const req = api.saleorder.saleOrderGetAuditLogs(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -229,98 +310,18 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * }
    * // use `data` safely here
    */
-  public saleorderGet(
+  public saleOrderGetAuditLogs(
     id: string | number,
     config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<SaleOrderSaleorderGetResponse, AppApiErrorData>
-  > {
-    return this.client.get<SaleOrderSaleorderGetResponse, AppApiErrorData>(
-      `/api/v1/sales-orders/${id}`,
-      {
-        ...this.withSignal(config),
-        zodSchema: SaleOrderSaleorderGetResponseSchema,
-      },
-    );
-  }
-
-  /**
-   * saleorder-update
-   * Update a sale order
-   * @param id - Path parameter
-
-   * @param payload - Request body (`SaleOrderSaleorderUpdatePayload`)
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `SaleOrderSaleorderUpdateResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.saleorder.saleorderUpdate(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public saleorderUpdate(
-    id: string | number,
-    payload: SaleOrderSaleorderUpdatePayload,
-    config?: AppRequestConfig,
-  ): CancelablePromise<
-    ApiResult<SaleOrderSaleorderUpdateResponse, AppApiErrorData>
-  > {
-    return this.client.put<SaleOrderSaleorderUpdateResponse, AppApiErrorData>(
-      `/api/v1/sales-orders/${id}`,
-      payload,
-      {
-        ...this.withSignal(config),
-        zodSchema: SaleOrderSaleorderUpdateResponseSchema,
-      },
-    );
-  }
-
-  /**
-   * saleorder-auditlogs
-   * Get audit logs for a sale order
-   * @param id - Path parameter
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `SaleOrderSaleorderAuditlogsResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.saleorder.saleorderAuditlogs(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public saleorderAuditlogs(
-    id: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<
-    ApiResult<SaleOrderSaleorderAuditlogsResponse, AppApiErrorData>
+    ApiResult<SaleOrderSaleOrderGetAuditLogsResponse, AppApiErrorData>
   > {
     return this.client.get<
-      SaleOrderSaleorderAuditlogsResponse,
+      SaleOrderSaleOrderGetAuditLogsResponse,
       AppApiErrorData
     >(`/api/v1/sales-orders/${id}/audit-logs`, {
       ...this.withSignal(config),
-      zodSchema: SaleOrderSaleorderAuditlogsResponseSchema,
+      zodSchema: SaleOrderSaleOrderGetAuditLogsResponseSchema,
     });
   }
 

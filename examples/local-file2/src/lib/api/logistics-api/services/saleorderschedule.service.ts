@@ -5,83 +5,84 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  CreateSaleOrderScheduleBody,
+  EventItemDTO,
+  SaleOrderScheduleExecutionLogDetailResponse,
   SaleOrderScheduleExecutionLogPageResponse,
+  SaleOrderScheduleItemResponse,
   SaleOrderSchedulePageResponse,
   SaleOrderScheduleResponse,
   ToggleSaleOrderScheduleBody,
   TriggerEventBody,
-  SaleorderscheduleSaleorderscheduleTriggerPayload,
-  SaleorderscheduleSaleorderscheduleTriggerResponse,
-  SaleorderscheduleSaleorderscheduleListParams,
-  SaleorderscheduleSaleorderscheduleListResponse,
-  SaleorderscheduleSaleorderscheduleCreatePayload,
-  SaleorderscheduleSaleorderscheduleCreateResponse,
-  SaleorderscheduleSaleorderscheduleDeleteResponse,
-  SaleorderscheduleSaleorderscheduleGetResponse,
-  SaleorderscheduleSaleorderscheduleUpdatePayload,
-  SaleorderscheduleSaleorderscheduleUpdateResponse,
-  SaleorderscheduleSaleorderscheduleLogsParams,
-  SaleorderscheduleSaleorderscheduleLogsResponse,
-  SaleorderscheduleSaleorderscheduleForcerunResponse,
-  SaleorderscheduleSaleorderscheduleTogglePayload,
-  SaleorderscheduleSaleorderscheduleToggleResponse,
+  SaleOrderScheduleSaleOrderScheduleTriggerEventPayload,
+  SaleOrderScheduleSaleOrderScheduleTriggerEventResponse,
+  SaleOrderScheduleSaleOrderScheduleListResponse,
+  SaleOrderScheduleSaleOrderScheduleCreatePayload,
+  SaleOrderScheduleSaleOrderScheduleCreateResponse,
+  SaleOrderScheduleSaleOrderScheduleGetResponse,
+  SaleOrderScheduleSaleOrderScheduleUpdatePayload,
+  SaleOrderScheduleSaleOrderScheduleUpdateResponse,
+  SaleOrderScheduleSaleOrderScheduleDeleteResponse,
+  SaleOrderScheduleSaleOrderScheduleListLogsResponse,
+  SaleOrderScheduleSaleOrderScheduleForceRunResponse,
+  SaleOrderScheduleSaleOrderScheduleTogglePayload,
+  SaleOrderScheduleSaleOrderScheduleToggleResponse,
 } from "./saleorderschedule.types";
 import {
-  SaleorderscheduleSaleorderscheduleTriggerResponseSchema,
-  SaleorderscheduleSaleorderscheduleListResponseSchema,
-  SaleorderscheduleSaleorderscheduleCreateResponseSchema,
-  SaleorderscheduleSaleorderscheduleGetResponseSchema,
-  SaleorderscheduleSaleorderscheduleUpdateResponseSchema,
-  SaleorderscheduleSaleorderscheduleLogsResponseSchema,
-  SaleorderscheduleSaleorderscheduleForcerunResponseSchema,
-  SaleorderscheduleSaleorderscheduleToggleResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleTriggerEventResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleListResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleCreateResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleGetResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleListLogsResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleForceRunResponseSchema,
+  SaleOrderScheduleSaleOrderScheduleToggleResponseSchema,
 } from "./saleorderschedule.types";
 
 export type {
-  CreateSaleOrderScheduleBody,
+  EventItemDTO,
+  SaleOrderScheduleExecutionLogDetailResponse,
   SaleOrderScheduleExecutionLogPageResponse,
+  SaleOrderScheduleItemResponse,
   SaleOrderSchedulePageResponse,
   SaleOrderScheduleResponse,
   ToggleSaleOrderScheduleBody,
   TriggerEventBody,
-  SaleorderscheduleSaleorderscheduleTriggerPayload,
-  SaleorderscheduleSaleorderscheduleTriggerResponse,
-  SaleorderscheduleSaleorderscheduleListParams,
-  SaleorderscheduleSaleorderscheduleListResponse,
-  SaleorderscheduleSaleorderscheduleCreatePayload,
-  SaleorderscheduleSaleorderscheduleCreateResponse,
-  SaleorderscheduleSaleorderscheduleDeleteResponse,
-  SaleorderscheduleSaleorderscheduleGetResponse,
-  SaleorderscheduleSaleorderscheduleUpdatePayload,
-  SaleorderscheduleSaleorderscheduleUpdateResponse,
-  SaleorderscheduleSaleorderscheduleLogsParams,
-  SaleorderscheduleSaleorderscheduleLogsResponse,
-  SaleorderscheduleSaleorderscheduleForcerunResponse,
-  SaleorderscheduleSaleorderscheduleTogglePayload,
-  SaleorderscheduleSaleorderscheduleToggleResponse,
+  SaleOrderScheduleSaleOrderScheduleTriggerEventPayload,
+  SaleOrderScheduleSaleOrderScheduleTriggerEventResponse,
+  SaleOrderScheduleSaleOrderScheduleListResponse,
+  SaleOrderScheduleSaleOrderScheduleCreatePayload,
+  SaleOrderScheduleSaleOrderScheduleCreateResponse,
+  SaleOrderScheduleSaleOrderScheduleGetResponse,
+  SaleOrderScheduleSaleOrderScheduleUpdatePayload,
+  SaleOrderScheduleSaleOrderScheduleUpdateResponse,
+  SaleOrderScheduleSaleOrderScheduleDeleteResponse,
+  SaleOrderScheduleSaleOrderScheduleListLogsResponse,
+  SaleOrderScheduleSaleOrderScheduleForceRunResponse,
+  SaleOrderScheduleSaleOrderScheduleTogglePayload,
+  SaleOrderScheduleSaleOrderScheduleToggleResponse,
 };
 
-export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
+export class SaleOrderScheduleService extends BaseService<"saleorderschedule"> {
   constructor(client: ApiClient) {
     super(client, "saleorderschedule");
   }
 
   /**
-   * saleorderschedule-trigger
-   * Inbound Event Trigger for matching schedules
+   * saleOrderScheduleTriggerEvent
+   * TriggerEvent
+   * Requires permission: saleorderschedule:trigger
 
-   * @param payload - Request body (`SaleorderscheduleSaleorderscheduleTriggerPayload`)
+   * @param payload - Request body (`SaleOrderScheduleSaleOrderScheduleTriggerEventPayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleTriggerResponse` (null on error)
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleTriggerEventResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorderschedule.saleorderscheduleTrigger(...);
+   * const req = api.saleorderschedule.saleOrderScheduleTriggerEvent(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -91,38 +92,38 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
    * }
    * // use `data` safely here
    */
-  public saleorderscheduleTrigger(
-    payload: SaleorderscheduleSaleorderscheduleTriggerPayload,
+  public saleOrderScheduleTriggerEvent(
+    payload: SaleOrderScheduleSaleOrderScheduleTriggerEventPayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
     ApiResult<
-      SaleorderscheduleSaleorderscheduleTriggerResponse,
+      SaleOrderScheduleSaleOrderScheduleTriggerEventResponse,
       AppApiErrorData
     >
   > {
     return this.client.post<
-      SaleorderscheduleSaleorderscheduleTriggerResponse,
+      SaleOrderScheduleSaleOrderScheduleTriggerEventResponse,
       AppApiErrorData
     >(`/api/v1/sale-orders/schedule-triggers`, payload, {
       ...this.withSignal(config),
-      zodSchema: SaleorderscheduleSaleorderscheduleTriggerResponseSchema,
+      zodSchema: SaleOrderScheduleSaleOrderScheduleTriggerEventResponseSchema,
     });
   }
 
   /**
-   * saleorderschedule-list
-   * List Sale Order Schedules
-   * @param params - Query parameters
+   * saleOrderScheduleList
+   * List
+   * Requires permission: saleorderschedule:list
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleListResponse` (null on error)
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleListResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorderschedule.saleorderscheduleList(...);
+   * const req = api.saleorderschedule.saleOrderScheduleList(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -132,37 +133,36 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
    * }
    * // use `data` safely here
    */
-  public saleorderscheduleList(
-    params?: SaleorderscheduleSaleorderscheduleListParams,
-    config?: Omit<AppRequestConfig, "params">,
+  public saleOrderScheduleList(
+    config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<SaleorderscheduleSaleorderscheduleListResponse, AppApiErrorData>
+    ApiResult<SaleOrderScheduleSaleOrderScheduleListResponse, AppApiErrorData>
   > {
     return this.client.get<
-      SaleorderscheduleSaleorderscheduleListResponse,
+      SaleOrderScheduleSaleOrderScheduleListResponse,
       AppApiErrorData
     >(`/api/v1/sale-orders/schedules`, {
       ...this.withSignal(config),
-      params,
-      zodSchema: SaleorderscheduleSaleorderscheduleListResponseSchema,
+      zodSchema: SaleOrderScheduleSaleOrderScheduleListResponseSchema,
     });
   }
 
   /**
-   * saleorderschedule-create
-   * Create Sale Order Schedule
+   * saleOrderScheduleCreate
+   * Create
+   * Requires permission: saleorderschedule:create
 
-   * @param payload - Request body (`SaleorderscheduleSaleorderscheduleCreatePayload`)
+   * @param payload - Request body (`SaleOrderScheduleSaleOrderScheduleCreatePayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleCreateResponse` (null on error)
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleCreateResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorderschedule.saleorderscheduleCreate(...);
+   * const req = api.saleorderschedule.saleOrderScheduleCreate(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -172,24 +172,106 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
    * }
    * // use `data` safely here
    */
-  public saleorderscheduleCreate(
-    payload: SaleorderscheduleSaleorderscheduleCreatePayload,
+  public saleOrderScheduleCreate(
+    payload: SaleOrderScheduleSaleOrderScheduleCreatePayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<SaleorderscheduleSaleorderscheduleCreateResponse, AppApiErrorData>
+    ApiResult<SaleOrderScheduleSaleOrderScheduleCreateResponse, AppApiErrorData>
   > {
     return this.client.post<
-      SaleorderscheduleSaleorderscheduleCreateResponse,
+      SaleOrderScheduleSaleOrderScheduleCreateResponse,
       AppApiErrorData
     >(`/api/v1/sale-orders/schedules`, payload, {
       ...this.withSignal(config),
-      zodSchema: SaleorderscheduleSaleorderscheduleCreateResponseSchema,
+      zodSchema: SaleOrderScheduleSaleOrderScheduleCreateResponseSchema,
     });
   }
 
   /**
-   * saleorderschedule-delete
-   * Delete Sale Order Schedule
+   * saleOrderScheduleGet
+   * Get
+   * Requires permission: saleorderschedule:get
+   * @param id - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleGetResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.saleorderschedule.saleOrderScheduleGet(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public saleOrderScheduleGet(
+    id: string | number,
+    config?: AppRequestConfig,
+  ): CancelablePromise<
+    ApiResult<SaleOrderScheduleSaleOrderScheduleGetResponse, AppApiErrorData>
+  > {
+    return this.client.get<
+      SaleOrderScheduleSaleOrderScheduleGetResponse,
+      AppApiErrorData
+    >(`/api/v1/sale-orders/schedules/${id}`, {
+      ...this.withSignal(config),
+      zodSchema: SaleOrderScheduleSaleOrderScheduleGetResponseSchema,
+    });
+  }
+
+  /**
+   * saleOrderScheduleUpdate
+   * Update
+   * Requires permission: saleorderschedule:update
+   * @param id - Path parameter
+
+   * @param payload - Request body (`SaleOrderScheduleSaleOrderScheduleUpdatePayload`)
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleUpdateResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.saleorderschedule.saleOrderScheduleUpdate(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public saleOrderScheduleUpdate(
+    id: string | number,
+    payload: SaleOrderScheduleSaleOrderScheduleUpdatePayload,
+    config?: AppRequestConfig,
+  ): CancelablePromise<
+    ApiResult<SaleOrderScheduleSaleOrderScheduleUpdateResponse, AppApiErrorData>
+  > {
+    return this.client.put<
+      SaleOrderScheduleSaleOrderScheduleUpdateResponse,
+      AppApiErrorData
+    >(`/api/v1/sale-orders/schedules/${id}`, payload, {
+      ...this.withSignal(config),
+      zodSchema: SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema,
+    });
+  }
+
+  /**
+   * saleOrderScheduleDelete
+   * Delete
+   * Requires permission: saleorderschedule:delete
    * @param id - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
@@ -200,7 +282,7 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorderschedule.saleorderscheduleDelete(...);
+   * const req = api.saleorderschedule.saleOrderScheduleDelete(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -210,7 +292,7 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
    * }
    * // use `data` safely here
    */
-  public saleorderscheduleDelete(
+  public saleOrderScheduleDelete(
     id: string | number,
     config?: AppRequestConfig,
   ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
@@ -223,19 +305,20 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
   }
 
   /**
-   * saleorderschedule-get
-   * Get Sale Order Schedule Details
+   * saleOrderScheduleListLogs
+   * ListLogs
+   * Requires permission: saleorderschedule:logs
    * @param id - Path parameter
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleGetResponse` (null on error)
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleListLogsResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorderschedule.saleorderscheduleGet(...);
+   * const req = api.saleorderschedule.saleOrderScheduleListLogs(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -245,160 +328,39 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
    * }
    * // use `data` safely here
    */
-  public saleorderscheduleGet(
-    id: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<
-    ApiResult<SaleorderscheduleSaleorderscheduleGetResponse, AppApiErrorData>
-  > {
-    return this.client.get<
-      SaleorderscheduleSaleorderscheduleGetResponse,
-      AppApiErrorData
-    >(`/api/v1/sale-orders/schedules/${id}`, {
-      ...this.withSignal(config),
-      zodSchema: SaleorderscheduleSaleorderscheduleGetResponseSchema,
-    });
-  }
-
-  /**
-   * saleorderschedule-update
-   * Update Sale Order Schedule
-   * @param id - Path parameter
-
-   * @param payload - Request body (`SaleorderscheduleSaleorderscheduleUpdatePayload`)
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleUpdateResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.saleorderschedule.saleorderscheduleUpdate(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public saleorderscheduleUpdate(
-    id: string | number,
-    payload: SaleorderscheduleSaleorderscheduleUpdatePayload,
-    config?: AppRequestConfig,
-  ): CancelablePromise<
-    ApiResult<SaleorderscheduleSaleorderscheduleUpdateResponse, AppApiErrorData>
-  > {
-    return this.client.put<
-      SaleorderscheduleSaleorderscheduleUpdateResponse,
-      AppApiErrorData
-    >(`/api/v1/sale-orders/schedules/${id}`, payload, {
-      ...this.withSignal(config),
-      zodSchema: SaleorderscheduleSaleorderscheduleUpdateResponseSchema,
-    });
-  }
-
-  /**
-   * saleorderschedule-logs
-   * Get Sale Order Schedule execution logs
-   * @param id - Path parameter
-   * @param params - Query parameters
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleLogsResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.saleorderschedule.saleorderscheduleLogs(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public saleorderscheduleLogs(
-    id: string | number,
-    params?: SaleorderscheduleSaleorderscheduleLogsParams,
-    config?: Omit<AppRequestConfig, "params">,
-  ): CancelablePromise<
-    ApiResult<SaleorderscheduleSaleorderscheduleLogsResponse, AppApiErrorData>
-  > {
-    return this.client.get<
-      SaleorderscheduleSaleorderscheduleLogsResponse,
-      AppApiErrorData
-    >(`/api/v1/sale-orders/schedules/${id}/logs`, {
-      ...this.withSignal(config),
-      params,
-      zodSchema: SaleorderscheduleSaleorderscheduleLogsResponseSchema,
-    });
-  }
-
-  /**
-   * saleorderschedule-forcerun
-   * Force execution of Sale Order Schedule now
-   * @param id - Path parameter
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleForcerunResponse` (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.saleorderschedule.saleorderscheduleForcerun(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public saleorderscheduleForcerun(
+  public saleOrderScheduleListLogs(
     id: string | number,
     config?: AppRequestConfig,
   ): CancelablePromise<
     ApiResult<
-      SaleorderscheduleSaleorderscheduleForcerunResponse,
+      SaleOrderScheduleSaleOrderScheduleListLogsResponse,
       AppApiErrorData
     >
   > {
-    return this.client.post<
-      SaleorderscheduleSaleorderscheduleForcerunResponse,
+    return this.client.get<
+      SaleOrderScheduleSaleOrderScheduleListLogsResponse,
       AppApiErrorData
-    >(`/api/v1/sale-orders/schedules/${id}/run-now`, {
+    >(`/api/v1/sale-orders/schedules/${id}/logs`, {
       ...this.withSignal(config),
-      zodSchema: SaleorderscheduleSaleorderscheduleForcerunResponseSchema,
+      zodSchema: SaleOrderScheduleSaleOrderScheduleListLogsResponseSchema,
     });
   }
 
   /**
-   * saleorderschedule-toggle
-   * Toggle Sale Order Schedule Active/Inactive status
+   * saleOrderScheduleForceRun
+   * ForceRun
+   * Requires permission: saleorderschedule:forcerun
    * @param id - Path parameter
-
-   * @param payload - Request body (`SaleorderscheduleSaleorderscheduleTogglePayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `SaleorderscheduleSaleorderscheduleToggleResponse` (null on error)
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleForceRunResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.saleorderschedule.saleorderscheduleToggle(...);
+   * const req = api.saleorderschedule.saleOrderScheduleForceRun(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -408,19 +370,63 @@ export class SaleorderscheduleService extends BaseService<"saleorderschedule"> {
    * }
    * // use `data` safely here
    */
-  public saleorderscheduleToggle(
+  public saleOrderScheduleForceRun(
     id: string | number,
-    payload: SaleorderscheduleSaleorderscheduleTogglePayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<SaleorderscheduleSaleorderscheduleToggleResponse, AppApiErrorData>
+    ApiResult<
+      SaleOrderScheduleSaleOrderScheduleForceRunResponse,
+      AppApiErrorData
+    >
   > {
     return this.client.post<
-      SaleorderscheduleSaleorderscheduleToggleResponse,
+      SaleOrderScheduleSaleOrderScheduleForceRunResponse,
+      AppApiErrorData
+    >(`/api/v1/sale-orders/schedules/${id}/run-now`, {
+      ...this.withSignal(config),
+      zodSchema: SaleOrderScheduleSaleOrderScheduleForceRunResponseSchema,
+    });
+  }
+
+  /**
+   * saleOrderScheduleToggle
+   * Toggle
+   * Requires permission: saleorderschedule:toggle
+   * @param id - Path parameter
+
+   * @param payload - Request body (`SaleOrderScheduleSaleOrderScheduleTogglePayload`)
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: `SaleOrderScheduleSaleOrderScheduleToggleResponse` (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.saleorderschedule.saleOrderScheduleToggle(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public saleOrderScheduleToggle(
+    id: string | number,
+    payload: SaleOrderScheduleSaleOrderScheduleTogglePayload,
+    config?: AppRequestConfig,
+  ): CancelablePromise<
+    ApiResult<SaleOrderScheduleSaleOrderScheduleToggleResponse, AppApiErrorData>
+  > {
+    return this.client.post<
+      SaleOrderScheduleSaleOrderScheduleToggleResponse,
       AppApiErrorData
     >(`/api/v1/sale-orders/schedules/${id}/toggle`, payload, {
       ...this.withSignal(config),
-      zodSchema: SaleorderscheduleSaleorderscheduleToggleResponseSchema,
+      zodSchema: SaleOrderScheduleSaleOrderScheduleToggleResponseSchema,
     });
   }
 

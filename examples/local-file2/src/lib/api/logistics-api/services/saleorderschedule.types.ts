@@ -2,159 +2,172 @@
 import { z } from "zod";
 
 // -- Specific Models for saleorderschedule --
-export const CreateSaleOrderScheduleBodySchema = z.object({
-  $schema: z.string().optional(),
-  base_start_date: z.string(),
-  business_unit_code: z.string(),
-  cron_expression: z.string(),
-  customer_code: z.string(),
-  item_source_type: z.string(),
-  items: z.any(),
-  order_date_offset_days: z.number(),
-  recurrence_interval_weeks: z.number(),
-  remark: z.string(),
-  retry_limit: z.number(),
-  trigger_type: z.string(),
+export const EventItemDTOSchema = z.object({
+  currency: z.string().optional(),
+  item_code: z.string(),
+  quantity: z.number(),
+  unit_price: z.number(),
 });
-export type CreateSaleOrderScheduleBody = z.infer<
-  typeof CreateSaleOrderScheduleBodySchema
+export type EventItemDTO = z.infer<typeof EventItemDTOSchema>;
+
+export const SaleOrderScheduleExecutionLogDetailResponseSchema = z.object({
+  error_message: z.string().optional(),
+  executed_at: z.string().optional(),
+  generated_sale_order_id: z.string().optional(),
+  id: z.string().optional(),
+  idempotency_key: z.string().optional(),
+  sale_order_schedule_id: z.string().optional(),
+  status: z.string().optional(),
+  trigger_source: z.string().optional(),
+});
+export type SaleOrderScheduleExecutionLogDetailResponse = z.infer<
+  typeof SaleOrderScheduleExecutionLogDetailResponseSchema
 >;
 
 export const SaleOrderScheduleExecutionLogPageResponseSchema = z.object({
-  items: z.any(),
-  page: z.number(),
-  size: z.number(),
-  total: z.number(),
-  total_pages: z.number(),
+  items: z.array(SaleOrderScheduleExecutionLogDetailResponseSchema).optional(),
+  page: z.number().optional(),
+  size: z.number().optional(),
+  total: z.number().optional(),
+  total_pages: z.number().optional(),
 });
 export type SaleOrderScheduleExecutionLogPageResponse = z.infer<
   typeof SaleOrderScheduleExecutionLogPageResponseSchema
 >;
 
-export const SaleOrderSchedulePageResponseSchema = z.object({
-  items: z.any(),
-  page: z.number(),
-  size: z.number(),
-  total: z.number(),
-  total_pages: z.number(),
+export const SaleOrderScheduleItemResponseSchema = z.object({
+  currency: z.string().optional(),
+  item_code: z.string().optional(),
+  quantity: z.number().optional(),
+  unit_price: z.number().optional(),
 });
-export type SaleOrderSchedulePageResponse = z.infer<
-  typeof SaleOrderSchedulePageResponseSchema
+export type SaleOrderScheduleItemResponse = z.infer<
+  typeof SaleOrderScheduleItemResponseSchema
 >;
 
 export const SaleOrderScheduleResponseSchema = z.object({
-  base_start_date: z.string(),
-  business_unit_code: z.string(),
-  cron_expression: z.string(),
-  customer_code: z.string(),
-  id: z.number(),
-  item_source_type: z.string(),
-  items: z.any(),
-  last_error: z.string(),
-  last_run_at: z.string(),
-  last_run_status: z.string(),
-  next_run_at: z.string(),
-  order_date_offset_days: z.number(),
-  recurrence_interval_weeks: z.number(),
-  remark: z.string(),
-  retry_count: z.number(),
-  retry_limit: z.number(),
-  status: z.string(),
-  trigger_type: z.string(),
+  base_start_date: z.string().optional(),
+  business_unit_code: z.string().optional(),
+  cron_expression: z.string().optional(),
+  customer_code: z.string().optional(),
+  id: z.string().optional(),
+  item_source_type: z.string().optional(),
+  items: z.array(SaleOrderScheduleItemResponseSchema).optional(),
+  last_error: z.string().optional(),
+  last_run_at: z.string().optional(),
+  last_run_status: z.string().optional(),
+  next_run_at: z.string().optional(),
+  order_date_offset_days: z.number().optional(),
+  recurrence_interval_weeks: z.number().optional(),
+  remark: z.string().optional(),
+  retry_count: z.number().optional(),
+  retry_limit: z.number().optional(),
+  status: z.string().optional(),
+  trigger_type: z.string().optional(),
 });
 export type SaleOrderScheduleResponse = z.infer<
   typeof SaleOrderScheduleResponseSchema
 >;
 
+export const SaleOrderSchedulePageResponseSchema = z.object({
+  items: z.array(SaleOrderScheduleResponseSchema).optional(),
+  page: z.number().optional(),
+  size: z.number().optional(),
+  total: z.number().optional(),
+  total_pages: z.number().optional(),
+});
+export type SaleOrderSchedulePageResponse = z.infer<
+  typeof SaleOrderSchedulePageResponseSchema
+>;
+
 export const ToggleSaleOrderScheduleBodySchema = z.object({
-  $schema: z.string().optional(),
-  active: z.boolean(),
+  active: z.boolean().optional(),
 });
 export type ToggleSaleOrderScheduleBody = z.infer<
   typeof ToggleSaleOrderScheduleBodySchema
 >;
 
 export const TriggerEventBodySchema = z.object({
-  $schema: z.string().optional(),
   business_unit_code: z.string(),
   customer_code: z.string(),
   idempotency_key: z.string(),
-  items: z.any(),
+  items: z.array(EventItemDTOSchema),
 });
 export type TriggerEventBody = z.infer<typeof TriggerEventBodySchema>;
 
 // -- Request & Response Types --
-export type SaleorderscheduleSaleorderscheduleTriggerPayload = TriggerEventBody;
+export type SaleOrderScheduleSaleOrderScheduleTriggerEventPayload =
+  TriggerEventBody;
 
-export const SaleorderscheduleSaleorderscheduleTriggerResponseSchema = z.any();
-export type SaleorderscheduleSaleorderscheduleTriggerResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleTriggerResponseSchema
+export const SaleOrderScheduleSaleOrderScheduleTriggerEventResponseSchema =
+  z.record(z.string(), z.any());
+export type SaleOrderScheduleSaleOrderScheduleTriggerEventResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleTriggerEventResponseSchema
 >;
 
-export type SaleorderscheduleSaleorderscheduleListParams = {
-  page?: number;
-  size?: number;
-  search?: string;
-};
-
-export const SaleorderscheduleSaleorderscheduleListResponseSchema =
+export const SaleOrderScheduleSaleOrderScheduleListResponseSchema =
   SaleOrderSchedulePageResponseSchema;
-export type SaleorderscheduleSaleorderscheduleListResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleListResponseSchema
+export type SaleOrderScheduleSaleOrderScheduleListResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleListResponseSchema
 >;
 
-export type SaleorderscheduleSaleorderscheduleCreatePayload =
-  CreateSaleOrderScheduleBody;
+export type SaleOrderScheduleSaleOrderScheduleCreatePayload = any;
 
-export const SaleorderscheduleSaleorderscheduleCreateResponseSchema =
-  SaleOrderScheduleResponseSchema;
-export type SaleorderscheduleSaleorderscheduleCreateResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleCreateResponseSchema
+export const SaleOrderScheduleSaleOrderScheduleCreateResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderScheduleSaleOrderScheduleCreateResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleCreateResponseSchema
 >;
 
-export const SaleorderscheduleSaleorderscheduleDeleteResponseSchema = z.any();
-export type SaleorderscheduleSaleorderscheduleDeleteResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleDeleteResponseSchema
+export const SaleOrderScheduleSaleOrderScheduleGetResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderScheduleSaleOrderScheduleGetResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleGetResponseSchema
 >;
 
-export const SaleorderscheduleSaleorderscheduleGetResponseSchema =
-  SaleOrderScheduleResponseSchema;
-export type SaleorderscheduleSaleorderscheduleGetResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleGetResponseSchema
+export type SaleOrderScheduleSaleOrderScheduleUpdatePayload = any;
+
+export const SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderScheduleSaleOrderScheduleUpdateResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema
 >;
 
-export type SaleorderscheduleSaleorderscheduleUpdatePayload =
-  CreateSaleOrderScheduleBody;
-
-export const SaleorderscheduleSaleorderscheduleUpdateResponseSchema =
-  SaleOrderScheduleResponseSchema;
-export type SaleorderscheduleSaleorderscheduleUpdateResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleUpdateResponseSchema
+export const SaleOrderScheduleSaleOrderScheduleDeleteResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderScheduleSaleOrderScheduleDeleteResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleDeleteResponseSchema
 >;
 
-export type SaleorderscheduleSaleorderscheduleLogsParams = {
-  page?: number;
-  size?: number;
-};
-
-export const SaleorderscheduleSaleorderscheduleLogsResponseSchema =
+export const SaleOrderScheduleSaleOrderScheduleListLogsResponseSchema =
   SaleOrderScheduleExecutionLogPageResponseSchema;
-export type SaleorderscheduleSaleorderscheduleLogsResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleLogsResponseSchema
+export type SaleOrderScheduleSaleOrderScheduleListLogsResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleListLogsResponseSchema
 >;
 
-export const SaleorderscheduleSaleorderscheduleForcerunResponseSchema = z.any();
-export type SaleorderscheduleSaleorderscheduleForcerunResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleForcerunResponseSchema
+export const SaleOrderScheduleSaleOrderScheduleForceRunResponseSchema =
+  z.record(z.string(), z.any());
+export type SaleOrderScheduleSaleOrderScheduleForceRunResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleForceRunResponseSchema
 >;
 
-export type SaleorderscheduleSaleorderscheduleTogglePayload =
+export type SaleOrderScheduleSaleOrderScheduleTogglePayload =
   ToggleSaleOrderScheduleBody;
 
-export const SaleorderscheduleSaleorderscheduleToggleResponseSchema =
-  SaleOrderScheduleResponseSchema;
-export type SaleorderscheduleSaleorderscheduleToggleResponse = z.infer<
-  typeof SaleorderscheduleSaleorderscheduleToggleResponseSchema
+export const SaleOrderScheduleSaleOrderScheduleToggleResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderScheduleSaleOrderScheduleToggleResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleToggleResponseSchema
 >;
 
 // --- CUSTOM CODE START ---

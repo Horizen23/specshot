@@ -3,111 +3,113 @@ import { z } from "zod";
 
 // -- Shared Models --
 export const SuccessResponseSchema = z.object({
-  message: z.string(),
+  message: z.string().optional(),
 });
 export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
 
 // -- Specific Models for saleorder --
 export const BulkSendToWMSRequestBodySchema = z.object({
-  $schema: z.string().optional(),
-  ids: z.any(),
+  ids: z.array(z.string()),
 });
 export type BulkSendToWMSRequestBody = z.infer<
   typeof BulkSendToWMSRequestBodySchema
 >;
 
 export const BulkSendToWMSResponseSchema = z.object({
-  errors: z.record(z.string(), z.string()),
-  success_ids: z.any(),
+  errors: z.record(z.string(), z.string()).optional(),
+  success_ids: z.array(z.string()).optional(),
 });
 export type BulkSendToWMSResponse = z.infer<typeof BulkSendToWMSResponseSchema>;
 
-export const CreateSaleOrderBodySchema = z.object({
-  $schema: z.string().optional(),
-  business_unit_code: z.string(),
-  customer_code: z.string(),
-  items: z.any(),
-  order_date: z.string(),
-  order_type: z.string(),
-  remark: z.string(),
+export const SaleOrderItemResponseSchema = z.object({
+  currency: z.string().optional(),
+  item_code: z.string().optional(),
+  quantity: z.number().optional(),
+  sub_total: z.number().optional(),
+  unit_price: z.number().optional(),
+  uom: z.string().optional(),
 });
-export type CreateSaleOrderBody = z.infer<typeof CreateSaleOrderBodySchema>;
-
-export const SaleOrderPageResponseSchema = z.object({
-  items: z.any(),
-  page: z.number(),
-  size: z.number(),
-  total: z.number(),
-  total_pages: z.number(),
-});
-export type SaleOrderPageResponse = z.infer<typeof SaleOrderPageResponseSchema>;
+export type SaleOrderItemResponse = z.infer<typeof SaleOrderItemResponseSchema>;
 
 export const SaleOrderResponseSchema = z.object({
-  business_unit_code: z.string(),
-  currency: z.string(),
-  customer_code: z.string(),
-  id: z.number(),
-  items: z.any(),
-  order_date: z.string(),
-  order_no: z.string(),
-  order_type: z.string(),
-  remark: z.string(),
-  status: z.string(),
-  total_price: z.number(),
-  wms_file_name: z.string(),
+  business_unit_code: z.string().optional(),
+  currency: z.string().optional(),
+  customer_code: z.string().optional(),
+  id: z.string().optional(),
+  items: z.array(SaleOrderItemResponseSchema).optional(),
+  order_date: z.string().optional(),
+  order_no: z.string().optional(),
+  order_type: z.string().optional(),
+  remark: z.string().optional(),
+  status: z.string().optional(),
+  total_price: z.number().optional(),
+  wms_file_name: z.string().optional(),
 });
 export type SaleOrderResponse = z.infer<typeof SaleOrderResponseSchema>;
 
+export const SaleOrderPageResponseSchema = z.object({
+  items: z.array(SaleOrderResponseSchema).optional(),
+  page: z.number().optional(),
+  size: z.number().optional(),
+  total: z.number().optional(),
+  total_pages: z.number().optional(),
+});
+export type SaleOrderPageResponse = z.infer<typeof SaleOrderPageResponseSchema>;
+
 // -- Request & Response Types --
 
-export type SaleOrderSaleorderListParams = {
-  page?: number;
-  size?: number;
-  search?: string;
-  sort_by?: string;
-  sort_order?: string;
-  business_unit_code?: string;
-};
-
-export const SaleOrderSaleorderListResponseSchema = SaleOrderPageResponseSchema;
-export type SaleOrderSaleorderListResponse = z.infer<
-  typeof SaleOrderSaleorderListResponseSchema
+export const SaleOrderSaleOrderListResponseSchema = SaleOrderPageResponseSchema;
+export type SaleOrderSaleOrderListResponse = z.infer<
+  typeof SaleOrderSaleOrderListResponseSchema
 >;
 
-export type SaleOrderSaleorderCreatePayload = CreateSaleOrderBody;
+export type SaleOrderSaleOrderCreatePayload = any;
 
-export const SaleOrderSaleorderCreateResponseSchema = SaleOrderResponseSchema;
-export type SaleOrderSaleorderCreateResponse = z.infer<
-  typeof SaleOrderSaleorderCreateResponseSchema
+export const SaleOrderSaleOrderCreateResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderSaleOrderCreateResponse = z.infer<
+  typeof SaleOrderSaleOrderCreateResponseSchema
 >;
 
-export type SaleOrderSaleorderWmsPayload = BulkSendToWMSRequestBody;
+export type SaleOrderSaleOrderSendToWMSPayload = BulkSendToWMSRequestBody;
 
-export const SaleOrderSaleorderWmsResponseSchema = BulkSendToWMSResponseSchema;
-export type SaleOrderSaleorderWmsResponse = z.infer<
-  typeof SaleOrderSaleorderWmsResponseSchema
+export const SaleOrderSaleOrderSendToWMSResponseSchema =
+  BulkSendToWMSResponseSchema;
+export type SaleOrderSaleOrderSendToWMSResponse = z.infer<
+  typeof SaleOrderSaleOrderSendToWMSResponseSchema
 >;
 
-export const SaleOrderSaleorderDeleteResponseSchema = SuccessResponseSchema;
-export type SaleOrderSaleorderDeleteResponse = z.infer<
-  typeof SaleOrderSaleorderDeleteResponseSchema
+export const SaleOrderSaleOrderGetResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderSaleOrderGetResponse = z.infer<
+  typeof SaleOrderSaleOrderGetResponseSchema
 >;
 
-export const SaleOrderSaleorderGetResponseSchema = SaleOrderResponseSchema;
-export type SaleOrderSaleorderGetResponse = z.infer<
-  typeof SaleOrderSaleorderGetResponseSchema
+export type SaleOrderSaleOrderUpdatePayload = any;
+
+export const SaleOrderSaleOrderUpdateResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderSaleOrderUpdateResponse = z.infer<
+  typeof SaleOrderSaleOrderUpdateResponseSchema
 >;
 
-export type SaleOrderSaleorderUpdatePayload = CreateSaleOrderBody;
-
-export const SaleOrderSaleorderUpdateResponseSchema = SaleOrderResponseSchema;
-export type SaleOrderSaleorderUpdateResponse = z.infer<
-  typeof SaleOrderSaleorderUpdateResponseSchema
+export const SaleOrderSaleOrderDeleteResponseSchema = SuccessResponseSchema;
+export type SaleOrderSaleOrderDeleteResponse = z.infer<
+  typeof SaleOrderSaleOrderDeleteResponseSchema
 >;
 
-export const SaleOrderSaleorderAuditlogsResponseSchema = z.any();
-export type SaleOrderSaleorderAuditlogsResponse = z.infer<
-  typeof SaleOrderSaleorderAuditlogsResponseSchema
+export const SaleOrderSaleOrderGetAuditLogsResponseSchema = z.record(
+  z.string(),
+  z.any(),
+);
+export type SaleOrderSaleOrderGetAuditLogsResponse = z.infer<
+  typeof SaleOrderSaleOrderGetAuditLogsResponseSchema
 >;
 
 // --- CUSTOM CODE START ---

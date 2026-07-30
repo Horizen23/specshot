@@ -4,10 +4,16 @@ import { ApiClient } from "../../core/api-client";
 import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
-import type { TestErrorResponse, TestPanicResponse } from "./test.types";
-import { TestErrorResponseSchema, TestPanicResponseSchema } from "./test.types";
+import type {
+  TestTestTriggerErrorResponse,
+  TestTestTriggerPanicResponse,
+} from "./test.types";
+import {
+  TestTestTriggerErrorResponseSchema,
+  TestTestTriggerPanicResponseSchema,
+} from "./test.types";
 
-export type { TestErrorResponse, TestPanicResponse };
+export type { TestTestTriggerErrorResponse, TestTestTriggerPanicResponse };
 
 export class TestService extends BaseService<"test"> {
   constructor(client: ApiClient) {
@@ -15,18 +21,18 @@ export class TestService extends BaseService<"test"> {
   }
 
   /**
-   * test:error
-   * Test Error Logging
+   * testTriggerError
+   * TriggerError
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `TestErrorResponse` (null on error)
+   *   - `data`: `TestTestTriggerErrorResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.test.error(...);
+   * const req = api.test.testTriggerError(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -36,31 +42,33 @@ export class TestService extends BaseService<"test"> {
    * }
    * // use `data` safely here
    */
-  public error(
+  public testTriggerError(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<TestErrorResponse, AppApiErrorData>> {
-    return this.client.get<TestErrorResponse, AppApiErrorData>(
+  ): CancelablePromise<
+    ApiResult<TestTestTriggerErrorResponse, AppApiErrorData>
+  > {
+    return this.client.get<TestTestTriggerErrorResponse, AppApiErrorData>(
       `/api/v1/test/error`,
       {
         ...this.withSignal(config),
-        zodSchema: TestErrorResponseSchema,
+        zodSchema: TestTestTriggerErrorResponseSchema,
       },
     );
   }
 
   /**
-   * test:panic
-   * Test Panic Recovery
+   * testTriggerPanic
+   * TriggerPanic
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `TestPanicResponse` (null on error)
+   *   - `data`: `TestTestTriggerPanicResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.test.panic(...);
+   * const req = api.test.testTriggerPanic(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -70,14 +78,16 @@ export class TestService extends BaseService<"test"> {
    * }
    * // use `data` safely here
    */
-  public panic(
+  public testTriggerPanic(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<TestPanicResponse, AppApiErrorData>> {
-    return this.client.get<TestPanicResponse, AppApiErrorData>(
+  ): CancelablePromise<
+    ApiResult<TestTestTriggerPanicResponse, AppApiErrorData>
+  > {
+    return this.client.get<TestTestTriggerPanicResponse, AppApiErrorData>(
       `/api/v1/test/panic`,
       {
         ...this.withSignal(config),
-        zodSchema: TestPanicResponseSchema,
+        zodSchema: TestTestTriggerPanicResponseSchema,
       },
     );
   }

@@ -38,6 +38,49 @@ import { extractCustomCode } from "../utils/file-writer";
 import type { MockEndpointEntry } from "../types/mock-config";
 import { generateMswHandlers } from "./msw-generator";
 
+function sortSchemasTopologically(
+  list: { name: string; zod: string; tsType: string }[],
+  schemas: Record<string, OpenApiSchema>,
+): { name: string; zod: string; tsType: string }[] {
+  const nameToItem = new Map(list.map((item) => [item.name, item]));
+  const visited = new Set<string>();
+  const temp = new Set<string>();
+  const result: typeof list = [];
+
+  function visit(name: string) {
+    if (temp.has(name)) return;
+    if (visited.has(name)) return;
+    const item = nameToItem.get(name);
+    if (!item) return;
+
+    temp.add(name);
+
+    const schemaKey = Object.keys(schemas).find(
+      (k) => cleanRefName(k) === name,
+    );
+    if (schemaKey) {
+      const deps = extractRefs(schemas[schemaKey]);
+      for (const dep of deps) {
+        if (nameToItem.has(dep)) {
+          visit(dep);
+        }
+      }
+    }
+
+    temp.delete(name);
+    visited.add(name);
+    result.push(item);
+  }
+
+  for (const item of list) {
+    if (!visited.has(item.name)) {
+      visit(item.name);
+    }
+  }
+
+  return result;
+}
+
 export async function generateApi(
   specSource: string,
   outputDir: string,
@@ -155,7 +198,7 @@ export async function generateApi(
   }
 
   // ── Build per-tag data and shared models data ──
-  const sharedModelsData: { name: string; zod: string; tsType: string }[] = [];
+  let sharedModelsData: { name: string; zod: string; tsType: string }[] = [];
   for (const name of sharedSchemas) {
     const schemaKey = Object.keys(schemas).find(
       (k) => cleanRefName(k) === name,
@@ -166,6 +209,7 @@ export async function generateApi(
       tsType: schemaKey ? schemaToTsType(schemas[schemaKey]) : "unknown",
     });
   }
+  sharedModelsData = sortSchemasTopologically(sharedModelsData, schemas);
 
   const tagsData: Record<string, unknown>[] = [];
 
@@ -174,7 +218,7 @@ export async function generateApi(
     const tagPrefix = toSafeFileSlug(tag.toLowerCase());
 
     const modelsToImport = new Set<string>();
-    const specificSchemasList: { name: string; zod: string; tsType: string }[] =
+    let specificSchemasList: { name: string; zod: string; tsType: string }[] =
       [];
     const specificSchemas = tagSchemas.get(tag) || new Set();
 
@@ -194,6 +238,7 @@ export async function generateApi(
           });
         }
       }
+      specificSchemasList = sortSchemasTopologically(specificSchemasList, schemas);
     }
 
     const typeNames: string[] = [];

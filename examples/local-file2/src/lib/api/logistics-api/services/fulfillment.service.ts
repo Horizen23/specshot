@@ -5,34 +5,40 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  ListPendingFulfillmentsResponse,
+  FulfillmentItemResponse,
+  FulfillmentRequestResponse,
+  ListFulfillmentsPageResponse,
   ProcessFulfillmentRequestBody,
   ProcessFulfillmentResponse,
+  ReceiveItemDTO,
   ReceiveMarketplaceOrderBody,
   ReceiveMarketplaceOrderResponse,
-  FulfillmentFulfillmentListPendingResponse,
+  FulfillmentFulfillmentListResponse,
   FulfillmentFulfillmentProcessPayload,
   FulfillmentFulfillmentProcessResponse,
-  FulfillmentFulfillmentWebhookPayload,
-  FulfillmentFulfillmentWebhookResponse,
+  FulfillmentFulfillmentReceiveWebhookPayload,
+  FulfillmentFulfillmentReceiveWebhookResponse,
 } from "./fulfillment.types";
 import {
-  FulfillmentFulfillmentListPendingResponseSchema,
+  FulfillmentFulfillmentListResponseSchema,
   FulfillmentFulfillmentProcessResponseSchema,
-  FulfillmentFulfillmentWebhookResponseSchema,
+  FulfillmentFulfillmentReceiveWebhookResponseSchema,
 } from "./fulfillment.types";
 
 export type {
-  ListPendingFulfillmentsResponse,
+  FulfillmentItemResponse,
+  FulfillmentRequestResponse,
+  ListFulfillmentsPageResponse,
   ProcessFulfillmentRequestBody,
   ProcessFulfillmentResponse,
+  ReceiveItemDTO,
   ReceiveMarketplaceOrderBody,
   ReceiveMarketplaceOrderResponse,
-  FulfillmentFulfillmentListPendingResponse,
+  FulfillmentFulfillmentListResponse,
   FulfillmentFulfillmentProcessPayload,
   FulfillmentFulfillmentProcessResponse,
-  FulfillmentFulfillmentWebhookPayload,
-  FulfillmentFulfillmentWebhookResponse,
+  FulfillmentFulfillmentReceiveWebhookPayload,
+  FulfillmentFulfillmentReceiveWebhookResponse,
 };
 
 export class FulfillmentService extends BaseService<"fulfillment"> {
@@ -41,18 +47,19 @@ export class FulfillmentService extends BaseService<"fulfillment"> {
   }
 
   /**
-   * fulfillment-list-pending
-   * List all pending marketplace orders awaiting grouping
+   * fulfillmentList
+   * List returns all fulfillment requests, optionally filtered by status and other query params
+   * Requires permission: fulfillment:list
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `FulfillmentFulfillmentListPendingResponse` (null on error)
+   *   - `data`: `FulfillmentFulfillmentListResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.fulfillment.fulfillmentListPending(...);
+   * const req = api.fulfillment.fulfillmentList(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -62,23 +69,24 @@ export class FulfillmentService extends BaseService<"fulfillment"> {
    * }
    * // use `data` safely here
    */
-  public fulfillmentListPending(
+  public fulfillmentList(
     config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<FulfillmentFulfillmentListPendingResponse, AppApiErrorData>
+    ApiResult<FulfillmentFulfillmentListResponse, AppApiErrorData>
   > {
-    return this.client.get<
-      FulfillmentFulfillmentListPendingResponse,
-      AppApiErrorData
-    >(`/api/v1/fulfillments/pending`, {
-      ...this.withSignal(config),
-      zodSchema: FulfillmentFulfillmentListPendingResponseSchema,
-    });
+    return this.client.get<FulfillmentFulfillmentListResponse, AppApiErrorData>(
+      `/api/v1/fulfillments`,
+      {
+        ...this.withSignal(config),
+        zodSchema: FulfillmentFulfillmentListResponseSchema,
+      },
+    );
   }
 
   /**
-   * fulfillment-process
-   * Group selected marketplace orders by carrier and generate SaleOrders
+   * fulfillmentProcess
+   * Process handles user selection to group pending orders by carrier and generate SOs
+   * Requires permission: fulfillment:process
 
    * @param payload - Request body (`FulfillmentFulfillmentProcessPayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
@@ -116,20 +124,21 @@ export class FulfillmentService extends BaseService<"fulfillment"> {
   }
 
   /**
-   * fulfillment-webhook
-   * Webhook receiver for marketplace orders (Shopee/Lazada)
+   * fulfillmentReceiveWebhook
+   * ReceiveWebhook handles incoming marketplace orders from Shopee/Lazada webhooks
+   * Requires permission: fulfillment:process
 
-   * @param payload - Request body (`FulfillmentFulfillmentWebhookPayload`)
+   * @param payload - Request body (`FulfillmentFulfillmentReceiveWebhookPayload`)
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `FulfillmentFulfillmentWebhookResponse` (null on error)
+   *   - `data`: `FulfillmentFulfillmentReceiveWebhookResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.fulfillment.fulfillmentWebhook(...);
+   * const req = api.fulfillment.fulfillmentReceiveWebhook(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -139,18 +148,18 @@ export class FulfillmentService extends BaseService<"fulfillment"> {
    * }
    * // use `data` safely here
    */
-  public fulfillmentWebhook(
-    payload: FulfillmentFulfillmentWebhookPayload,
+  public fulfillmentReceiveWebhook(
+    payload: FulfillmentFulfillmentReceiveWebhookPayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
-    ApiResult<FulfillmentFulfillmentWebhookResponse, AppApiErrorData>
+    ApiResult<FulfillmentFulfillmentReceiveWebhookResponse, AppApiErrorData>
   > {
     return this.client.post<
-      FulfillmentFulfillmentWebhookResponse,
+      FulfillmentFulfillmentReceiveWebhookResponse,
       AppApiErrorData
     >(`/api/v1/webhooks/marketplace-orders`, payload, {
       ...this.withSignal(config),
-      zodSchema: FulfillmentFulfillmentWebhookResponseSchema,
+      zodSchema: FulfillmentFulfillmentReceiveWebhookResponseSchema,
     });
   }
 

@@ -5,20 +5,15 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
-  HealthResponseBody,
-  HealthLivenessResponse,
-  HealthReadinessResponse,
+  HealthHealthLivenessResponse,
+  HealthHealthReadinessResponse,
 } from "./health.types";
 import {
-  HealthLivenessResponseSchema,
-  HealthReadinessResponseSchema,
+  HealthHealthLivenessResponseSchema,
+  HealthHealthReadinessResponseSchema,
 } from "./health.types";
 
-export type {
-  HealthResponseBody,
-  HealthLivenessResponse,
-  HealthReadinessResponse,
-};
+export type { HealthHealthLivenessResponse, HealthHealthReadinessResponse };
 
 export class HealthService extends BaseService<"health"> {
   constructor(client: ApiClient) {
@@ -26,19 +21,18 @@ export class HealthService extends BaseService<"health"> {
   }
 
   /**
-   * liveness
-   * Liveness Probe
-   * Returns 200 OK if the HTTP server is running.
+   * healthLiveness
+   * Liveness
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `HealthLivenessResponse` (null on error)
+   *   - `data`: `HealthHealthLivenessResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.health.liveness(...);
+   * const req = api.health.healthLiveness(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -48,32 +42,33 @@ export class HealthService extends BaseService<"health"> {
    * }
    * // use `data` safely here
    */
-  public liveness(
+  public healthLiveness(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<HealthLivenessResponse, AppApiErrorData>> {
-    return this.client.get<HealthLivenessResponse, AppApiErrorData>(
+  ): CancelablePromise<
+    ApiResult<HealthHealthLivenessResponse, AppApiErrorData>
+  > {
+    return this.client.get<HealthHealthLivenessResponse, AppApiErrorData>(
       `/healthz`,
       {
         ...this.withSignal(config),
-        zodSchema: HealthLivenessResponseSchema,
+        zodSchema: HealthHealthLivenessResponseSchema,
       },
     );
   }
 
   /**
-   * readiness
-   * Readiness Probe
-   * Returns 200 OK if the application is fully ready, including database connections.
+   * healthReadiness
+   * Readiness
    * @param config - Request configuration (headers, timeout, signal, etc.)
    * @returns `{ data, error, ok }`
-   *   - `data`: `HealthReadinessResponse` (null on error)
+   *   - `data`: `HealthHealthReadinessResponse` (null on error)
    *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
    *     Both have `.message`. Use `error.status` to check for HTTP errors,
    *     or `error.kind` for network/timeout/abort/parse errors.
    *   - `ok`: `true` on success, `false` on error
    *
    * @example
-   * const req = api.health.readiness(...);
+   * const req = api.health.healthReadiness(...);
    * // You can cancel the request if needed
    * // req.cancel();
    * const { data, error, ok } = await req;
@@ -83,14 +78,16 @@ export class HealthService extends BaseService<"health"> {
    * }
    * // use `data` safely here
    */
-  public readiness(
+  public healthReadiness(
     config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<HealthReadinessResponse, AppApiErrorData>> {
-    return this.client.get<HealthReadinessResponse, AppApiErrorData>(
+  ): CancelablePromise<
+    ApiResult<HealthHealthReadinessResponse, AppApiErrorData>
+  > {
+    return this.client.get<HealthHealthReadinessResponse, AppApiErrorData>(
       `/readyz`,
       {
         ...this.withSignal(config),
-        zodSchema: HealthReadinessResponseSchema,
+        zodSchema: HealthHealthReadinessResponseSchema,
       },
     );
   }

@@ -1,189 +1,2997 @@
 {
+  "openapi": "3.0.0",
+  "info": {
+    "description": "Backend API for Logistics & WMS System.",
+    "title": "Logistics API",
+    "contact": {},
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/business-units": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: businessunit:list",
+        "tags": [
+          "Master"
+        ],
+        "summary": "ListBusinessUnits",
+        "operationId": "masterListBusinessUnits",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessUnitPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: businessunit:create",
+        "tags": [
+          "Master"
+        ],
+        "summary": "CreateBusinessUnit",
+        "operationId": "masterCreateBusinessUnit",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/BusinessUnitDTO"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/business-units/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: businessunit:get",
+        "tags": [
+          "Master"
+        ],
+        "summary": "GetBusinessUnit",
+        "operationId": "masterGetBusinessUnit",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: businessunit:update",
+        "tags": [
+          "Master"
+        ],
+        "summary": "UpdateBusinessUnit",
+        "operationId": "masterUpdateBusinessUnit",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/BusinessUnitDTO"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: businessunit:delete",
+        "tags": [
+          "Master"
+        ],
+        "summary": "DeleteBusinessUnit",
+        "operationId": "masterDeleteBusinessUnit",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: customer:list",
+        "tags": [
+          "Master"
+        ],
+        "summary": "ListCustomers",
+        "operationId": "masterListCustomers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: customer:create",
+        "tags": [
+          "Master"
+        ],
+        "summary": "CreateCustomer",
+        "operationId": "masterCreateCustomer",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CustomerDTO"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: customer:get",
+        "tags": [
+          "Master"
+        ],
+        "summary": "GetCustomer",
+        "operationId": "masterGetCustomer",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: customer:update",
+        "tags": [
+          "Master"
+        ],
+        "summary": "UpdateCustomer",
+        "operationId": "masterUpdateCustomer",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CustomerDTO"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: customer:delete",
+        "tags": [
+          "Master"
+        ],
+        "summary": "DeleteCustomer",
+        "operationId": "masterDeleteCustomer",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fulfillments": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: fulfillment:list",
+        "tags": [
+          "Fulfillment"
+        ],
+        "summary": "List returns all fulfillment requests, optionally filtered by status and other query params",
+        "operationId": "fulfillmentList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListFulfillmentsPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fulfillments/process": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: fulfillment:process",
+        "tags": [
+          "Fulfillment"
+        ],
+        "summary": "Process handles user selection to group pending orders by carrier and generate SOs",
+        "operationId": "fulfillmentProcess",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessFulfillmentRequestBody"
+              }
+            }
+          },
+          "description": "Request Body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessFulfillmentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/items": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: item:list",
+        "tags": [
+          "Master"
+        ],
+        "summary": "ListItems",
+        "operationId": "masterListItems",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: item:create",
+        "tags": [
+          "Master"
+        ],
+        "summary": "CreateItem",
+        "operationId": "masterCreateItem",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ItemDTO"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/items/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: item:get",
+        "tags": [
+          "Master"
+        ],
+        "summary": "GetItem",
+        "operationId": "masterGetItem",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: item:update",
+        "tags": [
+          "Master"
+        ],
+        "summary": "UpdateItem",
+        "operationId": "masterUpdateItem",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ItemDTO"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: item:delete",
+        "tags": [
+          "Master"
+        ],
+        "summary": "DeleteItem",
+        "operationId": "masterDeleteItem",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sale-orders/schedule-triggers": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:trigger",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "TriggerEvent",
+        "operationId": "saleOrderScheduleTriggerEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerEventBody"
+              }
+            }
+          },
+          "description": "Request Body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sale-orders/schedules": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:list",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "List",
+        "operationId": "saleOrderScheduleList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleOrderSchedulePageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:create",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "Create",
+        "operationId": "saleOrderScheduleCreate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateSaleOrderScheduleBody"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sale-orders/schedules/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:get",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "Get",
+        "operationId": "saleOrderScheduleGet",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:update",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "Update",
+        "operationId": "saleOrderScheduleUpdate",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateSaleOrderScheduleBody"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:delete",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "Delete",
+        "operationId": "saleOrderScheduleDelete",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sale-orders/schedules/{id}/logs": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:logs",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "ListLogs",
+        "operationId": "saleOrderScheduleListLogs",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleOrderScheduleExecutionLogPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sale-orders/schedules/{id}/run-now": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:forcerun",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "ForceRun",
+        "operationId": "saleOrderScheduleForceRun",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sale-orders/schedules/{id}/toggle": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorderschedule:toggle",
+        "tags": [
+          "SaleOrderSchedule"
+        ],
+        "summary": "Toggle",
+        "operationId": "saleOrderScheduleToggle",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleSaleOrderScheduleBody"
+              }
+            }
+          },
+          "description": "Request Body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales-orders": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorder:list",
+        "tags": [
+          "SaleOrder"
+        ],
+        "summary": "List",
+        "operationId": "saleOrderList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleOrderPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorder:create",
+        "tags": [
+          "SaleOrder"
+        ],
+        "summary": "Create เป็นการสร้างใบสั่งซื้อใหม่",
+        "operationId": "saleOrderCreate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateSaleOrderBody"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales-orders/wms": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorder:wms",
+        "tags": [
+          "SaleOrder"
+        ],
+        "summary": "SendToWMS",
+        "operationId": "saleOrderSendToWMS",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSendToWMSRequestBody"
+              }
+            }
+          },
+          "description": "Request Body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkSendToWMSResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales-orders/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorder:get",
+        "tags": [
+          "SaleOrder"
+        ],
+        "summary": "Get",
+        "operationId": "saleOrderGet",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorder:update",
+        "tags": [
+          "SaleOrder"
+        ],
+        "summary": "Update",
+        "operationId": "saleOrderUpdate",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CreateSaleOrderBody"
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorder:delete",
+        "tags": [
+          "SaleOrder"
+        ],
+        "summary": "Delete",
+        "operationId": "saleOrderDelete",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales-orders/{id}/audit-logs": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: saleorder:auditlogs",
+        "tags": [
+          "SaleOrder"
+        ],
+        "summary": "GetAuditLogs",
+        "operationId": "saleOrderGetAuditLogs",
+        "parameters": [
+          {
+            "description": "ID",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test/error": {
+      "get": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "TriggerError",
+        "operationId": "testTriggerError",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test/panic": {
+      "get": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "TriggerPanic",
+        "operationId": "testTriggerPanic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/marketplace-orders": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Requires permission: fulfillment:process",
+        "tags": [
+          "Fulfillment"
+        ],
+        "summary": "ReceiveWebhook handles incoming marketplace orders from Shopee/Lazada webhooks",
+        "operationId": "fulfillmentReceiveWebhook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiveMarketplaceOrderBody"
+              }
+            }
+          },
+          "description": "Request Body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiveMarketplaceOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Liveness",
+        "operationId": "healthLiveness",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Readiness",
+        "operationId": "healthReadiness",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "//localhost:8080"
+    }
+  ],
   "components": {
+    "requestBodies": {
+      "BusinessUnitDTO": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BusinessUnitDTO"
+            }
+          }
+        },
+        "description": "Request Body",
+        "required": true
+      },
+      "CreateSaleOrderScheduleBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateSaleOrderScheduleBody"
+            }
+          }
+        },
+        "description": "Request Body",
+        "required": true
+      },
+      "ItemDTO": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ItemDTO"
+            }
+          }
+        },
+        "description": "Request Body",
+        "required": true
+      },
+      "CreateSaleOrderBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateSaleOrderBody"
+            }
+          }
+        },
+        "description": "Request Body",
+        "required": true
+      },
+      "CustomerDTO": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CustomerDTO"
+            }
+          }
+        },
+        "description": "Request Body",
+        "required": true
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    },
     "schemas": {
       "APIError": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": ["http://localhost:8080/schemas/APIError.json"],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "detail": {
             "type": "string"
           },
           "errors": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/ErrorDetail"
-            },
-            "type": ["array", "null"]
+            }
           },
           "request_id": {
             "type": "string"
           },
           "status": {
-            "format": "int64",
             "type": "integer"
           },
           "title": {
             "type": "string"
           }
-        },
-        "type": "object"
-      },
-      "AuditLogResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "action": {
-            "type": "string"
-          },
-          "actor": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "entity_id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "entity_name": {
-            "type": "string"
-          },
-          "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "payload": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "entity_name",
-          "entity_id",
-          "action",
-          "payload",
-          "actor"
-        ],
-        "type": "object"
+        }
       },
       "BulkSendToWMSRequestBody": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ids"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/BulkSendToWMSRequestBody.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "ids": {
+            "type": "array",
+            "minItems": 1,
             "items": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            },
-            "type": ["array", "null"]
+              "type": "string"
+            }
           }
-        },
-        "required": ["ids"],
-        "type": "object"
+        }
       },
       "BulkSendToWMSResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "errors": {
+            "description": "Map ID -> error message",
+            "type": "object",
             "additionalProperties": {
               "type": "string"
-            },
-            "type": "object"
+            }
           },
           "success_ids": {
+            "type": "array",
             "items": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            },
-            "type": ["array", "null"]
+              "type": "string"
+            }
           }
-        },
-        "required": ["success_ids", "errors"],
-        "type": "object"
+        }
       },
       "BusinessUnitDTO": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": ["http://localhost:8080/schemas/BusinessUnitDTO.json"],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "code": {
             "type": "string"
           },
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "name": {
             "type": "string"
           }
-        },
-        "required": ["code", "name"],
-        "type": "object"
+        }
       },
       "BusinessUnitPageResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/BusinessUnitDTO"
-            },
-            "type": ["array", "null"]
+            }
           },
           "page": {
-            "format": "int64",
             "type": "integer"
           },
           "size": {
-            "format": "int64",
             "type": "integer"
           },
           "total": {
-            "format": "int64",
             "type": "integer"
           },
           "total_pages": {
-            "format": "int64",
             "type": "integer"
           }
-        },
-        "required": ["items", "total", "page", "size", "total_pages"],
-        "type": "object"
+        }
       },
       "CreateSaleOrderBody": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "business_unit_code",
+          "customer_code",
+          "items",
+          "order_date"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/CreateSaleOrderBody.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "business_unit_code": {
             "type": "string"
           },
@@ -191,10 +2999,11 @@
             "type": "string"
           },
           "items": {
+            "type": "array",
+            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/CreateSaleOrderItemDTO"
-            },
-            "type": ["array", "null"]
+            }
           },
           "order_date": {
             "type": "string"
@@ -205,54 +3014,45 @@
           "remark": {
             "type": "string"
           }
-        },
-        "required": [
-          "business_unit_code",
-          "customer_code",
-          "order_type",
-          "order_date",
-          "remark",
-          "items"
-        ],
-        "type": "object"
+        }
       },
       "CreateSaleOrderItemDTO": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
         "properties": {
           "currency": {
+            "description": "ISO 4217, e.g. \"THB\" — defaults to THB",
             "type": "string"
           },
           "item_code": {
             "type": "string"
           },
           "quantity": {
-            "format": "int64",
             "type": "integer"
           },
           "unit_price": {
-            "format": "double",
             "type": "number"
           },
           "uom": {
             "type": "string"
           }
-        },
-        "required": ["item_code", "quantity", "unit_price"],
-        "type": "object"
+        }
       },
       "CreateSaleOrderScheduleBody": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "business_unit_code",
+          "customer_code",
+          "item_source_type",
+          "trigger_type"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/CreateSaleOrderScheduleBody.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "base_start_date": {
+            "description": "YYYY-MM-DD format",
             "type": "string"
           },
           "business_unit_code": {
@@ -265,81 +3065,73 @@
             "type": "string"
           },
           "item_source_type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "STATIC",
+              "DYNAMIC_INTERFACE"
+            ]
           },
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/CreateSaleOrderScheduleItemDTO"
-            },
-            "type": ["array", "null"]
+            }
           },
           "order_date_offset_days": {
-            "format": "int64",
             "type": "integer"
           },
           "recurrence_interval_weeks": {
-            "default": 1,
-            "format": "int64",
-            "type": "integer"
+            "type": "integer",
+            "default": 1
           },
           "remark": {
             "type": "string"
           },
           "retry_limit": {
-            "default": 3,
-            "format": "int64",
-            "type": "integer"
+            "type": "integer",
+            "default": 3
           },
           "trigger_type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "TIME_BASED",
+              "EVENT_DRIVEN"
+            ]
           }
-        },
-        "required": [
-          "business_unit_code",
-          "customer_code",
-          "trigger_type",
-          "item_source_type",
-          "cron_expression",
-          "recurrence_interval_weeks",
-          "base_start_date",
-          "order_date_offset_days",
-          "retry_limit",
-          "remark",
-          "items"
-        ],
-        "type": "object"
+        }
       },
       "CreateSaleOrderScheduleItemDTO": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
         "properties": {
           "currency": {
+            "description": "ISO 4217, defaults to THB",
             "type": "string"
           },
           "item_code": {
             "type": "string"
           },
           "quantity": {
-            "format": "int64",
             "type": "integer"
           },
           "unit_price": {
-            "format": "double",
             "type": "number"
           }
-        },
-        "required": ["item_code", "quantity", "unit_price"],
-        "type": "object"
+        }
       },
       "CustomerDTO": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "business_unit_code",
+          "code",
+          "name",
+          "phone"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": ["http://localhost:8080/schemas/CustomerDTO.json"],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "business_unit_code": {
             "type": "string"
           },
@@ -347,9 +3139,7 @@
             "type": "string"
           },
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "name": {
             "type": "string"
@@ -357,79 +3147,68 @@
           "phone": {
             "type": "string"
           }
-        },
-        "required": ["business_unit_code", "code", "name", "phone"],
-        "type": "object"
+        }
       },
       "CustomerPageResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/CustomerDTO"
-            },
-            "type": ["array", "null"]
+            }
           },
           "page": {
-            "format": "int64",
             "type": "integer"
           },
           "size": {
-            "format": "int64",
             "type": "integer"
           },
           "total": {
-            "format": "int64",
             "type": "integer"
           },
           "total_pages": {
-            "format": "int64",
             "type": "integer"
           }
-        },
-        "required": ["items", "total", "page", "size", "total_pages"],
-        "type": "object"
+        }
       },
       "ErrorDetail": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "location": {
-            "description": "Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'",
             "type": "string"
           },
           "message": {
-            "description": "Error message text",
             "type": "string"
           },
-          "value": {
-            "description": "The value at the given location"
-          }
-        },
-        "type": "object"
+          "value": {}
+        }
       },
       "EventItemDTO": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
         "properties": {
           "currency": {
+            "description": "ISO 4217, defaults to THB",
             "type": "string"
           },
           "item_code": {
             "type": "string"
           },
           "quantity": {
-            "format": "int64",
             "type": "integer"
           },
           "unit_price": {
-            "format": "double",
             "type": "number"
           }
-        },
-        "required": ["item_code", "quantity", "unit_price"],
-        "type": "object"
+        }
       },
       "FulfillmentItemResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "currency": {
             "type": "string"
@@ -438,22 +3217,18 @@
             "type": "string"
           },
           "quantity": {
-            "format": "int64",
             "type": "integer"
           },
           "unit_price": {
-            "format": "double",
             "type": "number"
           },
           "uom": {
             "type": "string"
           }
-        },
-        "required": ["item_code", "quantity", "unit_price", "currency"],
-        "type": "object"
+        }
       },
       "FulfillmentRequestResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -465,15 +3240,13 @@
             "type": "string"
           },
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/FulfillmentItemResponse"
-            },
-            "type": ["array", "null"]
+            }
           },
           "marketplace": {
             "type": "string"
@@ -482,58 +3255,22 @@
             "type": "string"
           },
           "sale_order_id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "status": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "marketplace",
-          "marketplace_order_id",
-          "business_unit_code",
-          "customer_code",
-          "carrier",
-          "status",
-          "items"
-        ],
-        "type": "object"
-      },
-      "HealthResponseBody": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/HealthResponseBody.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
             "type": "string"
           },
           "status": {
             "type": "string"
-          },
-          "version": {
-            "type": "string"
           }
-        },
-        "required": ["status", "version"],
-        "type": "object"
+        }
       },
       "ItemDTO": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "business_unit_code",
+          "code",
+          "default_price",
+          "name"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": ["http://localhost:8080/schemas/ItemDTO.json"],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "base_uom": {
             "type": "string"
           },
@@ -544,162 +3281,151 @@
             "type": "string"
           },
           "currency": {
+            "description": "ISO 4217, e.g. \"THB\" — defaults to THB when empty",
             "type": "string"
           },
           "default_price": {
-            "format": "double",
             "type": "number"
           },
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "name": {
             "type": "string"
           },
           "packing_factors": {
+            "type": "object",
             "additionalProperties": {
-              "format": "int64",
               "type": "integer"
-            },
-            "type": "object"
+            }
           }
-        },
-        "required": ["business_unit_code", "code", "name", "default_price"],
-        "type": "object"
+        }
       },
       "ItemPageResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/ItemDTO"
-            },
-            "type": ["array", "null"]
+            }
           },
           "page": {
-            "format": "int64",
             "type": "integer"
           },
           "size": {
-            "format": "int64",
             "type": "integer"
           },
           "total": {
-            "format": "int64",
             "type": "integer"
           },
           "total_pages": {
-            "format": "int64",
             "type": "integer"
           }
-        },
-        "required": ["items", "total", "page", "size", "total_pages"],
-        "type": "object"
+        }
       },
-      "ListPendingFulfillmentsResponse": {
-        "additionalProperties": false,
+      "ListFulfillmentsPageResponse": {
+        "type": "object",
         "properties": {
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/FulfillmentRequestResponse"
-            },
-            "type": ["array", "null"]
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "total_pages": {
+            "type": "integer"
           }
-        },
-        "required": ["items"],
-        "type": "object"
+        }
       },
       "ProcessFulfillmentRequestBody": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ids"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ProcessFulfillmentRequestBody.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "ids": {
+            "type": "array",
+            "minItems": 1,
             "items": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            },
-            "type": ["array", "null"]
+              "type": "string"
+            }
           }
-        },
-        "required": ["ids"],
-        "type": "object"
+        }
       },
       "ProcessFulfillmentResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "generated_sale_order_ids": {
+            "type": "array",
             "items": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            },
-            "type": ["array", "null"]
+              "type": "string"
+            }
           }
-        },
-        "required": ["generated_sale_order_ids"],
-        "type": "object"
+        }
       },
       "ReceiveItemDTO": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
         "properties": {
           "currency": {
+            "description": "ISO 4217, e.g. \"THB\" — defaults to THB when empty",
             "type": "string"
           },
           "item_code": {
             "type": "string"
           },
           "quantity": {
-            "format": "int64",
             "type": "integer"
           },
           "unit_price": {
-            "format": "double",
             "type": "number"
           },
           "uom": {
             "type": "string"
           }
-        },
-        "required": ["item_code", "quantity", "unit_price"],
-        "type": "object"
+        }
       },
       "ReceiveMarketplaceOrderBody": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "business_unit_code",
+          "carrier",
+          "customer_code",
+          "items",
+          "marketplace",
+          "marketplace_order_id"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ReceiveMarketplaceOrderBody.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "business_unit_code": {
             "type": "string"
           },
           "carrier": {
+            "description": "e.g. SPX, FLASH",
             "type": "string"
           },
           "customer_code": {
             "type": "string"
           },
           "items": {
+            "type": "array",
+            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/ReceiveItemDTO"
-            },
-            "type": ["array", "null"]
+            }
           },
           "marketplace": {
             "type": "string"
@@ -707,450 +3433,18 @@
           "marketplace_order_id": {
             "type": "string"
           }
-        },
-        "required": [
-          "marketplace",
-          "marketplace_order_id",
-          "business_unit_code",
-          "customer_code",
-          "carrier",
-          "items"
-        ],
-        "type": "object"
+        }
       },
       "ReceiveMarketplaceOrderResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
-          }
-        },
-        "required": ["id"],
-        "type": "object"
-      },
-      "ResponseBodyBulkSendToWMSResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyBulkSendToWMSResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/BulkSendToWMSResponse"
-          },
-          "request_id": {
             "type": "string"
           }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyBusinessUnitDTO": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyBusinessUnitDTO.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/BusinessUnitDTO"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyBusinessUnitPageResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyBusinessUnitPageResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/BusinessUnitPageResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyCustomerDTO": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyCustomerDTO.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/CustomerDTO"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyCustomerPageResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyCustomerPageResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/CustomerPageResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyInterface {}": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyInterface {}.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {},
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyItemDTO": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyItemDTO.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ItemDTO"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyItemPageResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyItemPageResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ItemPageResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyListAuditLogResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyListAuditLogResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/AuditLogResponse"
-            },
-            "type": ["array", "null"]
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyListPendingFulfillmentsResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyListPendingFulfillmentsResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ListPendingFulfillmentsResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyProcessFulfillmentResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyProcessFulfillmentResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ProcessFulfillmentResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyReceiveMarketplaceOrderResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyReceiveMarketplaceOrderResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ReceiveMarketplaceOrderResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodySaleOrderPageResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodySaleOrderPageResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SaleOrderPageResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodySaleOrderResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodySaleOrderResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SaleOrderResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodySaleOrderScheduleExecutionLogPageResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodySaleOrderScheduleExecutionLogPageResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SaleOrderScheduleExecutionLogPageResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodySaleOrderSchedulePageResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodySaleOrderSchedulePageResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SaleOrderSchedulePageResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodySaleOrderScheduleResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodySaleOrderScheduleResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SaleOrderScheduleResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodyString": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodyString.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "type": "string"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
-      },
-      "ResponseBodySuccessResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ResponseBodySuccessResponse.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SuccessResponse"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": ["request_id", "data"],
-        "type": "object"
+        }
       },
       "SaleOrderItemResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "currency": {
             "type": "string"
@@ -1159,62 +3453,44 @@
             "type": "string"
           },
           "quantity": {
-            "format": "int64",
             "type": "integer"
           },
           "sub_total": {
-            "format": "double",
             "type": "number"
           },
           "unit_price": {
-            "format": "double",
             "type": "number"
           },
           "uom": {
             "type": "string"
           }
-        },
-        "required": [
-          "item_code",
-          "quantity",
-          "uom",
-          "unit_price",
-          "sub_total",
-          "currency"
-        ],
-        "type": "object"
+        }
       },
       "SaleOrderPageResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderResponse"
-            },
-            "type": ["array", "null"]
+            }
           },
           "page": {
-            "format": "int64",
             "type": "integer"
           },
           "size": {
-            "format": "int64",
             "type": "integer"
           },
           "total": {
-            "format": "int64",
             "type": "integer"
           },
           "total_pages": {
-            "format": "int64",
             "type": "integer"
           }
-        },
-        "required": ["items", "total", "page", "size", "total_pages"],
-        "type": "object"
+        }
       },
       "SaleOrderResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -1226,15 +3502,13 @@
             "type": "string"
           },
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderItemResponse"
-            },
-            "type": ["array", "null"]
+            }
           },
           "order_date": {
             "type": "string"
@@ -1252,60 +3526,15 @@
             "type": "string"
           },
           "total_price": {
-            "format": "double",
             "type": "number"
           },
           "wms_file_name": {
             "type": "string"
           }
-        },
-        "required": [
-          "id",
-          "order_no",
-          "business_unit_code",
-          "customer_code",
-          "order_type",
-          "order_date",
-          "items",
-          "total_price",
-          "currency",
-          "status",
-          "remark",
-          "wms_file_name"
-        ],
-        "type": "object"
+        }
       },
-      "SaleOrderScheduleExecutionLogPageResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/SaleOrderScheduleExecutionLogResponse"
-            },
-            "type": ["array", "null"]
-          },
-          "page": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "size": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "total": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "total_pages": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": ["items", "total", "page", "size", "total_pages"],
-        "type": "object"
-      },
-      "SaleOrderScheduleExecutionLogResponse": {
-        "additionalProperties": false,
+      "SaleOrderScheduleExecutionLogDetailResponse": {
+        "type": "object",
         "properties": {
           "error_message": {
             "type": "string"
@@ -1314,22 +3543,16 @@
             "type": "string"
           },
           "generated_sale_order_id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": ["integer", "null"]
+            "type": "string"
           },
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "idempotency_key": {
             "type": "string"
           },
           "sale_order_schedule_id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "status": {
             "type": "string"
@@ -1337,21 +3560,33 @@
           "trigger_source": {
             "type": "string"
           }
-        },
-        "required": [
-          "id",
-          "sale_order_schedule_id",
-          "executed_at",
-          "trigger_source",
-          "idempotency_key",
-          "status",
-          "generated_sale_order_id",
-          "error_message"
-        ],
-        "type": "object"
+        }
+      },
+      "SaleOrderScheduleExecutionLogPageResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleOrderScheduleExecutionLogDetailResponse"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "total_pages": {
+            "type": "integer"
+          }
+        }
       },
       "SaleOrderScheduleItemResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "currency": {
             "type": "string"
@@ -1360,48 +3595,38 @@
             "type": "string"
           },
           "quantity": {
-            "format": "int64",
             "type": "integer"
           },
           "unit_price": {
-            "format": "double",
             "type": "number"
           }
-        },
-        "required": ["item_code", "quantity", "unit_price", "currency"],
-        "type": "object"
+        }
       },
       "SaleOrderSchedulePageResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderScheduleResponse"
-            },
-            "type": ["array", "null"]
+            }
           },
           "page": {
-            "format": "int64",
             "type": "integer"
           },
           "size": {
-            "format": "int64",
             "type": "integer"
           },
           "total": {
-            "format": "int64",
             "type": "integer"
           },
           "total_pages": {
-            "format": "int64",
             "type": "integer"
           }
-        },
-        "required": ["items", "total", "page", "size", "total_pages"],
-        "type": "object"
+        }
       },
       "SaleOrderScheduleResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "base_start_date": {
             "type": "string"
@@ -1416,18 +3641,16 @@
             "type": "string"
           },
           "id": {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
+            "type": "string"
           },
           "item_source_type": {
             "type": "string"
           },
           "items": {
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderScheduleItemResponse"
-            },
-            "type": ["array", "null"]
+            }
           },
           "last_error": {
             "type": "string"
@@ -1442,22 +3665,18 @@
             "type": "string"
           },
           "order_date_offset_days": {
-            "format": "int64",
             "type": "integer"
           },
           "recurrence_interval_weeks": {
-            "format": "int64",
             "type": "integer"
           },
           "remark": {
             "type": "string"
           },
           "retry_count": {
-            "format": "int64",
             "type": "integer"
           },
           "retry_limit": {
-            "format": "int64",
             "type": "integer"
           },
           "status": {
@@ -1466,68 +3685,33 @@
           "trigger_type": {
             "type": "string"
           }
-        },
-        "required": [
-          "id",
-          "business_unit_code",
-          "customer_code",
-          "trigger_type",
-          "item_source_type",
-          "cron_expression",
-          "recurrence_interval_weeks",
-          "base_start_date",
-          "status",
-          "order_date_offset_days",
-          "retry_count",
-          "retry_limit",
-          "next_run_at",
-          "last_run_at",
-          "last_run_status",
-          "last_error",
-          "remark",
-          "items"
-        ],
-        "type": "object"
+        }
       },
       "SuccessResponse": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "message": {
             "type": "string"
           }
-        },
-        "required": ["message"],
-        "type": "object"
+        }
       },
       "ToggleSaleOrderScheduleBody": {
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": [
-              "http://localhost:8080/schemas/ToggleSaleOrderScheduleBody.json"
-            ],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "active": {
             "type": "boolean"
           }
-        },
-        "required": ["active"],
-        "type": "object"
+        }
       },
       "TriggerEventBody": {
-        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "business_unit_code",
+          "customer_code",
+          "idempotency_key",
+          "items"
+        ],
         "properties": {
-          "$schema": {
-            "description": "A URL to the JSON Schema for this object.",
-            "examples": ["http://localhost:8080/schemas/TriggerEventBody.json"],
-            "format": "uri",
-            "readOnly": true,
-            "type": "string"
-          },
           "business_unit_code": {
             "type": "string"
           },
@@ -1538,1747 +3722,14 @@
             "type": "string"
           },
           "items": {
+            "type": "array",
+            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/EventItemDTO"
-            },
-            "type": ["array", "null"]
+            }
           }
-        },
-        "required": [
-          "business_unit_code",
-          "customer_code",
-          "idempotency_key",
-          "items"
-        ],
-        "type": "object"
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "bearerFormat": "JWT",
-        "description": "Enter a valid JWT token. For testing purposes, you can use the following mock tokens (valid for 1 year):\n\n**Admin Role (Can do everything)**:\n\u003cp style=\"word-break: break-all;\"\u003eeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTIxNzA3ODcsInJvbGUiOiJBZG1pbiIsInN1YiI6ImFkbWluLTEifQ.dCWPCty5lvHzTHd5F6bCazh4K7bZkhM95ReXMW-uMDI\u003c/p\u003e\n\n**Staff Role (Limited access)**:\n\u003cp style=\"word-break: break-all;\"\u003eeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTIxNzA3ODcsInJvbGUiOiJTdGFmZiIsInN1YiI6InN0YWZmLTEifQ.Hvw2EWQ7LeRRwf0XZUGStDheDl14l3ceV0kOWJ026Fc\u003c/p\u003e\n\n**Guest Role (View only)**:\n\u003cp style=\"word-break: break-all;\"\u003eeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTIxNzA3ODcsInJvbGUiOiJHdWVzdCIsInN1YiI6Imd1ZXN0LTEifQ.C04opI2sf07bnGzhM3ADNhX3kAapUWr1kgeCfjic_Js\u003c/p\u003e",
-        "scheme": "bearer",
-        "type": "http"
+        }
       }
     }
-  },
-  "info": {
-    "title": "Base Golang API",
-    "version": "1.0.0"
-  },
-  "openapi": "3.1.0",
-  "paths": {
-    "/api/v1/business-units": {
-      "get": {
-        "operationId": "businessunit-list",
-        "parameters": [
-          {
-            "explode": false,
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 1,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "size",
-            "schema": {
-              "default": 10,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_by",
-            "schema": {
-              "default": "created_at",
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_order",
-            "schema": {
-              "default": "desc",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyBusinessUnitPageResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "List business units",
-        "tags": ["BusinessUnit"]
-      },
-      "post": {
-        "operationId": "businessunit-create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BusinessUnitDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyBusinessUnitDTO"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Create a business unit",
-        "tags": ["BusinessUnit"]
-      }
-    },
-    "/api/v1/business-units/{id}": {
-      "delete": {
-        "operationId": "businessunit-delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySuccessResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Delete a business unit",
-        "tags": ["BusinessUnit"]
-      },
-      "get": {
-        "operationId": "businessunit-get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyBusinessUnitDTO"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Get a business unit by ID",
-        "tags": ["BusinessUnit"]
-      },
-      "put": {
-        "operationId": "businessunit-update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BusinessUnitDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySuccessResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Update a business unit",
-        "tags": ["BusinessUnit"]
-      }
-    },
-    "/api/v1/customers": {
-      "get": {
-        "operationId": "customer-list",
-        "parameters": [
-          {
-            "explode": false,
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 1,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "size",
-            "schema": {
-              "default": 10,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_by",
-            "schema": {
-              "default": "created_at",
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_order",
-            "schema": {
-              "default": "desc",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyCustomerPageResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "List customers",
-        "tags": ["Customer"]
-      },
-      "post": {
-        "operationId": "customer-create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CustomerDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyCustomerDTO"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Create a customer",
-        "tags": ["Customer"]
-      }
-    },
-    "/api/v1/customers/{id}": {
-      "delete": {
-        "operationId": "customer-delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySuccessResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Delete a customer",
-        "tags": ["Customer"]
-      },
-      "get": {
-        "operationId": "customer-get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyCustomerDTO"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Get a customer by ID",
-        "tags": ["Customer"]
-      },
-      "put": {
-        "operationId": "customer-update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CustomerDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySuccessResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Update a customer",
-        "tags": ["Customer"]
-      }
-    },
-    "/api/v1/fulfillments/pending": {
-      "get": {
-        "operationId": "fulfillment-list-pending",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyListPendingFulfillmentsResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "List all pending marketplace orders awaiting grouping",
-        "tags": ["Fulfillment"]
-      }
-    },
-    "/api/v1/fulfillments/process": {
-      "post": {
-        "operationId": "fulfillment-process",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProcessFulfillmentRequestBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyProcessFulfillmentResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Group selected marketplace orders by carrier and generate SaleOrders",
-        "tags": ["Fulfillment"]
-      }
-    },
-    "/api/v1/items": {
-      "get": {
-        "operationId": "item-list",
-        "parameters": [
-          {
-            "explode": false,
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 1,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "size",
-            "schema": {
-              "default": 10,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_by",
-            "schema": {
-              "default": "created_at",
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_order",
-            "schema": {
-              "default": "desc",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyItemPageResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "List items",
-        "tags": ["Item"]
-      },
-      "post": {
-        "operationId": "item-create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ItemDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyItemDTO"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Create an item",
-        "tags": ["Item"]
-      }
-    },
-    "/api/v1/items/{id}": {
-      "delete": {
-        "operationId": "item-delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySuccessResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Delete an item",
-        "tags": ["Item"]
-      },
-      "get": {
-        "operationId": "item-get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyItemDTO"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Get an item by ID",
-        "tags": ["Item"]
-      },
-      "put": {
-        "operationId": "item-update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ItemDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySuccessResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Update an item",
-        "tags": ["Item"]
-      }
-    },
-    "/api/v1/sale-orders/schedule-triggers": {
-      "post": {
-        "operationId": "saleorderschedule-trigger",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TriggerEventBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyInterface {}"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Inbound Event Trigger for matching schedules",
-        "tags": ["saleorderschedule"]
-      }
-    },
-    "/api/v1/sale-orders/schedules": {
-      "get": {
-        "operationId": "saleorderschedule-list",
-        "parameters": [
-          {
-            "explode": false,
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 1,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "size",
-            "schema": {
-              "default": 10,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderSchedulePageResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "List Sale Order Schedules",
-        "tags": ["saleorderschedule"]
-      },
-      "post": {
-        "operationId": "saleorderschedule-create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSaleOrderScheduleBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderScheduleResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Create Sale Order Schedule",
-        "tags": ["saleorderschedule"]
-      }
-    },
-    "/api/v1/sale-orders/schedules/{id}": {
-      "delete": {
-        "operationId": "saleorderschedule-delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyInterface {}"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Delete Sale Order Schedule",
-        "tags": ["saleorderschedule"]
-      },
-      "get": {
-        "operationId": "saleorderschedule-get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderScheduleResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Get Sale Order Schedule Details",
-        "tags": ["saleorderschedule"]
-      },
-      "put": {
-        "operationId": "saleorderschedule-update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSaleOrderScheduleBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderScheduleResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Update Sale Order Schedule",
-        "tags": ["saleorderschedule"]
-      }
-    },
-    "/api/v1/sale-orders/schedules/{id}/logs": {
-      "get": {
-        "operationId": "saleorderschedule-logs",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 1,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "size",
-            "schema": {
-              "default": 10,
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderScheduleExecutionLogPageResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Get Sale Order Schedule execution logs",
-        "tags": ["saleorderschedule"]
-      }
-    },
-    "/api/v1/sale-orders/schedules/{id}/run-now": {
-      "post": {
-        "operationId": "saleorderschedule-forcerun",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyInterface {}"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Force execution of Sale Order Schedule now",
-        "tags": ["saleorderschedule"]
-      }
-    },
-    "/api/v1/sale-orders/schedules/{id}/toggle": {
-      "post": {
-        "operationId": "saleorderschedule-toggle",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ToggleSaleOrderScheduleBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderScheduleResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Toggle Sale Order Schedule Active/Inactive status",
-        "tags": ["saleorderschedule"]
-      }
-    },
-    "/api/v1/sales-orders": {
-      "get": {
-        "operationId": "saleorder-list",
-        "parameters": [
-          {
-            "explode": false,
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "default": 1,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "size",
-            "schema": {
-              "default": 10,
-              "format": "int64",
-              "type": "integer"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "search",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_by",
-            "schema": {
-              "default": "id",
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "sort_order",
-            "schema": {
-              "default": "desc",
-              "type": "string"
-            }
-          },
-          {
-            "explode": false,
-            "in": "query",
-            "name": "business_unit_code",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderPageResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "List sale orders",
-        "tags": ["SaleOrder"]
-      },
-      "post": {
-        "operationId": "saleorder-create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSaleOrderBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Create a sale order",
-        "tags": ["SaleOrder"]
-      }
-    },
-    "/api/v1/sales-orders/wms": {
-      "post": {
-        "operationId": "saleorder-wms",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BulkSendToWMSRequestBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyBulkSendToWMSResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Bulk send sale orders to WMS SFTP",
-        "tags": ["SaleOrder"]
-      }
-    },
-    "/api/v1/sales-orders/{id}": {
-      "delete": {
-        "operationId": "saleorder-delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySuccessResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Delete a sale order",
-        "tags": ["SaleOrder"]
-      },
-      "get": {
-        "operationId": "saleorder-get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Get a sale order by ID",
-        "tags": ["SaleOrder"]
-      },
-      "put": {
-        "operationId": "saleorder-update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSaleOrderBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodySaleOrderResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Update a sale order",
-        "tags": ["SaleOrder"]
-      }
-    },
-    "/api/v1/sales-orders/{id}/audit-logs": {
-      "get": {
-        "operationId": "saleorder-auditlogs",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "minimum": 0,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyListAuditLogResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Get audit logs for a sale order",
-        "tags": ["SaleOrder"]
-      }
-    },
-    "/api/v1/test/error": {
-      "get": {
-        "operationId": "test:error",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyString"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Test Error Logging",
-        "tags": ["Test"]
-      }
-    },
-    "/api/v1/test/panic": {
-      "get": {
-        "operationId": "test:panic",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyString"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Test Panic Recovery",
-        "tags": ["Test"]
-      }
-    },
-    "/api/v1/webhooks/marketplace-orders": {
-      "post": {
-        "operationId": "fulfillment-webhook",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReceiveMarketplaceOrderBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseBodyReceiveMarketplaceOrderResponse"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Webhook receiver for marketplace orders (Shopee/Lazada)",
-        "tags": ["Fulfillment"]
-      }
-    },
-    "/healthz": {
-      "get": {
-        "description": "Returns 200 OK if the HTTP server is running.",
-        "operationId": "liveness",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponseBody"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Liveness Probe",
-        "tags": ["Health"]
-      }
-    },
-    "/readyz": {
-      "get": {
-        "description": "Returns 200 OK if the application is fully ready, including database connections.",
-        "operationId": "readiness",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponseBody"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "Readiness Probe",
-        "tags": ["Health"]
-      }
-    }
-  },
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
-  "servers": [
-    {
-      "url": "http://localhost:8080"
-    }
-  ]
+  }
 }
