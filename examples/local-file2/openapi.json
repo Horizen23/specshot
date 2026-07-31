@@ -69,9 +69,7 @@
           }
         ],
         "summary": "ListBusinessUnits",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "post": {
         "description": "Requires permission: businessunit:create",
@@ -137,9 +135,7 @@
           }
         ],
         "summary": "CreateBusinessUnit",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       }
     },
     "/api/v1/business-units/{id}": {
@@ -215,9 +211,7 @@
           }
         ],
         "summary": "DeleteBusinessUnit",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "get": {
         "description": "Requires permission: businessunit:get",
@@ -291,9 +285,7 @@
           }
         ],
         "summary": "GetBusinessUnit",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "put": {
         "description": "Requires permission: businessunit:update",
@@ -370,9 +362,7 @@
           }
         ],
         "summary": "UpdateBusinessUnit",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       }
     },
     "/api/v1/customers": {
@@ -437,9 +427,7 @@
           }
         ],
         "summary": "ListCustomers",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "post": {
         "description": "Requires permission: customer:create",
@@ -505,9 +493,7 @@
           }
         ],
         "summary": "CreateCustomer",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       }
     },
     "/api/v1/customers/{id}": {
@@ -583,9 +569,7 @@
           }
         ],
         "summary": "DeleteCustomer",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "get": {
         "description": "Requires permission: customer:get",
@@ -659,9 +643,7 @@
           }
         ],
         "summary": "GetCustomer",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "put": {
         "description": "Requires permission: customer:update",
@@ -738,9 +720,7 @@
           }
         ],
         "summary": "UpdateCustomer",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       }
     },
     "/api/v1/fulfillments": {
@@ -805,9 +785,7 @@
           }
         ],
         "summary": "List returns all fulfillment requests, optionally filtered by status and other query params",
-        "tags": [
-          "Fulfillment"
-        ]
+        "tags": ["Fulfillment"]
       }
     },
     "/api/v1/fulfillments/process": {
@@ -883,9 +861,7 @@
           }
         ],
         "summary": "Process handles user selection to group pending orders by carrier and generate SOs",
-        "tags": [
-          "Fulfillment"
-        ]
+        "tags": ["Fulfillment"]
       }
     },
     "/api/v1/items": {
@@ -950,9 +926,7 @@
           }
         ],
         "summary": "ListItems",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "post": {
         "description": "Requires permission: item:create",
@@ -1018,9 +992,7 @@
           }
         ],
         "summary": "CreateItem",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       }
     },
     "/api/v1/items/{id}": {
@@ -1096,9 +1068,7 @@
           }
         ],
         "summary": "DeleteItem",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "get": {
         "description": "Requires permission: item:get",
@@ -1172,9 +1142,7 @@
           }
         ],
         "summary": "GetItem",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       },
       "put": {
         "description": "Requires permission: item:update",
@@ -1251,9 +1219,7 @@
           }
         ],
         "summary": "UpdateItem",
-        "tags": [
-          "Master"
-        ]
+        "tags": ["Master"]
       }
     },
     "/api/v1/sale-orders/schedule-triggers": {
@@ -1330,9 +1296,7 @@
           }
         ],
         "summary": "TriggerEvent",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       }
     },
     "/api/v1/sale-orders/schedules": {
@@ -1397,9 +1361,7 @@
           }
         ],
         "summary": "List",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       },
       "post": {
         "description": "Requires permission: saleorderschedule:create",
@@ -1465,9 +1427,7 @@
           }
         ],
         "summary": "Create",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       }
     },
     "/api/v1/sale-orders/schedules/{id}": {
@@ -1544,9 +1504,7 @@
           }
         ],
         "summary": "Delete",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       },
       "get": {
         "description": "Requires permission: saleorderschedule:get",
@@ -1620,9 +1578,7 @@
           }
         ],
         "summary": "Get",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       },
       "put": {
         "description": "Requires permission: saleorderschedule:update",
@@ -1699,9 +1655,7 @@
           }
         ],
         "summary": "Update",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       }
     },
     "/api/v1/sale-orders/schedules/{id}/logs": {
@@ -1777,9 +1731,7 @@
           }
         ],
         "summary": "ListLogs",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       }
     },
     "/api/v1/sale-orders/schedules/{id}/run-now": {
@@ -1856,9 +1808,7 @@
           }
         ],
         "summary": "ForceRun",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       }
     },
     "/api/v1/sale-orders/schedules/{id}/toggle": {
@@ -1945,9 +1895,7 @@
           }
         ],
         "summary": "Toggle",
-        "tags": [
-          "SaleOrderSchedule"
-        ]
+        "tags": ["SaleOrderSchedule"]
       }
     },
     "/api/v1/sales-orders": {
@@ -2012,9 +1960,7 @@
           }
         ],
         "summary": "List",
-        "tags": [
-          "SaleOrder"
-        ]
+        "tags": ["SaleOrder"]
       },
       "post": {
         "description": "Requires permission: saleorder:create",
@@ -2080,9 +2026,7 @@
           }
         ],
         "summary": "Create เป็นการสร้างใบสั่งซื้อใหม่",
-        "tags": [
-          "SaleOrder"
-        ]
+        "tags": ["SaleOrder"]
       }
     },
     "/api/v1/sales-orders/wms": {
@@ -2158,9 +2102,7 @@
           }
         ],
         "summary": "SendToWMS",
-        "tags": [
-          "SaleOrder"
-        ]
+        "tags": ["SaleOrder"]
       }
     },
     "/api/v1/sales-orders/{id}": {
@@ -2236,9 +2178,7 @@
           }
         ],
         "summary": "Delete",
-        "tags": [
-          "SaleOrder"
-        ]
+        "tags": ["SaleOrder"]
       },
       "get": {
         "description": "Requires permission: saleorder:get",
@@ -2312,9 +2252,7 @@
           }
         ],
         "summary": "Get",
-        "tags": [
-          "SaleOrder"
-        ]
+        "tags": ["SaleOrder"]
       },
       "put": {
         "description": "Requires permission: saleorder:update",
@@ -2391,9 +2329,7 @@
           }
         ],
         "summary": "Update",
-        "tags": [
-          "SaleOrder"
-        ]
+        "tags": ["SaleOrder"]
       }
     },
     "/api/v1/sales-orders/{id}/audit-logs": {
@@ -2469,9 +2405,7 @@
           }
         ],
         "summary": "GetAuditLogs",
-        "tags": [
-          "SaleOrder"
-        ]
+        "tags": ["SaleOrder"]
       }
     },
     "/api/v1/test/error": {
@@ -2531,9 +2465,7 @@
           }
         },
         "summary": "TriggerError",
-        "tags": [
-          "Test"
-        ]
+        "tags": ["Test"]
       }
     },
     "/api/v1/test/panic": {
@@ -2593,9 +2525,7 @@
           }
         },
         "summary": "TriggerPanic",
-        "tags": [
-          "Test"
-        ]
+        "tags": ["Test"]
       }
     },
     "/api/v1/webhooks/marketplace-orders": {
@@ -2671,9 +2601,7 @@
           }
         ],
         "summary": "ReceiveWebhook handles incoming marketplace orders from Shopee/Lazada webhooks",
-        "tags": [
-          "Fulfillment"
-        ]
+        "tags": ["Fulfillment"]
       }
     },
     "/healthz": {
@@ -2733,9 +2661,7 @@
           }
         },
         "summary": "Liveness",
-        "tags": [
-          "Health"
-        ]
+        "tags": ["Health"]
       }
     },
     "/readyz": {
@@ -2795,9 +2721,7 @@
           }
         },
         "summary": "Readiness",
-        "tags": [
-          "Health"
-        ]
+        "tags": ["Health"]
       }
     }
   },
@@ -2931,9 +2855,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "ids"
-        ],
+        "required": ["ids"],
         "type": "object"
       },
       "BulkSendToWMSResponse": {
@@ -2966,10 +2888,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "code",
-          "name"
-        ],
+        "required": ["code", "name"],
         "type": "object"
       },
       "BusinessUnitPageResponse": {
@@ -3047,11 +2966,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
+        "required": ["item_code", "quantity", "unit_price"],
         "type": "object"
       },
       "CreateSaleOrderScheduleBody": {
@@ -3070,10 +2985,7 @@
             "type": "string"
           },
           "item_source_type": {
-            "enum": [
-              "STATIC",
-              "DYNAMIC_INTERFACE"
-            ],
+            "enum": ["STATIC", "DYNAMIC_INTERFACE"],
             "type": "string"
           },
           "items": {
@@ -3097,10 +3009,7 @@
             "type": "integer"
           },
           "trigger_type": {
-            "enum": [
-              "TIME_BASED",
-              "EVENT_DRIVEN"
-            ],
+            "enum": ["TIME_BASED", "EVENT_DRIVEN"],
             "type": "string"
           }
         },
@@ -3128,11 +3037,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
+        "required": ["item_code", "quantity", "unit_price"],
         "type": "object"
       },
       "CustomerDTO": {
@@ -3153,12 +3058,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "business_unit_code",
-          "code",
-          "name",
-          "phone"
-        ],
+        "required": ["business_unit_code", "code", "name", "phone"],
         "type": "object"
       },
       "CustomerPageResponse": {
@@ -3212,11 +3112,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
+        "required": ["item_code", "quantity", "unit_price"],
         "type": "object"
       },
       "FulfillmentItemResponse": {
@@ -3305,12 +3201,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "business_unit_code",
-          "code",
-          "default_price",
-          "name"
-        ],
+        "required": ["business_unit_code", "code", "default_price", "name"],
         "type": "object"
       },
       "ItemPageResponse": {
@@ -3369,9 +3260,7 @@
             "type": "array"
           }
         },
-        "required": [
-          "ids"
-        ],
+        "required": ["ids"],
         "type": "object"
       },
       "ProcessFulfillmentResponse": {
@@ -3404,11 +3293,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
+        "required": ["item_code", "quantity", "unit_price"],
         "type": "object"
       },
       "ReceiveMarketplaceOrderBody": {
