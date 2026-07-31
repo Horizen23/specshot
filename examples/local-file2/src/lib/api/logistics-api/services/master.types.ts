@@ -75,18 +75,19 @@ export type MasterMasterListBusinessUnitsResponse = z.infer<
 
 export type MasterMasterCreateBusinessUnitPayload = any;
 
-export const MasterMasterCreateBusinessUnitResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const MasterMasterCreateBusinessUnitResponseSchema =
+  BusinessUnitDTOSchema;
 export type MasterMasterCreateBusinessUnitResponse = z.infer<
   typeof MasterMasterCreateBusinessUnitResponseSchema
 >;
 
-export const MasterMasterGetBusinessUnitResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const MasterMasterDeleteBusinessUnitResponseSchema =
+  SuccessResponseSchema;
+export type MasterMasterDeleteBusinessUnitResponse = z.infer<
+  typeof MasterMasterDeleteBusinessUnitResponseSchema
+>;
+
+export const MasterMasterGetBusinessUnitResponseSchema = BusinessUnitDTOSchema;
 export type MasterMasterGetBusinessUnitResponse = z.infer<
   typeof MasterMasterGetBusinessUnitResponseSchema
 >;
@@ -99,12 +100,6 @@ export type MasterMasterUpdateBusinessUnitResponse = z.infer<
   typeof MasterMasterUpdateBusinessUnitResponseSchema
 >;
 
-export const MasterMasterDeleteBusinessUnitResponseSchema =
-  SuccessResponseSchema;
-export type MasterMasterDeleteBusinessUnitResponse = z.infer<
-  typeof MasterMasterDeleteBusinessUnitResponseSchema
->;
-
 export const MasterMasterListCustomersResponseSchema =
   CustomerPageResponseSchema;
 export type MasterMasterListCustomersResponse = z.infer<
@@ -113,18 +108,17 @@ export type MasterMasterListCustomersResponse = z.infer<
 
 export type MasterMasterCreateCustomerPayload = any;
 
-export const MasterMasterCreateCustomerResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const MasterMasterCreateCustomerResponseSchema = CustomerDTOSchema;
 export type MasterMasterCreateCustomerResponse = z.infer<
   typeof MasterMasterCreateCustomerResponseSchema
 >;
 
-export const MasterMasterGetCustomerResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const MasterMasterDeleteCustomerResponseSchema = SuccessResponseSchema;
+export type MasterMasterDeleteCustomerResponse = z.infer<
+  typeof MasterMasterDeleteCustomerResponseSchema
+>;
+
+export const MasterMasterGetCustomerResponseSchema = CustomerDTOSchema;
 export type MasterMasterGetCustomerResponse = z.infer<
   typeof MasterMasterGetCustomerResponseSchema
 >;
@@ -136,11 +130,6 @@ export type MasterMasterUpdateCustomerResponse = z.infer<
   typeof MasterMasterUpdateCustomerResponseSchema
 >;
 
-export const MasterMasterDeleteCustomerResponseSchema = SuccessResponseSchema;
-export type MasterMasterDeleteCustomerResponse = z.infer<
-  typeof MasterMasterDeleteCustomerResponseSchema
->;
-
 export const MasterMasterListItemsResponseSchema = ItemPageResponseSchema;
 export type MasterMasterListItemsResponse = z.infer<
   typeof MasterMasterListItemsResponseSchema
@@ -148,15 +137,17 @@ export type MasterMasterListItemsResponse = z.infer<
 
 export type MasterMasterCreateItemPayload = any;
 
-export const MasterMasterCreateItemResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const MasterMasterCreateItemResponseSchema = ItemDTOSchema;
 export type MasterMasterCreateItemResponse = z.infer<
   typeof MasterMasterCreateItemResponseSchema
 >;
 
-export const MasterMasterGetItemResponseSchema = z.record(z.string(), z.any());
+export const MasterMasterDeleteItemResponseSchema = SuccessResponseSchema;
+export type MasterMasterDeleteItemResponse = z.infer<
+  typeof MasterMasterDeleteItemResponseSchema
+>;
+
+export const MasterMasterGetItemResponseSchema = ItemDTOSchema;
 export type MasterMasterGetItemResponse = z.infer<
   typeof MasterMasterGetItemResponseSchema
 >;
@@ -166,11 +157,6 @@ export type MasterMasterUpdateItemPayload = any;
 export const MasterMasterUpdateItemResponseSchema = SuccessResponseSchema;
 export type MasterMasterUpdateItemResponse = z.infer<
   typeof MasterMasterUpdateItemResponseSchema
->;
-
-export const MasterMasterDeleteItemResponseSchema = SuccessResponseSchema;
-export type MasterMasterDeleteItemResponse = z.infer<
-  typeof MasterMasterDeleteItemResponseSchema
 >;
 
 // --- CUSTOM CODE START ---

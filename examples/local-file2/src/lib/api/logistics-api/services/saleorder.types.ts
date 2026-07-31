@@ -8,6 +8,17 @@ export const SuccessResponseSchema = z.object({
 export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
 
 // -- Specific Models for saleorder --
+export const AuditLogResponseSchema = z.object({
+  action: z.string().optional(),
+  actor: z.string().optional(),
+  created_at: z.string().optional(),
+  entity_id: z.string().optional(),
+  entity_name: z.string().optional(),
+  id: z.string().optional(),
+  payload: z.string().optional(),
+});
+export type AuditLogResponse = z.infer<typeof AuditLogResponseSchema>;
+
 export const BulkSendToWMSRequestBodySchema = z.object({
   ids: z.array(z.string()),
 });
@@ -65,10 +76,7 @@ export type SaleOrderSaleOrderListResponse = z.infer<
 
 export type SaleOrderSaleOrderCreatePayload = any;
 
-export const SaleOrderSaleOrderCreateResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const SaleOrderSaleOrderCreateResponseSchema = SaleOrderResponseSchema;
 export type SaleOrderSaleOrderCreateResponse = z.infer<
   typeof SaleOrderSaleOrderCreateResponseSchema
 >;
@@ -81,32 +89,25 @@ export type SaleOrderSaleOrderSendToWMSResponse = z.infer<
   typeof SaleOrderSaleOrderSendToWMSResponseSchema
 >;
 
-export const SaleOrderSaleOrderGetResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const SaleOrderSaleOrderDeleteResponseSchema = SuccessResponseSchema;
+export type SaleOrderSaleOrderDeleteResponse = z.infer<
+  typeof SaleOrderSaleOrderDeleteResponseSchema
+>;
+
+export const SaleOrderSaleOrderGetResponseSchema = SaleOrderResponseSchema;
 export type SaleOrderSaleOrderGetResponse = z.infer<
   typeof SaleOrderSaleOrderGetResponseSchema
 >;
 
 export type SaleOrderSaleOrderUpdatePayload = any;
 
-export const SaleOrderSaleOrderUpdateResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const SaleOrderSaleOrderUpdateResponseSchema = SaleOrderResponseSchema;
 export type SaleOrderSaleOrderUpdateResponse = z.infer<
   typeof SaleOrderSaleOrderUpdateResponseSchema
 >;
 
-export const SaleOrderSaleOrderDeleteResponseSchema = SuccessResponseSchema;
-export type SaleOrderSaleOrderDeleteResponse = z.infer<
-  typeof SaleOrderSaleOrderDeleteResponseSchema
->;
-
-export const SaleOrderSaleOrderGetAuditLogsResponseSchema = z.record(
-  z.string(),
-  z.any(),
+export const SaleOrderSaleOrderGetAuditLogsResponseSchema = z.array(
+  AuditLogResponseSchema,
 );
 export type SaleOrderSaleOrderGetAuditLogsResponse = z.infer<
   typeof SaleOrderSaleOrderGetAuditLogsResponseSchema

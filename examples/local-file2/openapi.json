@@ -1,24 +1,15 @@
 {
   "openapi": "3.0.0",
   "info": {
+    "contact": {},
     "description": "Backend API for Logistics & WMS System.",
     "title": "Logistics API",
-    "contact": {},
     "version": "1.0.0"
   },
   "paths": {
     "/api/v1/business-units": {
       "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: businessunit:list",
-        "tags": [
-          "Master"
-        ],
-        "summary": "ListBusinessUnits",
         "operationId": "masterListBusinessUnits",
         "responses": {
           "200": {
@@ -26,7 +17,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BusinessUnitPageResponse"
+                  "$ref": "#/components/schemas/ResponseBody-BusinessUnitPageResponse"
                 }
               }
             }
@@ -71,19 +62,19 @@
               }
             }
           }
-        }
-      },
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: businessunit:create",
+        "summary": "ListBusinessUnits",
         "tags": [
           "Master"
-        ],
-        "summary": "CreateBusinessUnit",
+        ]
+      },
+      "post": {
+        "description": "Requires permission: businessunit:create",
         "operationId": "masterCreateBusinessUnit",
         "requestBody": {
           "$ref": "#/components/requestBodies/BusinessUnitDTO"
@@ -94,8 +85,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-BusinessUnitDTO"
                 }
               }
             }
@@ -140,27 +130,27 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/business-units/{id}": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: businessunit:get",
+        "summary": "CreateBusinessUnit",
         "tags": [
           "Master"
-        ],
-        "summary": "GetBusinessUnit",
-        "operationId": "masterGetBusinessUnit",
+        ]
+      }
+    },
+    "/api/v1/business-units/{id}": {
+      "delete": {
+        "description": "Requires permission: businessunit:delete",
+        "operationId": "masterDeleteBusinessUnit",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -173,8 +163,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SuccessResponse"
                 }
               }
             }
@@ -219,25 +208,101 @@
               }
             }
           }
-        }
-      },
-      "put": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: businessunit:update",
+        "summary": "DeleteBusinessUnit",
         "tags": [
           "Master"
+        ]
+      },
+      "get": {
+        "description": "Requires permission: businessunit:get",
+        "operationId": "masterGetBusinessUnit",
+        "parameters": [
+          {
+            "description": "ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "summary": "UpdateBusinessUnit",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBody-BusinessUnitDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "GetBusinessUnit",
+        "tags": [
+          "Master"
+        ]
+      },
+      "put": {
+        "description": "Requires permission: businessunit:update",
         "operationId": "masterUpdateBusinessUnit",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -253,7 +318,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
+                  "$ref": "#/components/schemas/ResponseBody-SuccessResponse"
                 }
               }
             }
@@ -298,97 +363,21 @@
               }
             }
           }
-        }
-      },
-      "delete": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: businessunit:delete",
+        "summary": "UpdateBusinessUnit",
         "tags": [
           "Master"
-        ],
-        "summary": "DeleteBusinessUnit",
-        "operationId": "masterDeleteBusinessUnit",
-        "parameters": [
-          {
-            "description": "ID",
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
     "/api/v1/customers": {
       "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: customer:list",
-        "tags": [
-          "Master"
-        ],
-        "summary": "ListCustomers",
         "operationId": "masterListCustomers",
         "responses": {
           "200": {
@@ -396,7 +385,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CustomerPageResponse"
+                  "$ref": "#/components/schemas/ResponseBody-CustomerPageResponse"
                 }
               }
             }
@@ -441,19 +430,19 @@
               }
             }
           }
-        }
-      },
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: customer:create",
+        "summary": "ListCustomers",
         "tags": [
           "Master"
-        ],
-        "summary": "CreateCustomer",
+        ]
+      },
+      "post": {
+        "description": "Requires permission: customer:create",
         "operationId": "masterCreateCustomer",
         "requestBody": {
           "$ref": "#/components/requestBodies/CustomerDTO"
@@ -464,8 +453,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-CustomerDTO"
                 }
               }
             }
@@ -510,27 +498,27 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/customers/{id}": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: customer:get",
+        "summary": "CreateCustomer",
         "tags": [
           "Master"
-        ],
-        "summary": "GetCustomer",
-        "operationId": "masterGetCustomer",
+        ]
+      }
+    },
+    "/api/v1/customers/{id}": {
+      "delete": {
+        "description": "Requires permission: customer:delete",
+        "operationId": "masterDeleteCustomer",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -543,8 +531,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SuccessResponse"
                 }
               }
             }
@@ -589,25 +576,101 @@
               }
             }
           }
-        }
-      },
-      "put": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: customer:update",
+        "summary": "DeleteCustomer",
         "tags": [
           "Master"
+        ]
+      },
+      "get": {
+        "description": "Requires permission: customer:get",
+        "operationId": "masterGetCustomer",
+        "parameters": [
+          {
+            "description": "ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "summary": "UpdateCustomer",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBody-CustomerDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "GetCustomer",
+        "tags": [
+          "Master"
+        ]
+      },
+      "put": {
+        "description": "Requires permission: customer:update",
         "operationId": "masterUpdateCustomer",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -623,7 +686,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
+                  "$ref": "#/components/schemas/ResponseBody-SuccessResponse"
                 }
               }
             }
@@ -668,97 +731,21 @@
               }
             }
           }
-        }
-      },
-      "delete": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: customer:delete",
+        "summary": "UpdateCustomer",
         "tags": [
           "Master"
-        ],
-        "summary": "DeleteCustomer",
-        "operationId": "masterDeleteCustomer",
-        "parameters": [
-          {
-            "description": "ID",
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
     "/api/v1/fulfillments": {
       "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: fulfillment:list",
-        "tags": [
-          "Fulfillment"
-        ],
-        "summary": "List returns all fulfillment requests, optionally filtered by status and other query params",
         "operationId": "fulfillmentList",
         "responses": {
           "200": {
@@ -766,7 +753,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListFulfillmentsPageResponse"
+                  "$ref": "#/components/schemas/ResponseBody-ListFulfillmentsPageResponse"
                 }
               }
             }
@@ -811,21 +798,21 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/fulfillments/process": {
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: fulfillment:process",
+        "summary": "List returns all fulfillment requests, optionally filtered by status and other query params",
         "tags": [
           "Fulfillment"
-        ],
-        "summary": "Process handles user selection to group pending orders by carrier and generate SOs",
+        ]
+      }
+    },
+    "/api/v1/fulfillments/process": {
+      "post": {
+        "description": "Requires permission: fulfillment:process",
         "operationId": "fulfillmentProcess",
         "requestBody": {
           "content": {
@@ -844,7 +831,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProcessFulfillmentResponse"
+                  "$ref": "#/components/schemas/ResponseBody-ProcessFulfillmentResponse"
                 }
               }
             }
@@ -889,21 +876,21 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/items": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: item:list",
+        "summary": "Process handles user selection to group pending orders by carrier and generate SOs",
         "tags": [
-          "Master"
-        ],
-        "summary": "ListItems",
+          "Fulfillment"
+        ]
+      }
+    },
+    "/api/v1/items": {
+      "get": {
+        "description": "Requires permission: item:list",
         "operationId": "masterListItems",
         "responses": {
           "200": {
@@ -911,7 +898,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemPageResponse"
+                  "$ref": "#/components/schemas/ResponseBody-ItemPageResponse"
                 }
               }
             }
@@ -956,19 +943,19 @@
               }
             }
           }
-        }
-      },
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: item:create",
+        "summary": "ListItems",
         "tags": [
           "Master"
-        ],
-        "summary": "CreateItem",
+        ]
+      },
+      "post": {
+        "description": "Requires permission: item:create",
         "operationId": "masterCreateItem",
         "requestBody": {
           "$ref": "#/components/requestBodies/ItemDTO"
@@ -979,8 +966,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-ItemDTO"
                 }
               }
             }
@@ -1025,27 +1011,27 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/items/{id}": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: item:get",
+        "summary": "CreateItem",
         "tags": [
           "Master"
-        ],
-        "summary": "GetItem",
-        "operationId": "masterGetItem",
+        ]
+      }
+    },
+    "/api/v1/items/{id}": {
+      "delete": {
+        "description": "Requires permission: item:delete",
+        "operationId": "masterDeleteItem",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -1058,8 +1044,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SuccessResponse"
                 }
               }
             }
@@ -1104,25 +1089,101 @@
               }
             }
           }
-        }
-      },
-      "put": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: item:update",
+        "summary": "DeleteItem",
         "tags": [
           "Master"
+        ]
+      },
+      "get": {
+        "description": "Requires permission: item:get",
+        "operationId": "masterGetItem",
+        "parameters": [
+          {
+            "description": "ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "summary": "UpdateItem",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBody-ItemDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "GetItem",
+        "tags": [
+          "Master"
+        ]
+      },
+      "put": {
+        "description": "Requires permission: item:update",
         "operationId": "masterUpdateItem",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -1138,7 +1199,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
+                  "$ref": "#/components/schemas/ResponseBody-SuccessResponse"
                 }
               }
             }
@@ -1183,97 +1244,21 @@
               }
             }
           }
-        }
-      },
-      "delete": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: item:delete",
+        "summary": "UpdateItem",
         "tags": [
           "Master"
-        ],
-        "summary": "DeleteItem",
-        "operationId": "masterDeleteItem",
-        "parameters": [
-          {
-            "description": "ID",
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
     "/api/v1/sale-orders/schedule-triggers": {
       "post": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: saleorderschedule:trigger",
-        "tags": [
-          "SaleOrderSchedule"
-        ],
-        "summary": "TriggerEvent",
         "operationId": "saleOrderScheduleTriggerEvent",
         "requestBody": {
           "content": {
@@ -1292,8 +1277,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "additionalProperties": true,
+                  "type": "object"
                 }
               }
             }
@@ -1338,21 +1323,21 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/sale-orders/schedules": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorderschedule:list",
+        "summary": "TriggerEvent",
         "tags": [
           "SaleOrderSchedule"
-        ],
-        "summary": "List",
+        ]
+      }
+    },
+    "/api/v1/sale-orders/schedules": {
+      "get": {
+        "description": "Requires permission: saleorderschedule:list",
         "operationId": "saleOrderScheduleList",
         "responses": {
           "200": {
@@ -1360,7 +1345,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SaleOrderSchedulePageResponse"
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderSchedulePageResponse"
                 }
               }
             }
@@ -1405,19 +1390,19 @@
               }
             }
           }
-        }
-      },
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorderschedule:create",
+        "summary": "List",
         "tags": [
           "SaleOrderSchedule"
-        ],
-        "summary": "Create",
+        ]
+      },
+      "post": {
+        "description": "Requires permission: saleorderschedule:create",
         "operationId": "saleOrderScheduleCreate",
         "requestBody": {
           "$ref": "#/components/requestBodies/CreateSaleOrderScheduleBody"
@@ -1428,8 +1413,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderScheduleResponse"
                 }
               }
             }
@@ -1474,27 +1458,27 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/sale-orders/schedules/{id}": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorderschedule:get",
+        "summary": "Create",
         "tags": [
           "SaleOrderSchedule"
-        ],
-        "summary": "Get",
-        "operationId": "saleOrderScheduleGet",
+        ]
+      }
+    },
+    "/api/v1/sale-orders/schedules/{id}": {
+      "delete": {
+        "description": "Requires permission: saleorderschedule:delete",
+        "operationId": "saleOrderScheduleDelete",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -1507,8 +1491,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "additionalProperties": true,
+                  "type": "object"
                 }
               }
             }
@@ -1553,25 +1537,101 @@
               }
             }
           }
-        }
-      },
-      "put": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorderschedule:update",
+        "summary": "Delete",
         "tags": [
           "SaleOrderSchedule"
+        ]
+      },
+      "get": {
+        "description": "Requires permission: saleorderschedule:get",
+        "operationId": "saleOrderScheduleGet",
+        "parameters": [
+          {
+            "description": "ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "summary": "Update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderScheduleResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "Get",
+        "tags": [
+          "SaleOrderSchedule"
+        ]
+      },
+      "put": {
+        "description": "Requires permission: saleorderschedule:update",
         "operationId": "saleOrderScheduleUpdate",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -1587,8 +1647,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderScheduleResponse"
                 }
               }
             }
@@ -1633,104 +1692,27 @@
               }
             }
           }
-        }
-      },
-      "delete": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorderschedule:delete",
+        "summary": "Update",
         "tags": [
           "SaleOrderSchedule"
-        ],
-        "summary": "Delete",
-        "operationId": "saleOrderScheduleDelete",
-        "parameters": [
-          {
-            "description": "ID",
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
     "/api/v1/sale-orders/schedules/{id}/logs": {
       "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: saleorderschedule:logs",
-        "tags": [
-          "SaleOrderSchedule"
-        ],
-        "summary": "ListLogs",
         "operationId": "saleOrderScheduleListLogs",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -1743,7 +1725,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SaleOrderScheduleExecutionLogPageResponse"
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderScheduleExecutionLogPageResponse"
                 }
               }
             }
@@ -1788,27 +1770,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "ListLogs",
+        "tags": [
+          "SaleOrderSchedule"
+        ]
       }
     },
     "/api/v1/sale-orders/schedules/{id}/run-now": {
       "post": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: saleorderschedule:forcerun",
-        "tags": [
-          "SaleOrderSchedule"
-        ],
-        "summary": "ForceRun",
         "operationId": "saleOrderScheduleForceRun",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -1821,8 +1803,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "additionalProperties": true,
+                  "type": "object"
                 }
               }
             }
@@ -1867,27 +1849,27 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/sale-orders/schedules/{id}/toggle": {
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorderschedule:toggle",
+        "summary": "ForceRun",
         "tags": [
           "SaleOrderSchedule"
-        ],
-        "summary": "Toggle",
+        ]
+      }
+    },
+    "/api/v1/sale-orders/schedules/{id}/toggle": {
+      "post": {
+        "description": "Requires permission: saleorderschedule:toggle",
         "operationId": "saleOrderScheduleToggle",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -1911,8 +1893,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderScheduleResponse"
                 }
               }
             }
@@ -1957,21 +1938,21 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/sales-orders": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorder:list",
+        "summary": "Toggle",
         "tags": [
-          "SaleOrder"
-        ],
-        "summary": "List",
+          "SaleOrderSchedule"
+        ]
+      }
+    },
+    "/api/v1/sales-orders": {
+      "get": {
+        "description": "Requires permission: saleorder:list",
         "operationId": "saleOrderList",
         "responses": {
           "200": {
@@ -1979,7 +1960,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SaleOrderPageResponse"
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderPageResponse"
                 }
               }
             }
@@ -2024,19 +2005,19 @@
               }
             }
           }
-        }
-      },
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorder:create",
+        "summary": "List",
         "tags": [
           "SaleOrder"
-        ],
-        "summary": "Create เป็นการสร้างใบสั่งซื้อใหม่",
+        ]
+      },
+      "post": {
+        "description": "Requires permission: saleorder:create",
         "operationId": "saleOrderCreate",
         "requestBody": {
           "$ref": "#/components/requestBodies/CreateSaleOrderBody"
@@ -2047,8 +2028,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderResponse"
                 }
               }
             }
@@ -2093,21 +2073,21 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/sales-orders/wms": {
-      "post": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorder:wms",
+        "summary": "Create เป็นการสร้างใบสั่งซื้อใหม่",
         "tags": [
           "SaleOrder"
-        ],
-        "summary": "SendToWMS",
+        ]
+      }
+    },
+    "/api/v1/sales-orders/wms": {
+      "post": {
+        "description": "Requires permission: saleorder:wms",
         "operationId": "saleOrderSendToWMS",
         "requestBody": {
           "content": {
@@ -2126,7 +2106,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BulkSendToWMSResponse"
+                  "$ref": "#/components/schemas/ResponseBody-BulkSendToWMSResponse"
                 }
               }
             }
@@ -2171,27 +2151,27 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/sales-orders/{id}": {
-      "get": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorder:get",
+        "summary": "SendToWMS",
         "tags": [
           "SaleOrder"
-        ],
-        "summary": "Get",
-        "operationId": "saleOrderGet",
+        ]
+      }
+    },
+    "/api/v1/sales-orders/{id}": {
+      "delete": {
+        "description": "Requires permission: saleorder:delete",
+        "operationId": "saleOrderDelete",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -2204,8 +2184,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SuccessResponse"
                 }
               }
             }
@@ -2250,25 +2229,101 @@
               }
             }
           }
-        }
-      },
-      "put": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorder:update",
+        "summary": "Delete",
         "tags": [
           "SaleOrder"
+        ]
+      },
+      "get": {
+        "description": "Requires permission: saleorder:get",
+        "operationId": "saleOrderGet",
+        "parameters": [
+          {
+            "description": "ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "summary": "Update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "Get",
+        "tags": [
+          "SaleOrder"
+        ]
+      },
+      "put": {
+        "description": "Requires permission: saleorder:update",
         "operationId": "saleOrderUpdate",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -2284,8 +2339,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-SaleOrderResponse"
                 }
               }
             }
@@ -2330,103 +2384,27 @@
               }
             }
           }
-        }
-      },
-      "delete": {
+        },
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Requires permission: saleorder:delete",
+        "summary": "Update",
         "tags": [
           "SaleOrder"
-        ],
-        "summary": "Delete",
-        "operationId": "saleOrderDelete",
-        "parameters": [
-          {
-            "description": "ID",
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/APIError"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
     "/api/v1/sales-orders/{id}/audit-logs": {
       "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: saleorder:auditlogs",
-        "tags": [
-          "SaleOrder"
-        ],
-        "summary": "GetAuditLogs",
         "operationId": "saleOrderGetAuditLogs",
         "parameters": [
           {
             "description": "ID",
-            "name": "id",
             "in": "path",
+            "name": "id",
             "required": true,
             "schema": {
               "type": "string"
@@ -2439,8 +2417,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/ResponseBody-Array-AuditLogResponse"
                 }
               }
             }
@@ -2485,15 +2462,20 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "GetAuditLogs",
+        "tags": [
+          "SaleOrder"
+        ]
       }
     },
     "/api/v1/test/error": {
       "get": {
-        "tags": [
-          "Test"
-        ],
-        "summary": "TriggerError",
         "operationId": "testTriggerError",
         "responses": {
           "200": {
@@ -2501,8 +2483,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "additionalProperties": true,
+                  "type": "object"
                 }
               }
             }
@@ -2547,15 +2529,15 @@
               }
             }
           }
-        }
+        },
+        "summary": "TriggerError",
+        "tags": [
+          "Test"
+        ]
       }
     },
     "/api/v1/test/panic": {
       "get": {
-        "tags": [
-          "Test"
-        ],
-        "summary": "TriggerPanic",
         "operationId": "testTriggerPanic",
         "responses": {
           "200": {
@@ -2563,8 +2545,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "additionalProperties": true,
+                  "type": "object"
                 }
               }
             }
@@ -2609,21 +2591,16 @@
               }
             }
           }
-        }
+        },
+        "summary": "TriggerPanic",
+        "tags": [
+          "Test"
+        ]
       }
     },
     "/api/v1/webhooks/marketplace-orders": {
       "post": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
         "description": "Requires permission: fulfillment:process",
-        "tags": [
-          "Fulfillment"
-        ],
-        "summary": "ReceiveWebhook handles incoming marketplace orders from Shopee/Lazada webhooks",
         "operationId": "fulfillmentReceiveWebhook",
         "requestBody": {
           "content": {
@@ -2642,7 +2619,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ReceiveMarketplaceOrderResponse"
+                  "$ref": "#/components/schemas/ResponseBody-ReceiveMarketplaceOrderResponse"
                 }
               }
             }
@@ -2687,15 +2664,20 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "summary": "ReceiveWebhook handles incoming marketplace orders from Shopee/Lazada webhooks",
+        "tags": [
+          "Fulfillment"
+        ]
       }
     },
     "/healthz": {
       "get": {
-        "tags": [
-          "Health"
-        ],
-        "summary": "Liveness",
         "operationId": "healthLiveness",
         "responses": {
           "200": {
@@ -2703,8 +2685,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "additionalProperties": true,
+                  "type": "object"
                 }
               }
             }
@@ -2749,15 +2731,15 @@
               }
             }
           }
-        }
+        },
+        "summary": "Liveness",
+        "tags": [
+          "Health"
+        ]
       }
     },
     "/readyz": {
       "get": {
-        "tags": [
-          "Health"
-        ],
-        "summary": "Readiness",
         "operationId": "healthReadiness",
         "responses": {
           "200": {
@@ -2765,8 +2747,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "additionalProperties": true,
+                  "type": "object"
                 }
               }
             }
@@ -2811,7 +2793,11 @@
               }
             }
           }
-        }
+        },
+        "summary": "Readiness",
+        "tags": [
+          "Health"
+        ]
       }
     }
   },
@@ -2880,23 +2866,22 @@
     },
     "securitySchemes": {
       "Bearer": {
-        "type": "apiKey",
+        "in": "header",
         "name": "Authorization",
-        "in": "header"
+        "type": "apiKey"
       }
     },
     "schemas": {
       "APIError": {
-        "type": "object",
         "properties": {
           "detail": {
             "type": "string"
           },
           "errors": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/ErrorDetail"
-            }
+            },
+            "type": "array"
           },
           "request_id": {
             "type": "string"
@@ -2907,47 +2892,69 @@
           "title": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
+      },
+      "AuditLogResponse": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "entity_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          }
+        },
+        "type": "object"
       },
       "BulkSendToWMSRequestBody": {
-        "type": "object",
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
         "required": [
           "ids"
         ],
-        "properties": {
-          "ids": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
+        "type": "object"
       },
       "BulkSendToWMSResponse": {
-        "type": "object",
         "properties": {
           "errors": {
-            "description": "Map ID -> error message",
-            "type": "object",
             "additionalProperties": {
               "type": "string"
-            }
+            },
+            "description": "Map ID -> error message",
+            "type": "object"
           },
           "success_ids": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
-        }
+        },
+        "type": "object"
       },
       "BusinessUnitDTO": {
-        "type": "object",
-        "required": [
-          "code",
-          "name"
-        ],
         "properties": {
           "code": {
             "type": "string"
@@ -2958,16 +2965,20 @@
           "name": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object"
       },
       "BusinessUnitPageResponse": {
-        "type": "object",
         "properties": {
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/BusinessUnitDTO"
-            }
+            },
+            "type": "array"
           },
           "page": {
             "type": "integer"
@@ -2981,16 +2992,10 @@
           "total_pages": {
             "type": "integer"
           }
-        }
+        },
+        "type": "object"
       },
       "CreateSaleOrderBody": {
-        "type": "object",
-        "required": [
-          "business_unit_code",
-          "customer_code",
-          "items",
-          "order_date"
-        ],
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -2999,11 +3004,11 @@
             "type": "string"
           },
           "items": {
-            "type": "array",
-            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/CreateSaleOrderItemDTO"
-            }
+            },
+            "minItems": 1,
+            "type": "array"
           },
           "order_date": {
             "type": "string"
@@ -3014,15 +3019,16 @@
           "remark": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "business_unit_code",
+          "customer_code",
+          "items",
+          "order_date"
+        ],
+        "type": "object"
       },
       "CreateSaleOrderItemDTO": {
-        "type": "object",
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
         "properties": {
           "currency": {
             "description": "ISO 4217, e.g. \"THB\" — defaults to THB",
@@ -3040,16 +3046,15 @@
           "uom": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
+        "type": "object"
       },
       "CreateSaleOrderScheduleBody": {
-        "type": "object",
-        "required": [
-          "business_unit_code",
-          "customer_code",
-          "item_source_type",
-          "trigger_type"
-        ],
         "properties": {
           "base_start_date": {
             "description": "YYYY-MM-DD format",
@@ -3065,48 +3070,49 @@
             "type": "string"
           },
           "item_source_type": {
-            "type": "string",
             "enum": [
               "STATIC",
               "DYNAMIC_INTERFACE"
-            ]
+            ],
+            "type": "string"
           },
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/CreateSaleOrderScheduleItemDTO"
-            }
+            },
+            "type": "array"
           },
           "order_date_offset_days": {
             "type": "integer"
           },
           "recurrence_interval_weeks": {
-            "type": "integer",
-            "default": 1
+            "default": 1,
+            "type": "integer"
           },
           "remark": {
             "type": "string"
           },
           "retry_limit": {
-            "type": "integer",
-            "default": 3
+            "default": 3,
+            "type": "integer"
           },
           "trigger_type": {
-            "type": "string",
             "enum": [
               "TIME_BASED",
               "EVENT_DRIVEN"
-            ]
+            ],
+            "type": "string"
           }
-        }
+        },
+        "required": [
+          "business_unit_code",
+          "customer_code",
+          "item_source_type",
+          "trigger_type"
+        ],
+        "type": "object"
       },
       "CreateSaleOrderScheduleItemDTO": {
-        "type": "object",
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
         "properties": {
           "currency": {
             "description": "ISO 4217, defaults to THB",
@@ -3121,16 +3127,15 @@
           "unit_price": {
             "type": "number"
           }
-        }
+        },
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
+        "type": "object"
       },
       "CustomerDTO": {
-        "type": "object",
-        "required": [
-          "business_unit_code",
-          "code",
-          "name",
-          "phone"
-        ],
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -3147,16 +3152,22 @@
           "phone": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "business_unit_code",
+          "code",
+          "name",
+          "phone"
+        ],
+        "type": "object"
       },
       "CustomerPageResponse": {
-        "type": "object",
         "properties": {
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/CustomerDTO"
-            }
+            },
+            "type": "array"
           },
           "page": {
             "type": "integer"
@@ -3170,10 +3181,10 @@
           "total_pages": {
             "type": "integer"
           }
-        }
+        },
+        "type": "object"
       },
       "ErrorDetail": {
-        "type": "object",
         "properties": {
           "location": {
             "type": "string"
@@ -3182,15 +3193,10 @@
             "type": "string"
           },
           "value": {}
-        }
+        },
+        "type": "object"
       },
       "EventItemDTO": {
-        "type": "object",
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
         "properties": {
           "currency": {
             "description": "ISO 4217, defaults to THB",
@@ -3205,10 +3211,15 @@
           "unit_price": {
             "type": "number"
           }
-        }
+        },
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
+        "type": "object"
       },
       "FulfillmentItemResponse": {
-        "type": "object",
         "properties": {
           "currency": {
             "type": "string"
@@ -3225,10 +3236,10 @@
           "uom": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "FulfillmentRequestResponse": {
-        "type": "object",
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -3243,10 +3254,10 @@
             "type": "string"
           },
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/FulfillmentItemResponse"
-            }
+            },
+            "type": "array"
           },
           "marketplace": {
             "type": "string"
@@ -3260,16 +3271,10 @@
           "status": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "ItemDTO": {
-        "type": "object",
-        "required": [
-          "business_unit_code",
-          "code",
-          "default_price",
-          "name"
-        ],
         "properties": {
           "base_uom": {
             "type": "string"
@@ -3294,21 +3299,27 @@
             "type": "string"
           },
           "packing_factors": {
-            "type": "object",
             "additionalProperties": {
               "type": "integer"
-            }
+            },
+            "type": "object"
           }
-        }
+        },
+        "required": [
+          "business_unit_code",
+          "code",
+          "default_price",
+          "name"
+        ],
+        "type": "object"
       },
       "ItemPageResponse": {
-        "type": "object",
         "properties": {
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/ItemDTO"
-            }
+            },
+            "type": "array"
           },
           "page": {
             "type": "integer"
@@ -3322,16 +3333,16 @@
           "total_pages": {
             "type": "integer"
           }
-        }
+        },
+        "type": "object"
       },
       "ListFulfillmentsPageResponse": {
-        "type": "object",
         "properties": {
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/FulfillmentRequestResponse"
-            }
+            },
+            "type": "array"
           },
           "page": {
             "type": "integer"
@@ -3345,41 +3356,36 @@
           "total_pages": {
             "type": "integer"
           }
-        }
+        },
+        "type": "object"
       },
       "ProcessFulfillmentRequestBody": {
-        "type": "object",
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
         "required": [
           "ids"
         ],
-        "properties": {
-          "ids": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "string"
-            }
-          }
-        }
+        "type": "object"
       },
       "ProcessFulfillmentResponse": {
-        "type": "object",
         "properties": {
           "generated_sale_order_ids": {
-            "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "type": "array"
           }
-        }
+        },
+        "type": "object"
       },
       "ReceiveItemDTO": {
-        "type": "object",
-        "required": [
-          "item_code",
-          "quantity",
-          "unit_price"
-        ],
         "properties": {
           "currency": {
             "description": "ISO 4217, e.g. \"THB\" — defaults to THB when empty",
@@ -3397,18 +3403,15 @@
           "uom": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "item_code",
+          "quantity",
+          "unit_price"
+        ],
+        "type": "object"
       },
       "ReceiveMarketplaceOrderBody": {
-        "type": "object",
-        "required": [
-          "business_unit_code",
-          "carrier",
-          "customer_code",
-          "items",
-          "marketplace",
-          "marketplace_order_id"
-        ],
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -3421,11 +3424,11 @@
             "type": "string"
           },
           "items": {
-            "type": "array",
-            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/ReceiveItemDTO"
-            }
+            },
+            "minItems": 1,
+            "type": "array"
           },
           "marketplace": {
             "type": "string"
@@ -3433,18 +3436,216 @@
           "marketplace_order_id": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "business_unit_code",
+          "carrier",
+          "customer_code",
+          "items",
+          "marketplace",
+          "marketplace_order_id"
+        ],
+        "type": "object"
       },
       "ReceiveMarketplaceOrderResponse": {
-        "type": "object",
         "properties": {
           "id": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
+      },
+      "ResponseBody-Array-AuditLogResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AuditLogResponse"
+            },
+            "type": "array"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-BulkSendToWMSResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BulkSendToWMSResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-BusinessUnitDTO": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BusinessUnitDTO"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-BusinessUnitPageResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BusinessUnitPageResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-CustomerDTO": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerDTO"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-CustomerPageResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerPageResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-ItemDTO": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ItemDTO"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-ItemPageResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ItemPageResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-ListFulfillmentsPageResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ListFulfillmentsPageResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-ProcessFulfillmentResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ProcessFulfillmentResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-ReceiveMarketplaceOrderResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReceiveMarketplaceOrderResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-SaleOrderPageResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SaleOrderPageResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-SaleOrderResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SaleOrderResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-SaleOrderScheduleExecutionLogPageResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SaleOrderScheduleExecutionLogPageResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-SaleOrderSchedulePageResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SaleOrderSchedulePageResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-SaleOrderScheduleResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SaleOrderScheduleResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseBody-SuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SuccessResponse"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
       },
       "SaleOrderItemResponse": {
-        "type": "object",
         "properties": {
           "currency": {
             "type": "string"
@@ -3464,16 +3665,16 @@
           "uom": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "SaleOrderPageResponse": {
-        "type": "object",
         "properties": {
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderResponse"
-            }
+            },
+            "type": "array"
           },
           "page": {
             "type": "integer"
@@ -3487,10 +3688,10 @@
           "total_pages": {
             "type": "integer"
           }
-        }
+        },
+        "type": "object"
       },
       "SaleOrderResponse": {
-        "type": "object",
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -3505,10 +3706,10 @@
             "type": "string"
           },
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderItemResponse"
-            }
+            },
+            "type": "array"
           },
           "order_date": {
             "type": "string"
@@ -3531,10 +3732,10 @@
           "wms_file_name": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "SaleOrderScheduleExecutionLogDetailResponse": {
-        "type": "object",
         "properties": {
           "error_message": {
             "type": "string"
@@ -3560,16 +3761,16 @@
           "trigger_source": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "SaleOrderScheduleExecutionLogPageResponse": {
-        "type": "object",
         "properties": {
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderScheduleExecutionLogDetailResponse"
-            }
+            },
+            "type": "array"
           },
           "page": {
             "type": "integer"
@@ -3583,10 +3784,10 @@
           "total_pages": {
             "type": "integer"
           }
-        }
+        },
+        "type": "object"
       },
       "SaleOrderScheduleItemResponse": {
-        "type": "object",
         "properties": {
           "currency": {
             "type": "string"
@@ -3600,16 +3801,16 @@
           "unit_price": {
             "type": "number"
           }
-        }
+        },
+        "type": "object"
       },
       "SaleOrderSchedulePageResponse": {
-        "type": "object",
         "properties": {
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderScheduleResponse"
-            }
+            },
+            "type": "array"
           },
           "page": {
             "type": "integer"
@@ -3623,10 +3824,10 @@
           "total_pages": {
             "type": "integer"
           }
-        }
+        },
+        "type": "object"
       },
       "SaleOrderScheduleResponse": {
-        "type": "object",
         "properties": {
           "base_start_date": {
             "type": "string"
@@ -3647,10 +3848,10 @@
             "type": "string"
           },
           "items": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/SaleOrderScheduleItemResponse"
-            }
+            },
+            "type": "array"
           },
           "last_error": {
             "type": "string"
@@ -3685,32 +3886,26 @@
           "trigger_type": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "SuccessResponse": {
-        "type": "object",
         "properties": {
           "message": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "ToggleSaleOrderScheduleBody": {
-        "type": "object",
         "properties": {
           "active": {
             "type": "boolean"
           }
-        }
+        },
+        "type": "object"
       },
       "TriggerEventBody": {
-        "type": "object",
-        "required": [
-          "business_unit_code",
-          "customer_code",
-          "idempotency_key",
-          "items"
-        ],
         "properties": {
           "business_unit_code": {
             "type": "string"
@@ -3722,13 +3917,20 @@
             "type": "string"
           },
           "items": {
-            "type": "array",
-            "minItems": 1,
             "items": {
               "$ref": "#/components/schemas/EventItemDTO"
-            }
+            },
+            "minItems": 1,
+            "type": "array"
           }
-        }
+        },
+        "required": [
+          "business_unit_code",
+          "customer_code",
+          "idempotency_key",
+          "items"
+        ],
+        "type": "object"
       }
     }
   }

@@ -113,30 +113,10 @@ export type SaleOrderScheduleSaleOrderScheduleListResponse = z.infer<
 
 export type SaleOrderScheduleSaleOrderScheduleCreatePayload = any;
 
-export const SaleOrderScheduleSaleOrderScheduleCreateResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const SaleOrderScheduleSaleOrderScheduleCreateResponseSchema =
+  SaleOrderScheduleResponseSchema;
 export type SaleOrderScheduleSaleOrderScheduleCreateResponse = z.infer<
   typeof SaleOrderScheduleSaleOrderScheduleCreateResponseSchema
->;
-
-export const SaleOrderScheduleSaleOrderScheduleGetResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
-export type SaleOrderScheduleSaleOrderScheduleGetResponse = z.infer<
-  typeof SaleOrderScheduleSaleOrderScheduleGetResponseSchema
->;
-
-export type SaleOrderScheduleSaleOrderScheduleUpdatePayload = any;
-
-export const SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
-export type SaleOrderScheduleSaleOrderScheduleUpdateResponse = z.infer<
-  typeof SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema
 >;
 
 export const SaleOrderScheduleSaleOrderScheduleDeleteResponseSchema = z.record(
@@ -145,6 +125,20 @@ export const SaleOrderScheduleSaleOrderScheduleDeleteResponseSchema = z.record(
 );
 export type SaleOrderScheduleSaleOrderScheduleDeleteResponse = z.infer<
   typeof SaleOrderScheduleSaleOrderScheduleDeleteResponseSchema
+>;
+
+export const SaleOrderScheduleSaleOrderScheduleGetResponseSchema =
+  SaleOrderScheduleResponseSchema;
+export type SaleOrderScheduleSaleOrderScheduleGetResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleGetResponseSchema
+>;
+
+export type SaleOrderScheduleSaleOrderScheduleUpdatePayload = any;
+
+export const SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema =
+  SaleOrderScheduleResponseSchema;
+export type SaleOrderScheduleSaleOrderScheduleUpdateResponse = z.infer<
+  typeof SaleOrderScheduleSaleOrderScheduleUpdateResponseSchema
 >;
 
 export const SaleOrderScheduleSaleOrderScheduleListLogsResponseSchema =
@@ -162,10 +156,8 @@ export type SaleOrderScheduleSaleOrderScheduleForceRunResponse = z.infer<
 export type SaleOrderScheduleSaleOrderScheduleTogglePayload =
   ToggleSaleOrderScheduleBody;
 
-export const SaleOrderScheduleSaleOrderScheduleToggleResponseSchema = z.record(
-  z.string(),
-  z.any(),
-);
+export const SaleOrderScheduleSaleOrderScheduleToggleResponseSchema =
+  SaleOrderScheduleResponseSchema;
 export type SaleOrderScheduleSaleOrderScheduleToggleResponse = z.infer<
   typeof SaleOrderScheduleSaleOrderScheduleToggleResponseSchema
 >;

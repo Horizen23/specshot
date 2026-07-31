@@ -14,24 +14,24 @@ import type {
   MasterMasterListBusinessUnitsResponse,
   MasterMasterCreateBusinessUnitPayload,
   MasterMasterCreateBusinessUnitResponse,
+  MasterMasterDeleteBusinessUnitResponse,
   MasterMasterGetBusinessUnitResponse,
   MasterMasterUpdateBusinessUnitPayload,
   MasterMasterUpdateBusinessUnitResponse,
-  MasterMasterDeleteBusinessUnitResponse,
   MasterMasterListCustomersResponse,
   MasterMasterCreateCustomerPayload,
   MasterMasterCreateCustomerResponse,
+  MasterMasterDeleteCustomerResponse,
   MasterMasterGetCustomerResponse,
   MasterMasterUpdateCustomerPayload,
   MasterMasterUpdateCustomerResponse,
-  MasterMasterDeleteCustomerResponse,
   MasterMasterListItemsResponse,
   MasterMasterCreateItemPayload,
   MasterMasterCreateItemResponse,
+  MasterMasterDeleteItemResponse,
   MasterMasterGetItemResponse,
   MasterMasterUpdateItemPayload,
   MasterMasterUpdateItemResponse,
-  MasterMasterDeleteItemResponse,
 } from "./master.types";
 import {
   MasterMasterListBusinessUnitsResponseSchema,
@@ -58,24 +58,24 @@ export type {
   MasterMasterListBusinessUnitsResponse,
   MasterMasterCreateBusinessUnitPayload,
   MasterMasterCreateBusinessUnitResponse,
+  MasterMasterDeleteBusinessUnitResponse,
   MasterMasterGetBusinessUnitResponse,
   MasterMasterUpdateBusinessUnitPayload,
   MasterMasterUpdateBusinessUnitResponse,
-  MasterMasterDeleteBusinessUnitResponse,
   MasterMasterListCustomersResponse,
   MasterMasterCreateCustomerPayload,
   MasterMasterCreateCustomerResponse,
+  MasterMasterDeleteCustomerResponse,
   MasterMasterGetCustomerResponse,
   MasterMasterUpdateCustomerPayload,
   MasterMasterUpdateCustomerResponse,
-  MasterMasterDeleteCustomerResponse,
   MasterMasterListItemsResponse,
   MasterMasterCreateItemPayload,
   MasterMasterCreateItemResponse,
+  MasterMasterDeleteItemResponse,
   MasterMasterGetItemResponse,
   MasterMasterUpdateItemPayload,
   MasterMasterUpdateItemResponse,
-  MasterMasterDeleteItemResponse,
 };
 
 export class MasterService extends BaseService<"master"> {
@@ -161,6 +161,39 @@ export class MasterService extends BaseService<"master"> {
   }
 
   /**
+   * masterDeleteBusinessUnit
+   * DeleteBusinessUnit
+   * Requires permission: businessunit:delete
+   * @param id - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: void (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.master.masterDeleteBusinessUnit(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public masterDeleteBusinessUnit(
+    id: string,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
+    return this.client.delete<AppApiErrorData>(`/api/v1/business-units/${id}`, {
+      ...this.withSignal(config),
+    });
+  }
+
+  /**
    * masterGetBusinessUnit
    * GetBusinessUnit
    * Requires permission: businessunit:get
@@ -185,7 +218,7 @@ export class MasterService extends BaseService<"master"> {
    * // use `data` safely here
    */
   public masterGetBusinessUnit(
-    id: string | number,
+    id: string,
     config?: AppRequestConfig,
   ): CancelablePromise<
     ApiResult<MasterMasterGetBusinessUnitResponse, AppApiErrorData>
@@ -226,7 +259,7 @@ export class MasterService extends BaseService<"master"> {
    * // use `data` safely here
    */
   public masterUpdateBusinessUnit(
-    id: string | number,
+    id: string,
     payload: MasterMasterUpdateBusinessUnitPayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
@@ -238,39 +271,6 @@ export class MasterService extends BaseService<"master"> {
     >(`/api/v1/business-units/${id}`, payload, {
       ...this.withSignal(config),
       zodSchema: MasterMasterUpdateBusinessUnitResponseSchema,
-    });
-  }
-
-  /**
-   * masterDeleteBusinessUnit
-   * DeleteBusinessUnit
-   * Requires permission: businessunit:delete
-   * @param id - Path parameter
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: void (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.master.masterDeleteBusinessUnit(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public masterDeleteBusinessUnit(
-    id: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
-    return this.client.delete<AppApiErrorData>(`/api/v1/business-units/${id}`, {
-      ...this.withSignal(config),
     });
   }
 
@@ -352,6 +352,39 @@ export class MasterService extends BaseService<"master"> {
   }
 
   /**
+   * masterDeleteCustomer
+   * DeleteCustomer
+   * Requires permission: customer:delete
+   * @param id - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: void (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.master.masterDeleteCustomer(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public masterDeleteCustomer(
+    id: string,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
+    return this.client.delete<AppApiErrorData>(`/api/v1/customers/${id}`, {
+      ...this.withSignal(config),
+    });
+  }
+
+  /**
    * masterGetCustomer
    * GetCustomer
    * Requires permission: customer:get
@@ -376,7 +409,7 @@ export class MasterService extends BaseService<"master"> {
    * // use `data` safely here
    */
   public masterGetCustomer(
-    id: string | number,
+    id: string,
     config?: AppRequestConfig,
   ): CancelablePromise<
     ApiResult<MasterMasterGetCustomerResponse, AppApiErrorData>
@@ -417,7 +450,7 @@ export class MasterService extends BaseService<"master"> {
    * // use `data` safely here
    */
   public masterUpdateCustomer(
-    id: string | number,
+    id: string,
     payload: MasterMasterUpdateCustomerPayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
@@ -431,39 +464,6 @@ export class MasterService extends BaseService<"master"> {
         zodSchema: MasterMasterUpdateCustomerResponseSchema,
       },
     );
-  }
-
-  /**
-   * masterDeleteCustomer
-   * DeleteCustomer
-   * Requires permission: customer:delete
-   * @param id - Path parameter
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: void (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.master.masterDeleteCustomer(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public masterDeleteCustomer(
-    id: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
-    return this.client.delete<AppApiErrorData>(`/api/v1/customers/${id}`, {
-      ...this.withSignal(config),
-    });
   }
 
   /**
@@ -545,6 +545,39 @@ export class MasterService extends BaseService<"master"> {
   }
 
   /**
+   * masterDeleteItem
+   * DeleteItem
+   * Requires permission: item:delete
+   * @param id - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: void (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.master.masterDeleteItem(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public masterDeleteItem(
+    id: string,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
+    return this.client.delete<AppApiErrorData>(`/api/v1/items/${id}`, {
+      ...this.withSignal(config),
+    });
+  }
+
+  /**
    * masterGetItem
    * GetItem
    * Requires permission: item:get
@@ -569,7 +602,7 @@ export class MasterService extends BaseService<"master"> {
    * // use `data` safely here
    */
   public masterGetItem(
-    id: string | number,
+    id: string,
     config?: AppRequestConfig,
   ): CancelablePromise<
     ApiResult<MasterMasterGetItemResponse, AppApiErrorData>
@@ -610,7 +643,7 @@ export class MasterService extends BaseService<"master"> {
    * // use `data` safely here
    */
   public masterUpdateItem(
-    id: string | number,
+    id: string,
     payload: MasterMasterUpdateItemPayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
@@ -624,39 +657,6 @@ export class MasterService extends BaseService<"master"> {
         zodSchema: MasterMasterUpdateItemResponseSchema,
       },
     );
-  }
-
-  /**
-   * masterDeleteItem
-   * DeleteItem
-   * Requires permission: item:delete
-   * @param id - Path parameter
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: void (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.master.masterDeleteItem(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public masterDeleteItem(
-    id: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
-    return this.client.delete<AppApiErrorData>(`/api/v1/items/${id}`, {
-      ...this.withSignal(config),
-    });
   }
 
   // --- CUSTOM CODE START ---

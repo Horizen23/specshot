@@ -58,7 +58,7 @@ export class {{className}} extends BaseService<"{{tagPrefix}}"> {
    */
   public {{methodName}}(
 {{#each pathParams}}
-    {{safe}}: string | number,
+    {{safe}}: {{{tsType}}},
 {{/each}}
 {{#if hasBody}}
     payload: {{typeNamePayload}},

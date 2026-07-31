@@ -5,6 +5,7 @@ import { ApiResult, CancelablePromise } from "../../core/types";
 import { AppRequestConfig, AppApiErrorData } from "../types";
 
 import type {
+  AuditLogResponse,
   BulkSendToWMSRequestBody,
   BulkSendToWMSResponse,
   SaleOrderItemResponse,
@@ -15,10 +16,10 @@ import type {
   SaleOrderSaleOrderCreateResponse,
   SaleOrderSaleOrderSendToWMSPayload,
   SaleOrderSaleOrderSendToWMSResponse,
+  SaleOrderSaleOrderDeleteResponse,
   SaleOrderSaleOrderGetResponse,
   SaleOrderSaleOrderUpdatePayload,
   SaleOrderSaleOrderUpdateResponse,
-  SaleOrderSaleOrderDeleteResponse,
   SaleOrderSaleOrderGetAuditLogsResponse,
 } from "./saleorder.types";
 import {
@@ -31,6 +32,7 @@ import {
 } from "./saleorder.types";
 
 export type {
+  AuditLogResponse,
   BulkSendToWMSRequestBody,
   BulkSendToWMSResponse,
   SaleOrderItemResponse,
@@ -41,10 +43,10 @@ export type {
   SaleOrderSaleOrderCreateResponse,
   SaleOrderSaleOrderSendToWMSPayload,
   SaleOrderSaleOrderSendToWMSResponse,
+  SaleOrderSaleOrderDeleteResponse,
   SaleOrderSaleOrderGetResponse,
   SaleOrderSaleOrderUpdatePayload,
   SaleOrderSaleOrderUpdateResponse,
-  SaleOrderSaleOrderDeleteResponse,
   SaleOrderSaleOrderGetAuditLogsResponse,
 };
 
@@ -172,6 +174,39 @@ export class SaleOrderService extends BaseService<"saleorder"> {
   }
 
   /**
+   * saleOrderDelete
+   * Delete
+   * Requires permission: saleorder:delete
+   * @param id - Path parameter
+   * @param config - Request configuration (headers, timeout, signal, etc.)
+   * @returns `{ data, error, ok }`
+   *   - `data`: void (null on error)
+   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
+   *     Both have `.message`. Use `error.status` to check for HTTP errors,
+   *     or `error.kind` for network/timeout/abort/parse errors.
+   *   - `ok`: `true` on success, `false` on error
+   *
+   * @example
+   * const req = api.saleorder.saleOrderDelete(...);
+   * // You can cancel the request if needed
+   * // req.cancel();
+   * const { data, error, ok } = await req;
+   * if (!ok) {
+   *   console.error(error.message);
+   *   return;
+   * }
+   * // use `data` safely here
+   */
+  public saleOrderDelete(
+    id: string,
+    config?: AppRequestConfig,
+  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
+    return this.client.delete<AppApiErrorData>(`/api/v1/sales-orders/${id}`, {
+      ...this.withSignal(config),
+    });
+  }
+
+  /**
    * saleOrderGet
    * Get
    * Requires permission: saleorder:get
@@ -196,7 +231,7 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * // use `data` safely here
    */
   public saleOrderGet(
-    id: string | number,
+    id: string,
     config?: AppRequestConfig,
   ): CancelablePromise<
     ApiResult<SaleOrderSaleOrderGetResponse, AppApiErrorData>
@@ -237,7 +272,7 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * // use `data` safely here
    */
   public saleOrderUpdate(
-    id: string | number,
+    id: string,
     payload: SaleOrderSaleOrderUpdatePayload,
     config?: AppRequestConfig,
   ): CancelablePromise<
@@ -251,39 +286,6 @@ export class SaleOrderService extends BaseService<"saleorder"> {
         zodSchema: SaleOrderSaleOrderUpdateResponseSchema,
       },
     );
-  }
-
-  /**
-   * saleOrderDelete
-   * Delete
-   * Requires permission: saleorder:delete
-   * @param id - Path parameter
-   * @param config - Request configuration (headers, timeout, signal, etc.)
-   * @returns `{ data, error, ok }`
-   *   - `data`: void (null on error)
-   *   - `error`: `ApiError<AppApiErrorData>` | `ClientError` (null on success)
-   *     Both have `.message`. Use `error.status` to check for HTTP errors,
-   *     or `error.kind` for network/timeout/abort/parse errors.
-   *   - `ok`: `true` on success, `false` on error
-   *
-   * @example
-   * const req = api.saleorder.saleOrderDelete(...);
-   * // You can cancel the request if needed
-   * // req.cancel();
-   * const { data, error, ok } = await req;
-   * if (!ok) {
-   *   console.error(error.message);
-   *   return;
-   * }
-   * // use `data` safely here
-   */
-  public saleOrderDelete(
-    id: string | number,
-    config?: AppRequestConfig,
-  ): CancelablePromise<ApiResult<void, AppApiErrorData>> {
-    return this.client.delete<AppApiErrorData>(`/api/v1/sales-orders/${id}`, {
-      ...this.withSignal(config),
-    });
   }
 
   /**
@@ -311,7 +313,7 @@ export class SaleOrderService extends BaseService<"saleorder"> {
    * // use `data` safely here
    */
   public saleOrderGetAuditLogs(
-    id: string | number,
+    id: string,
     config?: AppRequestConfig,
   ): CancelablePromise<
     ApiResult<SaleOrderSaleOrderGetAuditLogsResponse, AppApiErrorData>

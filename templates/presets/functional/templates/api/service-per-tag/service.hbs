@@ -34,7 +34,7 @@ import { getBaseUrl } from "../config";
  */
 export async function {{methodName}}(
 {{#each pathParams}}
-  {{safe}}: string | number,
+  {{safe}}: {{{tsType}}},
 {{/each}}
 {{#if hasBody}}
   body: {{typeNamePayload}},

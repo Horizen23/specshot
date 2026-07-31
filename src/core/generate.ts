@@ -238,7 +238,10 @@ export async function generateApi(
           });
         }
       }
-      specificSchemasList = sortSchemasTopologically(specificSchemasList, schemas);
+      specificSchemasList = sortSchemasTopologically(
+        specificSchemasList,
+        schemas,
+      );
     }
 
     const typeNames: string[] = [];
@@ -327,11 +330,19 @@ export async function generateApi(
       }
 
       let configType = "AppRequestConfig";
-      const pathParamsList: { original: string; safe: string }[] = [];
+      const pathParamsList: {
+        original: string;
+        safe: string;
+        tsType: string;
+      }[] = [];
       if (op.hasPathParams) {
         const params = (op.parameters || []).filter((p) => p.in === "path");
         for (const p of params) {
-          pathParamsList.push({ original: p.name, safe: toCamelCase(p.name) });
+          pathParamsList.push({
+            original: p.name,
+            safe: toCamelCase(p.name),
+            tsType: schemaToTsType(p.schema),
+          });
         }
       }
       if (op.hasQuery) configType = `Omit<AppRequestConfig, "params">`;
